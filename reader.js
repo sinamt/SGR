@@ -1,0 +1,3 @@
+(function($) {
+  $.sgr.run();
+})(jQuery);

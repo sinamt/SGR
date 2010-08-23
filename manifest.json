@@ -1,0 +1,25 @@
+{
+  "name": "Super Google Reader",
+  "version": "1.0",
+  "description": "Super Google Reader, full feed content for Google Reader.",
+  "permissions": [
+    "http://*/*", 
+    "https://*/*",
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://www.google.com/reader/*"],
+      "js": ["jquery.js", "debug.js", "storage.js", "readability.js", "readability_sgr.js", "sgr.js", "reader.js"],
+      "all_frames": true
+    }
+,
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["jquery.js", "debug.js", "storage.js", "sgr.js", "iframe.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "background_page": "background.html"
+}
