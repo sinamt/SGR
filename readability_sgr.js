@@ -2,7 +2,7 @@
 readability.strip_tags_with_closing = ['head', 'script', 'style', 'button', 'select', 'iframe'];
 readability.strip_tags_no_closing = ['meta', 'input', 'hr', 'link'];
 
-readability.attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas'];
+readability.attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas', 'svg', 'header', 'hgroup', 'nav', 'section', 'article', 'aside', 'footer'];
 
 readability.sgr_keep_attributes = {
           'a'          : ['href', 'title'],
@@ -108,12 +108,6 @@ readability['sgrPostProcess'] = function(content, entry_url) {
           _el.attr(attrib.name, $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
         }
 
-        // If the attribute is sgr-src, replace the src attribute with the value of sgr-src
-        //
-        //if (attrib.name == 'sgr-src') {
-          //_el.attr('src', _el.attr(attrib.name));
-          //debug("src set to " +  _el.attr("src"));
-        //}
         //debug(attrib.value);
       }
     });

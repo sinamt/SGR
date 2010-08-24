@@ -72,9 +72,10 @@
 
   $.sgr.initUserId = function() {
     $("head script").each(function(){
-      var user_id = this.innerHTML.match(/_USER_ID = "(.*?)"/)[1];
-      if (user_id != null) {
-        $.sgr.USER_ID = user_id;
+      var user_id_matches = this.innerHTML.match(/_USER_ID = "(.*?)"/);
+      if (user_id_matches != null) {
+        $.sgr.USER_ID = user_id_matches[1];
+        return;
       }
     });
   }
@@ -125,7 +126,7 @@
   //
   $.sgr.setGlobalSetting = function(setting_name,value) {
     var key = $.sgr.getSettingName(setting_name, 'global');
-    //debug("setGlobalSetting() : " + key + " = " + value);
+    debug("setGlobalSetting() : " + key + " = " + value);
     $.stor.set(key, value);
     $.sgr._settings[key] = value;
   }
@@ -291,11 +292,19 @@
 
   $.sgr.receiveRequest = function(request, sender, sendResponse) {  
     debug("reader.js: receiveRequest() called. request.action: " + request.action);
+
+    // Iframe window height
+    //
     if (request.action == 'set_window_height') {
       debug("reader.js: request.window_height=" + request.window_height);
       sendResponse({_msg: "reader.js received window height " + request.window_height});
       $.sgr.setIframeWindowHeight($('#sgr_preview'), request.window_height);
 
+    // Global setting change from settings iframe
+    //
+    } else if (request.action == 'global_setting_change') {
+      $.sgr.globalSettingChange(request);
+      sendResponse({});
     } else {
       sendResponse({}); // snub them.
     } 
@@ -467,6 +476,22 @@
       $("#" + gs_id).removeAttr('checked');
     }
 
+    $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value});
+  }
+
+  $.sgr.globalSettingChange = function(data) {
+
+    // Set the changed setting value to reflect changes done in the settings iframe
+    //
+    $.sgr.setGlobalSetting(data.setting_name, data.setting_value);
+
+    //debug("data.setting_name = " + data.setting_name + ", data.setting_value = " + data.setting_value);
+
+    if (data.setting_name == 'url_in_subject') {
+      $.sgr.toggleHostnameInSubjects();
+    } else if (data.setting_name == 'hide_likers') {
+      $.sgr.toggleEntryLikers();
+    }
   }
 
   // Main setup for previewing entries in iframes. Sets up appropriate listeners.
@@ -677,47 +702,6 @@
 
     });
 
-    // 'Back to Google reader' settings close live click event (settings iframe will have a class adjusted)
-    // 
-/*
-// FIXME need to inject the hide_likers CSS when global setting changes in settings iframe
-    $("#settings-frame").live('DOMAttrModified', function(ev){
-
-      // If the settings iframe is being hidden after being shown,
-      // look for changes to hide_likers and then reload the $.sgr.settings 
-      // array because settings may have been updated.
-      //
-      if (!$(ev.target).hasClass("loaded") && ev.attrName === 'class') {
-
-        // Note: The $.sgr.settings container has the *previous* values for global settings
-        // in it at this point. This is because the settings were changed in an iframe, and 
-        // not in the parent. This allows us to compare $.sgr.settings values to the GM_getvalue()
-        // equivalent to find settings that have changed and then take appropriate action.
-        //
-
-        // If hide_likers is being disabled, show all entry likers
-        //
-        if ($.sgr.getSetting('hide_likers') ) {
-          debug("previous global_hide_likers is true, new is false");
-          $.sgr.addStyles(' .entry-likers { display: ""; }');
-          $(".entry-likers").css('display','');
-
-        // If hide_likers is being enabled, hide all entry likers
-        //
-        } else if (!$.sgr.getSetting('hide_likers') ) {
-          debug("previous global_hide_likers is false, new is true");
-          $.sgr.addStyles(' .entry-likers { display: none; }');
-          $(".entry-likers").css('display','none');
-        }
-
-        // Re-initialise the settings container values so they pickup changes done in the settings iframe
-        //
-        $.sgr.initSettings();
-
-      }
-    });
-*/
-
     if (chrome) {
       // Chrome listener for background messages
       //
@@ -837,9 +821,11 @@
   // Add entry hostnames to all available entries
   //
   $.sgr.addHostnameToSubjects = function() {
-    $(".entry").each(function(){
-      $.sgr.addHostnameToSubject($(this), '.entry-title');
-    });
+    if ($.sgr.getSetting('url_in_subject')) {
+      $(".entry").each(function(){
+        $.sgr.addHostnameToSubject($(this), '.entry-title');
+      });
+    }
   }
 
   // Remove the hostname from entry subjects if it exists
@@ -872,6 +858,31 @@
       url_match = url_match + "/";
     }
     return url_match;
+  }
+
+  $.sgr.toggleHostnameInSubjects = function() {
+    if ($.sgr.getSetting('url_in_subject')) {
+      $.sgr.addHostnameToSubjects();
+    } else {
+      $.sgr.removeHostnameFromSubjects();
+    }
+  }
+
+  $.sgr.toggleEntryLikers = function() {
+    // If hide_likers is enabled, hide all entry likers
+    //
+    if ($.sgr.getSetting('hide_likers')) {
+      debug("hiding entry-likers");
+      $.sgr.addStyles(' .entry-likers { display: none; }');
+      $(".entry-likers").css('display','none');
+
+    // If hide_likers is disabled, show all entry likers
+    //
+    } else {
+      debug("showing entry-likers");
+      $.sgr.addStyles(' .entry-likers { display: block; }');
+      $(".entry-likers").css('display','block');
+    }
   }
 
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {

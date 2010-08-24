@@ -13,10 +13,15 @@
   chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse) {
       debug("background.js : received request, request.action = " +request.action);
+
+      // Iframe window height
+      //
       if (request.action == 'window_height') {
         sendResponse({_msg: "action " + request.action + ", window height " + request.window_height});
         $.sgr.sendToCurrentTab({action: 'set_window_height', window_height: request.window_height});
 
+      // Fetch readable content
+      //
       } else if (request.action == 'readability_fetch') {
         //sendResponse({_msg: "action : " + request.action});
 
@@ -38,6 +43,10 @@
           $.sgr.fetchReadableContent(request.readability_url, sendResponse, sendResponse, request.extra_data);
         }
 
+      // Global setting change from settings iframe
+      //
+      } else if (request.action == 'global_setting_change') {
+        $.sgr.sendToCurrentTab({action: 'global_setting_change', setting_name: request.setting_name, setting_value: request.setting_value});
       } else {
         sendResponse({}); // snub them.
       }
