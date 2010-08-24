@@ -41,9 +41,16 @@
   //
   $.sgr.entry_original_content = '';
 
+  // Google Reader _USER_ID value
+  //
+  $.sgr.USER_ID = null;
+
   // Load default global settings.
   //
   $.sgr.initSettings = function() {
+
+    $.sgr.initUserId();
+
     // Set the defaults for global settings
     //
     var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: true};
@@ -61,6 +68,15 @@
       $.sgr.setGlobalSetting('use_iframes',false);
       $.sgr.setGlobalSetting('use_readability',false);
     }
+  }
+
+  $.sgr.initUserId = function() {
+    $("head script").each(function(){
+      var user_id = this.innerHTML.match(/_USER_ID = "(.*?)"/)[1];
+      if (user_id != null) {
+        $.sgr.USER_ID = user_id;
+      }
+    });
   }
 
   // Helper function to add global CSS styles to the page head
@@ -95,7 +111,7 @@
   // Set a setting value per feed or folder. Store it in localStorage.
   //
   $.sgr.setLocalSetting = function(setting_name,value) {
-    var key = $.sgr.getSettingVarName(setting_name);
+    var key = $.sgr.getSettingName(setting_name, 'local');
     if (key == false) {
       return false;
     }
@@ -108,7 +124,7 @@
   // Set a global setting value. Store it in localStorage.
   //
   $.sgr.setGlobalSetting = function(setting_name,value) {
-    var key = "global_" + setting_name;
+    var key = $.sgr.getSettingName(setting_name, 'global');
     //debug("setGlobalSetting() : " + key + " = " + value);
     $.stor.set(key, value);
     $.sgr._settings[key] = value;
@@ -117,7 +133,10 @@
   // Fetch a per feed or folder setting value from localStorage.
   //
   $.sgr.getLocalSetting = function(setting_name) {
-    var key = $.sgr.getSettingVarName(setting_name);
+    var key = $.sgr.getSettingName(setting_name, 'local');
+    if (key == null) {
+      return null;
+    }
     var value = $.sgr._settings[key];
     if (value == null) {
       //debug("no $.sgr._settings[key] found for " + key);
@@ -131,7 +150,7 @@
   // Fetch a global setting value from localStorage.
   //
   $.sgr.getGlobalSetting = function(setting_name) {
-    var key = "global_" + setting_name;
+    var key = $.sgr.getSettingName(setting_name, 'global');
     var value = $.sgr._settings[key];
     if (value == null) {
       //debug("no $.sgr._settings[key] found for " + key);
@@ -152,12 +171,27 @@
 
   // Get a setting name, namespaced to the currently selected feed or folder
   //
-  $.sgr.getSettingVarName = function(setting_name) {
+  $.sgr.getLocalSettingName = function(setting_name) {
     var feed = $.sgr.getCurrentFeedName();
     if (typeof feed == 'undefined') {
       return false;
     }
     return "setting_" + setting_name + "_" + feed;
+  }
+
+  $.sgr.getSettingName = function(setting_name, setting_type) {
+    var _setting_name = false;
+    if (setting_type == 'local') {
+      _setting_name = $.sgr.getLocalSettingName(setting_name);
+    } else if (setting_type == 'global') {
+      _setting_name = 'global_' + setting_name;
+    }
+
+    if (_setting_name == false || $.sgr.USER_ID == null) {
+      return null;
+    }
+
+    return $.sgr.USER_ID + "_" + _setting_name;
   }
 
   // Initialise global page CSS styles
@@ -705,10 +739,11 @@
 
         if (response.action == 'readability_content') {
           //debug("reader.js: request.readability_content=" + request.readability_content);
-debug("response=");
-debug(response);
+          //debug("response=");
+          //debug(response);
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
             $(".expanded .entry-body").html(response.readability_content);
+            $.sgr.postProcessReadabilityFetchRequest($(".expanded .entry-body"));
           }
 
         } else if (response.action == 'readability_error_use_original_content') {
@@ -722,10 +757,18 @@ debug(response);
   }
 
   $.sgr.sendReadabilityFetchRequest = function(entry, extra_data) {
-    var entry_url = $.sgr.getEntryUrl(entry);
-    if ($.stor.get($.sgr.getReadabilityContentStorageKey(entry_url)) == null) {
-      $.sgr.sendRequest({action: 'readability_fetch', readability_url: entry_url, extra_data: extra_data});
-    }
+    extra_data = $.extend(extra_data, {user_id: $.sgr.USER_ID});
+    $.sgr.sendRequest({action: 'readability_fetch', readability_url: $.sgr.getEntryUrl(entry), extra_data: extra_data});
+  }
+
+  $.sgr.postProcessReadabilityFetchRequest = function(entry_body) {
+    // Find any img elements with an sgr-src attribute and replace the src value if it doesnt match sgr-src
+    //
+    entry_body.find("img[sgr-src]").each(function() {
+      if ($(this).attr('src') != $(this).attr('sgr-src')) {
+        $(this).attr('src', $(this).attr('sgr-src'));
+      }
+    });
   }
 
   // Main setup for Google Reader Settings iframe. Initialises listeners and injects settings
@@ -818,7 +861,12 @@ debug(response);
   }
 
   $.sgr.getBaseUrlWithPath = function(url) {
-    var url_match = url.match(/(.*?:\/\/[^\/]*?(\/.*\/|\/$|$))/)[1];
+    try {
+      var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
+    } catch(e) {
+      console.log("Error running getBaseUrlWidth() for url " + url + ".");
+      return null;
+    }
     //debug("url match: url=" + url + ", url_match=" + url_match);
     if (url_match[url_match.length-1] != "/") {
       url_match = url_match + "/";
@@ -833,11 +881,13 @@ debug(response);
       data: {},
       success: function(responseHtml) {
 
-        console.log(responseHtml);
+        //console.log(responseHtml);
 
         var page = document.createElement("DIV");
         //page.innerHTML = responseHtml;
         page.innerHTML = readability.sgrInit(responseHtml);
+        debug("page.innerHTML=");
+        debug(page.innerHTML);
         //$(page).html(readability.sgrInit(responseHtml));
 //return false;
 
@@ -845,6 +895,7 @@ debug(response);
 
         try {
           var content = readability.grabArticle(page);
+        console.log(content.innerHTML);
           readability.removeScripts(content);
           readability.fixImageFloats(content);
 
@@ -854,21 +905,20 @@ debug(response);
           failure_callback(return_data);
           return false;
         }
+        console.log(content.innerHTML);
         content = readability.sgrPostProcess(content, url);
 
         console.log(content);
-        $.stor.set($.sgr.getReadabilityContentStorageKey(url), content);
+        $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content);
 
         var return_data = $.extend({action: 'readability_content', readability_content: content}, extra_return_data);
-debug(extra_return_data);
-debug(return_data);
         success_callback(return_data);
       }
     });
   }
 
-  $.sgr.getReadabilityContentStorageKey = function(url) {
-    return "ra_url_" + url.replace(/[^a-zA-Z0-9]+/g,'_');
+  $.sgr.getReadabilityContentStorageKey = function(url, user_id) {
+    return (user_id == null ? $.sgr.USER_ID : user_id) + "_ra_url_" + url.replace(/[^a-zA-Z0-9]+/g,'_');
   }
 
   $.sgr.preFetchReadableEntry = function(entry) {
@@ -946,6 +996,14 @@ debug(return_data);
 
     $.sgr.initSettingsWindow();
 
+/*
+var html = '<p>some text <img class="dsfg" src="/images/blah2.gif" id="dsgdsg"></p>';
+html = html.replace(/<img.*?src=("|')(.*?)("|')/gi, '<img src="" sgr-src="$2"');
+debug(html);
+var page = document.createElement("DIV");
+page.innerHTML = html;
+debug(page.innerHTML);
+*/
   }
 
 })(jQuery);

@@ -20,7 +20,7 @@
       } else if (request.action == 'readability_fetch') {
         //sendResponse({_msg: "action : " + request.action});
 
-        var stor_url_key = $.sgr.getReadabilityContentStorageKey(request.readability_url);
+        var stor_url_key = $.sgr.getReadabilityContentStorageKey(request.readability_url, request.extra_data.user_id);
         var stored_content = $.stor.get(stor_url_key);
 
         // Use cached content if it exists
@@ -35,8 +35,6 @@
           sendResponse({action: 'readability_content', readability_content: content});
 
         } else {
-debug("request.extra_data=");
-debug(request.extra_data);
           $.sgr.fetchReadableContent(request.readability_url, sendResponse, sendResponse, request.extra_data);
         }
 

@@ -11,7 +11,7 @@ var dbg = (typeof console !== 'undefined') ? function(s) {
  *
  * Copyright (c) 2010 Arc90 Inc
  * Readability is licensed under the Apache License, Version 2.0.
- * @version r161
+ * @version r162
 **/
 var readability = {
     version:                '1.7.1',
@@ -976,7 +976,9 @@ var readability = {
             {
                 scripts[i].nodeValue="";
                 scripts[i].removeAttribute('src');
-                scripts[i].parentNode.removeChild(scripts[i]);          
+                if (scripts[i].parentNode) {
+                  scripts[i].parentNode.removeChild(scripts[i]);          
+                }
             }
         }
     },

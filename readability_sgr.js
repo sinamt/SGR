@@ -2,9 +2,11 @@
 readability.strip_tags_with_closing = ['head', 'script', 'style', 'button', 'select', 'iframe'];
 readability.strip_tags_no_closing = ['meta', 'input', 'hr', 'link'];
 
+readability.attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas'];
+
 readability.sgr_keep_attributes = {
           'a'          : ['href', 'title'],
-          'img'        : ['alt', 'src', 'title'],
+          'img'        : ['alt', 'src', 'title', 'sgr-src'],
           'table'      : ['cellpadding', 'cellspacing', 'border'],
           'object'     : '__ALL__',
           'embed'      : '__ALL__',
@@ -22,20 +24,17 @@ readability['sgrInit'] = function(content) {
 
   $.each(readability.strip_tags_with_closing, function(){
     var regex = new RegExp("<" + this + ".*?>.*?<\\/" + this + ">", "gi");
-//debug(regex);
     content = content.replace(regex,'');
   });
-//debug(content);
 
   $.each(readability.strip_tags_no_closing, function(){
     var regex = new RegExp("<" + this + ".*?>", "gi");
-//debug(regex);
     content = content.replace(regex,'');
   });
-//debug(content);
 
   return content.
         replace(/<!--.*?-->/gi, '').
+        replace(/<img.*?src=("|')(.*?)("|')/gi, '<img src="" sgr-src="$2"').
         replace(/\uffff/g,'\n').
         replace(/<(\/?)noscript/gi, '<$1div').
         replace(readability.regexps.replaceBrs, '</p><p>').
@@ -51,8 +50,22 @@ readability['sgrPostProcess'] = function(content, entry_url) {
   // Loop each HTML element
   //
   jq_content.find("*").each(function(i, el) {
-    var _el = this;
+    try {
+      var _el = $(this);
+    } catch(e) {
+      debug("sgrPostProcess: jQuery unable to parse " + el.tagName +". Skipping it.");
+      return;
+    }
     var remove_attrs = [];
+
+    var el_name = el.tagName.toLowerCase();
+
+    if (jQuery.inArray(el_name, readability.attribute_whitelist) <= -1) {
+      debug("sgrPostProcess: replacing non-whitelist element " + el.tagName );
+      _el.replaceWith("<span>" + _el.text() + "</span>");
+      //remove_els.push(el);
+      return;
+    }
 
     // Loop each HTML element's attributes
     //
@@ -60,7 +73,6 @@ readability['sgrPostProcess'] = function(content, entry_url) {
       if (typeof attrib == 'undefined') {
         return;
       }
-      var el_name = el.tagName.toLowerCase();
       var el_attr_keep = readability.sgr_keep_attributes[el_name];
 
       // @TODO whitelist support for specific style params
@@ -73,22 +85,35 @@ readability['sgrPostProcess'] = function(content, entry_url) {
 
       // If the attribute is a relative href or src value, make it absolute
       //
-      } else if ($.inArray(attrib.name,["href", "src"]) > -1) {
+      } else if ($.inArray(attrib.name,["href", "sgr-src", "src"]) > -1) {
         //debug(attrib.value);
 
+        try {
+          _el.attr(attrib.name);
+        } catch(e) {
+          debug("sgrPostProcess: jQuery unable to parse " + el.tagName +".attr(" + attrib.name + "). Skipping it.");
+          return;
+        }
         // If href or src is a javascript call, remove it
         //
         if (attrib.value.match(/^javascript/ig)) {
-          $(_el).attr(attrib.name, "");
+          _el.attr(attrib.name, "");
 
         } else if (attrib.value[0] == "/") {
           debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrl(entry_url) + attrib.value);
-          $(_el).attr(attrib.name, $.sgr.getBaseUrl(entry_url) + attrib.value);
+          _el.attr(attrib.name, $.sgr.getBaseUrl(entry_url) + attrib.value);
 
-        } else if (attrib.name == 'src' && attrib.value.substr(0,4) != "http") {
+        } else if ($.inArray(attrib.name,["sgr-src", "src"]) > -1 && attrib.value.length > 0 && attrib.value.substr(0,4) != "http") {
           debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
-          $(_el).attr(attrib.name, $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
+          _el.attr(attrib.name, $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
         }
+
+        // If the attribute is sgr-src, replace the src attribute with the value of sgr-src
+        //
+        //if (attrib.name == 'sgr-src') {
+          //_el.attr('src', _el.attr(attrib.name));
+          //debug("src set to " +  _el.attr("src"));
+        //}
         //debug(attrib.value);
       }
     });
@@ -96,8 +121,8 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     // Remove any attributes not whitelisted
     //
     for (var k = 0; k < remove_attrs.length; k++) {
-      //debug("ATTR: Removing " + remove_attrs[k] + " from " + _el.tagName);
-      $(_el).removeAttr(remove_attrs[k]);
+      //debug("ATTR: Removing " + remove_attrs[k] + " from " + _el.get(0).tagName);
+      _el.removeAttr(remove_attrs[k]);
     }
   });
 
