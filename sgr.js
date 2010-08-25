@@ -436,10 +436,10 @@
   //
 //(<r><![CDATA[
   $.sgr.initSettingsNavigation = function() {
-    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="checkbox" id="setting-global-use-iframes"> Default to open all entries as previews (iframes) </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry </label> </div> </div> </li>');
+    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes) </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry </label> </div> </div> </li>');
 //]]></r>).toString());
 
-    var global_settings = ['use_iframes', 'url_in_subject', 'hide_likers'];
+    var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers'];
 
     // Loop the possible global settings and set the checkboxs to appropriate initial values
     // based on the user's current global setting values. Also initialise a click event
@@ -476,6 +476,18 @@
       $("#" + gs_id).removeAttr('checked');
     }
 
+    // Special case for use_iframes / use_readability. If either is being enabled, make sure the opposite is disabled
+    //
+    if (gs_value) {
+      if (gs_name == 'use_iframes') {
+        $.sgr.setGlobalSetting('use_readability',false);
+        $.sgr.sendRequest({action: 'global_setting_change', setting_name: 'use_readability', setting_value: false});
+      } else if (gs_name == 'use_readability') {
+        $.sgr.setGlobalSetting('use_iframes',false);
+        $.sgr.sendRequest({action: 'global_setting_change', setting_name: 'use_iframes', setting_value: false});
+      }
+    }
+
     $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value});
   }
 
@@ -507,7 +519,7 @@
 
     // Add the entry hostname to entry subjects (if enabled)
     //
-    //$.sgr.addHostnameToSubjects();
+    $.sgr.toggleHostnameInSubjects();
 
     // Note: We try to setup live events on the entire div#entries area where possible. 
     // This keeps the amount of live events to a minimum.
@@ -670,19 +682,17 @@
 
       // Special case for mutually exclusive use_iframes / use_readability
       //
-      if (setting_name == 'use_iframes') {
-        $.sgr.setLocalSetting('use_readability', !setting_value);
-        if (setting_value) {
-          $("#menu_use_readability").removeClass("goog-option-selected");
-        } else {
-          $("#menu_use_readability").addClass("goog-option-selected");
-        }
-      } else if (setting_name == 'use_readability') {
-        $.sgr.setLocalSetting('use_iframes', !setting_value);
-        if (setting_value) {
-          $("#menu_use_iframes").removeClass("goog-option-selected");
-        } else {
-          $("#menu_use_iframes").addClass("goog-option-selected");
+      if (setting_value) {
+        if (setting_name == 'use_iframes') {
+          $.sgr.setLocalSetting('use_readability', !setting_value);
+          if (setting_value) {
+            $("#menu_use_readability").removeClass("goog-option-selected");
+          }
+        } else if (setting_name == 'use_readability') {
+          $.sgr.setLocalSetting('use_iframes', !setting_value);
+          if (setting_value) {
+            $("#menu_use_iframes").removeClass("goog-option-selected");
+          }
         }
       }
 
@@ -906,17 +916,20 @@
 
         try {
           var content = readability.grabArticle(page);
-        console.log(content.innerHTML);
+
+          if (content == null) {
+            throw new Error("Readability found no valid content.");
+          }
           readability.removeScripts(content);
           readability.fixImageFloats(content);
 
         } catch(e) {
-          console.log("Error running readability. Using original article content.");
+          debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
           var return_data = $.extend({action: 'readability_error_use_original_content'}, extra_return_data);
           failure_callback(return_data);
           return false;
         }
-        console.log(content.innerHTML);
+        //console.log(content.innerHTML);
         content = readability.sgrPostProcess(content, url);
 
         console.log(content);

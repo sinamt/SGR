@@ -844,7 +844,9 @@ var readability = {
             articleContent.id     = "readability-content";
         }
         var siblingScoreThreshold = Math.max(10, topCandidate.readability.contentScore * 0.2);
-        var siblingNodes          = topCandidate.parentNode.childNodes;
+        //var siblingNodes          = topCandidate.parentNode.childNodes;
+        // SGR : fix to handle possible missing topCandidate.parentNode
+        var siblingNodes          = topCandidate.parentNode ? topCandidate.parentNode.childNodes : [];
 
 
         for(var s=0, sl=siblingNodes.length; s < sl; s++) {
