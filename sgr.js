@@ -45,6 +45,10 @@
   //
   $.sgr.USER_ID = null;
 
+  // Date & time of last removal of goog-menu
+  //
+  $.sgr.goog_menu_removed_date = new Date();
+
   // Load default global settings.
   //
   $.sgr.initSettings = function() {
@@ -712,6 +716,19 @@
 
     });
 
+    // Capture node removal from the dropdown feed/folder setting menu
+    //
+    $("#stream-prefs-menu-menu").live('DOMNodeRemoved', function(ev){
+//debug("menu DOMNodeRemoved : " + ev.target.tagName);
+      var now = new Date();
+//debug(now.getTime() - $.sgr.goog_menu_removed_date.getTime());
+      if (100 < (now.getTime() - $.sgr.goog_menu_removed_date.getTime()) && $(ev.target).hasClass("goog-option")) {
+        $.sgr.goog_menu_removed_date = new Date();
+        //debug("goog-option being removed");
+        setTimeout(function(){$("#stream-prefs-menu-menu .sgr-menuitem").remove()},20);
+      }
+    });
+
     if (chrome) {
       // Chrome listener for background messages
       //
@@ -729,7 +746,7 @@
   $.sgr.sendRequest = function(data) {
     if (chrome) {
       chrome.extension.sendRequest(data, function(response) {
-        console.log("sgr.js : response from sendRequest() : " + response._msg);
+        console.log("sgr.js: " + response.action + " - " + response._msg);
 
         if (response.action == 'readability_content') {
           //debug("reader.js: request.readability_content=" + request.readability_content);
@@ -925,7 +942,8 @@
 
         } catch(e) {
           debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
-          var return_data = $.extend({action: 'readability_error_use_original_content'}, extra_return_data);
+          $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none");
+          var return_data = $.extend({action: 'readability_error_use_original_content', _msg: "No content found for " + url}, extra_return_data);
           failure_callback(return_data);
           return false;
         }
@@ -935,7 +953,7 @@
         console.log(content);
         $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content);
 
-        var return_data = $.extend({action: 'readability_content', readability_content: content}, extra_return_data);
+        var return_data = $.extend({action: 'readability_content', readability_content: content, _msg: (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + "Content fetched for " + url}, extra_return_data);
         success_callback(return_data);
       }
     });

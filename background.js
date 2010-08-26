@@ -30,14 +30,17 @@
 
         // Use cached content if it exists
         //
-        if (stored_content !== null && stored_content.length > 0) {
-          sendResponse({action: 'readability_content', readability_content: stored_content});
+        if (stored_content !== null && stored_content.length > 0 && stored_content != 'none') {
+          sendResponse($.extend({action: 'readability_content', readability_content: stored_content, _msg: (request.extra_data.pre_fetch ? "[PRE-FETCH] " : "") + "Cached content found for " + request.readability_url},request.extra_data));
 
         // PDF, PPT in Google Docs
         //
         } else if ($.sgr.matchUrlExtension(request.readability_url, ['pdf', 'ppt'])) {
           var content = '<iframe id="google_doc_iframe" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="http://docs.google.com/gview?embedded=true&url=' + request.readability_url + '" class=""></iframe>';
-          sendResponse({action: 'readability_content', readability_content: content});
+          sendResponse($.extend({action: 'readability_content', readability_content: content, _msg: "Google docs content found for " + request.readability_url},request.extra_data));
+
+        } else if (stored_content == 'none') {
+          sendResponse($.extend({action: 'readability_error_use_original_content', _msg: "No content found (cached) for " + request.readability_url},request.extra_data));
 
         } else {
           $.sgr.fetchReadableContent(request.readability_url, sendResponse, sendResponse, request.extra_data);
