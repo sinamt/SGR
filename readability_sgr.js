@@ -2,7 +2,7 @@
 readability.strip_tags_with_closing = ['head', 'script', 'style', 'button', 'select', 'iframe'];
 readability.strip_tags_no_closing = ['meta', 'input', 'hr', 'link'];
 
-readability.attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas', 'svg', 'header', 'hgroup', 'nav', 'section', 'article', 'aside', 'footer'];
+readability.attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas', 'svg', 'header', 'hgroup', 'nav', 'section', 'article', 'aside', 'footer', 'source'];
 
 readability.sgr_keep_attributes = {
           'a'          : ['href', 'title'],
@@ -13,6 +13,7 @@ readability.sgr_keep_attributes = {
           'param'      : '__ALL__',
           'video'      : '__ALL__',
           'audio'      : '__ALL__',
+          'source'     : '__ALL__',
           'area'       : ['alt', 'shape', 'coords', 'href']
 }
 
@@ -103,7 +104,7 @@ readability['sgrPostProcess'] = function(content, entry_url) {
           debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrl(entry_url) + attrib.value);
           _el.attr(attrib.name, $.sgr.getBaseUrl(entry_url) + attrib.value);
 
-        } else if ($.inArray(attrib.name,["sgr-src", "src"]) > -1 && attrib.value.length > 0 && attrib.value.substr(0,4) != "http") {
+        } else if (attrib.value.length > 0 && attrib.value.substr(0,4) != "http") {
           debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
           _el.attr(attrib.name, $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
         }

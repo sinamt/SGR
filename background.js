@@ -9,7 +9,6 @@
   });
 */
 
-
   chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse) {
       debug("background.js : received request, request.action = " +request.action);

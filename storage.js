@@ -20,12 +20,16 @@
     try {
       //debug("Inside setItem:" + key );
       if ($.stor.hasLocalStorage()) {
-        window.localStorage.removeItem(key);
+        //window.localStorage.removeItem(key);
         window.localStorage.setItem(key, JSON.stringify(value));
       }
     }catch(e) {
       debug("Error inside setItem");
       debug(e);
+      if (e.name == "QUOTA_EXCEEDED_ERR") {
+        $.stor.clear();
+        window.localStorage.setItem(key, JSON.stringify(value));
+      }
     }
     //debug("Return from setItem" + key);
   }
@@ -61,4 +65,16 @@
     debug('cleared');
   }
 
+  $.stor.cleanup = function() {
+    if ($.stor.hasLocalStorage()) {
+      debug("localStorage has " + localStorage.length + " items stored");
+      for (var i=0; i < localStorage.length; i++) {
+        //console.log(localStorage.key(i));
+      }
+
+      //$.each(localStorage,function(key, value) {
+        //debug(key);
+      //});
+    }
+  }
 //$.stor.clear();
