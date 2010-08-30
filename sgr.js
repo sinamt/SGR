@@ -451,7 +451,6 @@
       entry.addClass("readable");
       $.sgr.addHostnameToSubject(entry, '.entry-title');
       var entry_body = entry.find(".entry-body");
-      $.sgr.entry_original_content = entry_body.html();
       entry_body.html("<p>Loading...</p>");
 
       $.sgr.sendReadabilityFetchRequest(entry);
@@ -569,6 +568,8 @@
 
         $.sgr.removePreview($(".preview"));
 
+        $.sgr.setEntryOriginalContent(entry.find(".entry-body").html());
+
         // If it has the class 'expanded' but doesnt anymore, try to save any iframe.preview that exists
         //
         //if (ev.prevValue.match(/expanded/) && !ev.newValue.match(/expanded/)) {
@@ -609,7 +610,7 @@
           // Show the preview iframe
           //
           if ($.sgr.getSetting('use_iframes')) {
-            $.sgr.togglePreview($(ev_target).closest(".entry")); 
+            $.sgr.togglePreview(entry);
 
           // Fetch the article content and parse through readability
           //
@@ -766,6 +767,10 @@
           $.sgr.showPreview(entry); 
         }
       } else if (tab.hasClass("sgr-tab-feed")) {
+        if (entry.hasClass("preview") || entry.hasClass("readable")) {
+          entry.removeClass("preview").removeClass("readable");
+          $.sgr.useEntryOriginalContent();
+        }
       }
     });
 
@@ -799,7 +804,7 @@
 
         } else if (response.action == 'readability_error_use_original_content') {
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
-            $(".expanded .entry-body").html($.sgr.entry_original_content);
+            $.sgr.useEntryOriginalContent();
           }
         }
 
@@ -820,6 +825,14 @@
         $(this).attr('src', $(this).attr('sgr-src'));
       }
     });
+  }
+
+  $.sgr.setEntryOriginalContent = function(html) {
+    $.sgr.entry_original_content = html;
+  }
+
+  $.sgr.useEntryOriginalContent = function() {
+    $(".expanded .entry-body").html($.sgr.entry_original_content);
   }
 
   // Main setup for Google Reader Settings iframe. Initialises listeners and injects settings
@@ -992,6 +1005,7 @@
           failure_callback(return_data);
           return false;
         }
+        //console.log("content.innerHTML before sgrPostProcess:");
         //console.log(content.innerHTML);
         content = readability.sgrPostProcess(content, url);
 
