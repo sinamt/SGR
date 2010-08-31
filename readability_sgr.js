@@ -1,8 +1,8 @@
 
-readability.strip_tags_with_closing = ['head', 'script', 'style', 'button', 'select', 'iframe'];
-readability.strip_tags_no_closing = ['meta', 'input', 'hr', 'link'];
+readability.sgr_strip_tags_with_closing = ['head', 'script', 'style', 'button', 'select', 'iframe'];
+readability.sgr_strip_tags_no_closing = ['meta', 'input', 'hr', 'link'];
 
-readability.attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas', 'svg', 'header', 'hgroup', 'nav', 'section', 'article', 'aside', 'footer', 'source', 'font'];
+readability.sgr_attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas', 'svg', 'header', 'hgroup', 'nav', 'section', 'article', 'aside', 'footer', 'source', 'font'];
 
 readability.sgr_keep_attributes = {
           'a'          : ['href', 'title'],
@@ -17,18 +17,76 @@ readability.sgr_keep_attributes = {
           'area'       : ['alt', 'shape', 'coords', 'href']
 }
 
+readability.sgr_article_title = null;
+
+
+readability['sgrGetArticleTitle'] = function(content) {
+
+  var curTitle = null;
+  var origTitle = null;
+
+  try {
+    curTitle = origTitle = content.match(/<title.*?>(.*?)<\/title>/im)[1];
+  } catch(e) {
+  }
+
+  if (curTitle == null) {
+    debug("readability_sgr : no article title found.");
+    return null;
+  }
+
+  if(curTitle.match(/ [\|\-] /))
+  {
+      curTitle = origTitle.replace(/(.*)[\|\-] .*/gi,'$1');
+      
+      if(curTitle.split(' ').length < 3) {
+          curTitle = origTitle.replace(/[^\|\-]*[\|\-](.*)/gi,'$1');
+      }
+  }
+  else if(curTitle.indexOf(': ') !== -1)
+  {
+      curTitle = origTitle.replace(/.*:(.*)/gi, '$1');
+
+      if(curTitle.split(' ').length < 3) {
+          curTitle = origTitle.replace(/[^:]*[:](.*)/gi,'$1');
+      }
+  }
+  else if(curTitle.length > 150 || curTitle.length < 15)
+  {
+      //var hOnes = page.getElementsByTagName('h1');
+      //if(hOnes.length == 1)
+      //{
+          //curTitle = readability.getInnerText(hOnes[0]);
+      //}
+  }
+
+  curTitle = curTitle.replace( readability.regexps.trim, "" );
+
+  if(curTitle.split(' ').length <= 4) {
+      curTitle = origTitle;
+  }
+
+  if (curTitle.length <= 0) {
+    curTitle = null;
+  }
+
+  return curTitle;
+}
+
 readability['sgrInit'] = function(content) {
 
 //(/<script.*?>.*?<\/script>/gi
 
   content = content.replace(/\n/g,'\uffff');
 
-  $.each(readability.strip_tags_with_closing, function(){
+  readability.sgr_article_title = readability.sgrGetArticleTitle(content);
+
+  $.each(readability.sgr_strip_tags_with_closing, function(){
     var regex = new RegExp("<" + this + ".*?>.*?<\\/" + this + ">", "gi");
     content = content.replace(regex,'');
   });
 
-  $.each(readability.strip_tags_no_closing, function(){
+  $.each(readability.sgr_strip_tags_no_closing, function(){
     var regex = new RegExp("<" + this + ".*?>", "gi");
     content = content.replace(regex,'');
   });
@@ -61,7 +119,7 @@ readability['sgrPostProcess'] = function(content, entry_url) {
 
     var el_name = el.tagName.toLowerCase();
 
-    if (jQuery.inArray(el_name, readability.attribute_whitelist) <= -1) {
+    if (jQuery.inArray(el_name, readability.sgr_attribute_whitelist) <= -1) {
       debug("sgrPostProcess: replacing non-whitelist element " + el.tagName );
       _el.replaceWith("<span>" + _el.text() + "</span>");
       //remove_els.push(el);
@@ -138,6 +196,10 @@ readability['sgrPostProcess'] = function(content, entry_url) {
   });
 */
   //debug(jq_content.html());
+  if (readability.sgr_article_title != null && jq_content.html().length > 0) {
+    debug("readability_sgr : adding title: " + readability.sgr_article_title);
+    jq_content.prepend('<h2 class="sgr-entry-heading">' + readability.sgr_article_title + '</h2>');
+  }
   return jq_content.html();
 }
 
