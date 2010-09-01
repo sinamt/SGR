@@ -28,6 +28,7 @@ readability['sgrGetArticleTitle'] = function(content) {
   try {
     curTitle = origTitle = content.match(/<title.*?>(.*?)<\/title>/im)[1];
   } catch(e) {
+    debug("Title match error. " + e.name + ": " + e.message);
   }
 
   if (curTitle == null) {
@@ -92,7 +93,7 @@ readability['sgrInit'] = function(content) {
   });
 
   return content.
-        replace(/<!--.*?-->/gi, '').
+        replace(/<!--.*?-->/gmi, '').
         replace(/<img.*?src=("|')(.*?)("|')/gi, '<img src="" sgr-src="$2"').
         replace(/\uffff/g,'\n').
         replace(/<(\/?)noscript/gi, '<$1div').

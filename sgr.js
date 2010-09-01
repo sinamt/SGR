@@ -103,7 +103,7 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; left: 680px; } .sgr-entry-tab {padding: 3px; border: 1px solid #68E; border-left: none; border-top-right-radius: 3px; border-bottom-right-radius: 3px;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;}';
 //]]></r>).toString();
 
     // Check if 'Hide likers' is enabled and add appropriate CSS
@@ -654,6 +654,7 @@
 
         $.sgr.removePreview(entry);
         entry.removeClass("readable");
+        $.sgr.removeEntryTabs(entry);
       }
     });
 
@@ -757,18 +758,33 @@
       var tab = $(ev.target);
       var entry = tab.closest(".entry");
 
+      entry.find(".sgr-entry-tabs .selected").removeClass("selected");
+      tab.addClass("selected");
+
+      // Readable
+      //
       if (tab.hasClass("sgr-tab-readable")) {
         if (!entry.hasClass("readable")) {
           $.sgr.savePreview(entry);
           $.sgr.showReadableEntry(entry);
         }
+
+      // Link
+      //
       } else if (tab.hasClass("sgr-tab-link")) {
         if (!entry.hasClass("preview")) {
           $.sgr.showPreview(entry); 
         }
+
+      // Feed
+      //
       } else if (tab.hasClass("sgr-tab-feed")) {
         if (entry.hasClass("preview") || entry.hasClass("readable")) {
-          entry.removeClass("preview").removeClass("readable");
+          if (entry.hasClass("preview")) {
+            $.sgr.savePreview(entry);
+          } else {
+            entry.removeClass("readable");
+          }
           $.sgr.useEntryOriginalContent();
         }
       }
@@ -967,7 +983,12 @@
   }
 
   $.sgr.injectEntryTabs = function(entry) {
-    entry.find(".entry-container .entry-title").after($.sgr.entry_tabs_html);
+    //entry.find(".collapsed .entry-main").append($.sgr.entry_tabs_html);
+    entry.append($.sgr.entry_tabs_html);
+  }
+
+  $.sgr.removeEntryTabs = function(entry) {
+    entry.find(".sgr-entry-tabs").remove();
   }
 
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
