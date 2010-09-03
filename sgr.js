@@ -59,7 +59,7 @@
 
     // Set the defaults for global settings
     //
-    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: true};
+    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: true, entry_tabs: true};
 
     $.each(default_settings, function(key,value) {
       var stored_setting = $.sgr.getGlobalSetting(key);
@@ -103,7 +103,7 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .sgr-prefs-menu-menu {display: none;}';
 //]]></r>).toString();
 
     // Check if 'Hide likers' is enabled and add appropriate CSS
@@ -368,6 +368,8 @@
 
     entry.removeClass("readable").addClass("preview");
 
+    $.sgr.updateSelectedEntryTab(entry);
+
     // If there is already a hidden preview container for this entry, show it
     //
     if (entry.find(".entry-container-preview-hidden").size() > 0) {
@@ -449,7 +451,9 @@
   $.sgr.showReadableEntry = function(entry) {
 
       entry.addClass("readable");
+      $.sgr.updateSelectedEntryTab(entry);
       $.sgr.addHostnameToSubject(entry, '.entry-title');
+
       var entry_body = entry.find(".entry-body");
       entry_body.html("<p>Loading...</p>");
 
@@ -462,10 +466,10 @@
   //
 //(<r><![CDATA[
   $.sgr.initSettingsNavigation = function() {
-    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes) </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry </label> </div> </div> </li>');
+    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\') </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes) </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry </label> <br /> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content</label> </div> </div> </li>');
 //]]></r>).toString());
 
-    var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers'];
+    var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers', 'readability_pre_fetch', 'entry_tabs'];
 
     // Loop the possible global settings and set the checkboxs to appropriate initial values
     // based on the user's current global setting values. Also initialise a click event
@@ -529,6 +533,8 @@
       $.sgr.toggleHostnameInSubjects();
     } else if (data.setting_name == 'hide_likers') {
       $.sgr.toggleEntryLikers();
+    } else if (data.setting_name == 'entry_tabs') {
+      $.sgr.toggleEntryTabs();
     }
   }
 
@@ -546,6 +552,10 @@
     // Add the entry hostname to entry subjects (if enabled)
     //
     $.sgr.toggleHostnameInSubjects();
+
+    // Inject our 'Super settings...' button
+    //
+    $.sgr.initSgrSettingsButton();
 
     // Note: We try to setup live events on the entire div#entries area where possible. 
     // This keeps the amount of live events to a minimum.
@@ -569,6 +579,8 @@
         $.sgr.removePreview($(".preview"));
 
         $.sgr.setEntryOriginalContent(entry.find(".entry-body").html());
+
+        $.sgr.injectEntryTabs(entry);
 
         // If it has the class 'expanded' but doesnt anymore, try to save any iframe.preview that exists
         //
@@ -618,9 +630,9 @@
             $.sgr.showReadableEntry(entry);
           }
 
+        } else {
+          $.sgr.updateSelectedEntryTab(entry);
         }
-
-        $.sgr.injectEntryTabs(entry);
       }
 
       // If this is an .entry node being inserted
@@ -660,32 +672,57 @@
 
     // 'Settings' menu live click event. Inject our own items into the menu.
     //
-    $("#stream-prefs-menu").live('click', function(ev) {
+    $("#sgr-prefs-menu").live('click', function(ev) {
+
+      var ev_target = $(ev.target);
+
       // Remove any existing settings we may have injected
       //
-      $("#stream-prefs-menu-menu .sgr-menuitem").remove();
+      $("#sgr-prefs-menu-menu").remove();
 
+        //'<div class="goog-menu goog-menu-vertical" style="-moz-user-select: none; max-height: 309px; visibility: visible; top: 122px; left: 676.7px; display: none;" role="menu" aria-haspopup="true" tabindex="-1" id="stream-prefs-menu-menu" aria-activedescendant="">' +
       // Inject our settings options
       //
-      $("#stream-prefs-menu-menu .goog-menuseparator:first").before(
+      //$("#stream-prefs-menu-menu .goog-menuseparator:first").before(
+      $("body").append(
+        '<div class="goog-menu goog-menu-vertical" role="menu" aria-haspopup="true" tabindex="-1" id="sgr-prefs-menu-menu" aria-activedescendant="">' +
         $.sgr.getGoogMenuseparatorHtml() + 
         $.sgr.getGoogMenuitemHtml('menu_use_iframes', 'Full entry content', $.sgr.getSetting('use_iframes')) + 
         $.sgr.getGoogMenuitemHtml('menu_use_readability', 'Readable content', $.sgr.getSetting('use_readability')) + 
         $.sgr.getGoogMenuseparatorHtml() + 
         $.sgr.getGoogMenuitemHtml('menu_readability_pre_fetch', 'Pre-fetch readable content', $.sgr.getSetting('readability_pre_fetch')) + 
-        $.sgr.getGoogMenuitemHtml('menu_url_in_subject', 'Show host in subject', $.sgr.getSetting('url_in_subject'))
+        $.sgr.getGoogMenuitemHtml('menu_url_in_subject', 'Show host in subject', $.sgr.getSetting('url_in_subject')) +
+        '</div>'
       );
 
-      // Initialise a hover event for hovering over our settings menu options
-      //
-      $(".sgr-menuitem").hover(
-        function(ev) {
-          $(this).addClass("goog-menuitem-highlight");
-        },
-        function(ev) {
-          $(this).removeClass("goog-menuitem-highlight");
-        }
-      );
+      var offset = $(this).offset();
+
+      // FIXME
+      debug("offset.left = " + offset.left +", offset.top = " + offset.top + ", ev_target.height() = " + ev_target.height());
+      $("#sgr-prefs-menu-menu").css('left', offset.left).css('top', offset.top + ev_target.height()).show();
+      
+    });
+
+    // Initialise a hover event for hovering over our settings menu options
+    //
+    $(".sgr-menuitem").hover(
+      function(ev) {
+        $(this).addClass("goog-menuitem-highlight");
+      },
+      function(ev) {
+        $(this).removeClass("goog-menuitem-highlight");
+      }
+    );
+
+    // Feed/folder header DOMNodeInserted
+    //
+    $("#viewer-top-controls").live('DOMNodeInserted', function(ev){
+      debug("#viewer-top-controls DOMNodeInserted");
+      var ev_target = $(ev.target);
+
+      if (ev_target.attr('id') == "stream-prefs-menu") {
+        $.sgr.initSgrSettingsButton();
+      }
     });
 
     // Feed/folder setting menu option live click event
@@ -758,9 +795,6 @@
       var tab = $(ev.target);
       var entry = tab.closest(".entry");
 
-      entry.find(".sgr-entry-tabs .selected").removeClass("selected");
-      tab.addClass("selected");
-
       // Readable
       //
       if (tab.hasClass("sgr-tab-readable")) {
@@ -785,7 +819,7 @@
           } else {
             entry.removeClass("readable");
           }
-          $.sgr.useEntryOriginalContent();
+          $.sgr.useEntryOriginalContent(entry);
         }
       }
     });
@@ -803,6 +837,26 @@
 
   }
 
+  $.sgr.initSgrSettingsButton = function() {
+    $("#stream-prefs-menu").after($.sgr.getSgrSettingsButtonHtml());
+  }
+
+  $.sgr.updateSelectedEntryTab = function(entry) {
+    //debug("$.sgr.updateSelectedEntryTab()");
+    var tab = null;
+    if (entry.hasClass("preview")) {
+      tab = entry.find(".sgr-tab-link");
+    } else if (entry.hasClass("readable")) {
+      tab = entry.find(".sgr-tab-readable");
+    } else {
+      tab = entry.find(".sgr-tab-feed");
+    }
+    entry.find(".sgr-entry-tabs .selected").removeClass("selected");
+    try {
+      tab.addClass("selected");
+    } catch(e) {}
+  }
+
 
   $.sgr.sendRequest = function(data) {
     if (chrome) {
@@ -814,13 +868,13 @@
           //debug("response=");
           //debug(response);
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
-            $(".expanded .entry-body").html(response.readability_content);
-            $.sgr.postProcessReadabilityFetchRequest($(".expanded .entry-body"));
+            $("#current-entry .entry-body").html(response.readability_content);
+            $.sgr.postProcessReadabilityFetchRequest($("#current-entry .entry-body"));
           }
 
         } else if (response.action == 'readability_error_use_original_content') {
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
-            $.sgr.useEntryOriginalContent();
+            $.sgr.useEntryOriginalContent($("#current-entry"));
           }
         }
 
@@ -847,8 +901,10 @@
     $.sgr.entry_original_content = html;
   }
 
-  $.sgr.useEntryOriginalContent = function() {
-    $(".expanded .entry-body").html($.sgr.entry_original_content);
+  $.sgr.useEntryOriginalContent = function(entry) {
+    entry.removeClass("preview").removeClass("readable");
+    $.sgr.updateSelectedEntryTab(entry);
+    entry.find(".entry-body").html($.sgr.entry_original_content);
   }
 
   // Main setup for Google Reader Settings iframe. Initialises listeners and injects settings
@@ -984,11 +1040,31 @@
 
   $.sgr.injectEntryTabs = function(entry) {
     //entry.find(".collapsed .entry-main").append($.sgr.entry_tabs_html);
-    entry.append($.sgr.entry_tabs_html);
+    if (entry.length <= 0) {
+      return;
+    }
+    if ($.sgr.getSetting('entry_tabs')) {
+      entry.find(".entry-secondary-snippet").hide();
+      entry.append($.sgr.entry_tabs_html);
+    }
   }
 
   $.sgr.removeEntryTabs = function(entry) {
     entry.find(".sgr-entry-tabs").remove();
+    entry.find(".entry-secondary-snippet").show();
+  }
+
+  $.sgr.toggleEntryTabs = function() {
+    var entry = $("#current-entry");
+    if (entry.length <= 0) {
+      return;
+    }
+    if ($.sgr.getSetting('entry_tabs')) {
+      $.sgr.injectEntryTabs(entry);
+      $.sgr.updateSelectedEntryTab(entry);
+    } else {
+      $.sgr.removeEntryTabs(entry);
+    }
   }
 
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
@@ -1016,6 +1092,8 @@
           if (content == null) {
             throw new Error("Readability found no valid content.");
           }
+          //console.log("content.innerHTML after grabArticle:");
+          //console.log(content.innerHTML);
           readability.removeScripts(content);
           readability.fixImageFloats(content);
 
@@ -1053,6 +1131,12 @@
         $.sgr.preFetchReadableEntry($(this));
       });
     }
+  }
+
+  // Contruct the HTML for a 'Super settings' menu button
+  //
+  $.sgr.getSgrSettingsButtonHtml = function() {
+    return '<div role="wairole:button" tabindex="1" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-menu-button goog-button-tight" id="sgr-prefs-menu"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div><div class="goog-button-base-content"><div class="goog-button-body">Super settings...</div><div class="goog-menu-button-dropdown"></div></div></div></div></div></div>';
   }
 
   // Contruct the HTML for a dropdown menu option item
