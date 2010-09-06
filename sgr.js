@@ -73,6 +73,7 @@
     if ($.sgr.getGlobalSetting('use_iframes') == true && $.sgr.getGlobalSetting('use_readability') == true) {
       $.sgr.setGlobalSetting('use_iframes',false);
       $.sgr.setGlobalSetting('use_readability',false);
+      $.sgr.togglePreFetchReadableContentMenuOption();
     }
   }
 
@@ -103,7 +104,7 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} #sgr-prefs-menu-menu {display: none; overflow-y: auto}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;}';
 //]]></r>).toString();
 
     // Check if 'Hide likers' is enabled and add appropriate CSS
@@ -512,9 +513,11 @@
       if (gs_name == 'use_iframes') {
         $.sgr.setGlobalSetting('use_readability',false);
         $.sgr.sendRequest({action: 'global_setting_change', setting_name: 'use_readability', setting_value: false});
+        $.sgr.togglePreFetchReadableContentMenuOption();
       } else if (gs_name == 'use_readability') {
         $.sgr.setGlobalSetting('use_iframes',false);
         $.sgr.sendRequest({action: 'global_setting_change', setting_name: 'use_iframes', setting_value: false});
+        $.sgr.togglePreFetchReadableContentMenuOption();
       }
     }
 
@@ -609,18 +612,27 @@
 
           var offset = sgr_prefs_menu.offset();
 
+          $.sgr.togglePreFetchReadableContentMenuOption();
+
           $("#sgr-prefs-menu-menu").css('left', offset.left).css('top', offset.top + ev_target.height()).show();
           
           // Initialise a hover event for hovering over our settings menu options
           //
           $(".sgr-menuitem").hover(
             function(ev) {
-              $(this).addClass("goog-menuitem-highlight");
+              if (!$(this).hasClass("goog-menuitem-disabled")) {
+                $(this).addClass("goog-menuitem-highlight");
+              }
             },
             function(ev) {
               $(this).removeClass("goog-menuitem-highlight");
             }
           );
+        }
+
+      } else if (ev_target.hasClass('sgr-menuitem-item')) {
+        if (!ev_target.hasClass('goog-menuitem-disabled') && !ev_target.parent().hasClass('goog-menuitem-disabled')) {
+          $.sgr.removeSgrSettingsMenu();
         }
 
       // Else a click anywhere else not on the 'Super settings...' button, remove the super menu
@@ -750,6 +762,12 @@
     $(".sgr-menuitem").live('click', function(ev) {
       var setting_name = $(this).attr('id').match(/^menu_(.*)/)[1];
 
+      // Return if this menu item is disabled
+      //
+      if ($(this).hasClass("goog-menuitem-disabled")) {
+        return false;
+      }
+
       // Get the setting name
       //
       //var var_name = $.sgr.getSettingVarName(var_type);
@@ -776,12 +794,14 @@
           if (setting_value) {
             $("#menu_use_readability").removeClass("goog-option-selected");
           }
+          $.sgr.togglePreFetchReadableContentMenuOption();
 
         } else if (setting_name == 'use_readability') {
           $.sgr.setLocalSetting('use_iframes', !setting_value);
           if (setting_value) {
             $("#menu_use_iframes").removeClass("goog-option-selected");
           }
+          $.sgr.togglePreFetchReadableContentMenuOption();
         }
 
       } else {
@@ -1096,6 +1116,14 @@
     }
   }
 
+  $.sgr.togglePreFetchReadableContentMenuOption = function() {
+    if ($.sgr.getSetting('use_readability')) {
+      $("#menu_readability_pre_fetch").removeClass("goog-menuitem-disabled").addClass("goog-option");
+    } else {
+      $("#menu_readability_pre_fetch").addClass("goog-menuitem-disabled").removeClass("goog-option");
+    }
+  }
+
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
     debug("fetchReadableContent() : fetching " + url);
     $.ajax({
@@ -1171,7 +1199,7 @@
   // Contruct the HTML for a dropdown menu option item
   //
   $.sgr.getGoogMenuitemHtml = function(id, label, selected) {
-      return '<div class="sgr-menuitem goog-menuitem goog-option' + (selected ? ' goog-option-selected' : '') + '" role="menuitem" style="-moz-user-select: none;" id="' + id + '"><div class="goog-menuitem-content"><div class="goog-menuitem-checkbox"></div>' + label + '</div></div>';
+      return '<div class="sgr-menuitem sgr-menuitem-item goog-menuitem goog-option' + (selected ? ' goog-option-selected' : '') + '" role="menuitem" style="-moz-user-select: none;" id="' + id + '"><div class="sgr-menuitem-item goog-menuitem-content"><div class="sgr-menuitem-item goog-menuitem-checkbox"></div>' + label + '</div></div>';
   }
 
   // Contruct the HTML for a dropdown menu separator item
