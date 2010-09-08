@@ -20,6 +20,13 @@
       "run_at": "document_end",
       "all_frames": true
     }
+,
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["jquery.js", "debug.js", "storage.js", "iframe_preload.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
   ],
   "background_page": "background.html"
 }

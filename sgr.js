@@ -298,12 +298,12 @@
   }  
 
   $.sgr.receiveRequest = function(request, sender, sendResponse) {  
-    debug("reader.js: receiveRequest() called. request.action: " + request.action);
+    //debug("reader.js: receiveRequest() called. request.action: " + request.action);
 
     // Iframe window height
     //
     if (request.action == 'set_window_height') {
-      debug("reader.js: request.window_height=" + request.window_height);
+      //debug("reader.js: request.window_height=" + request.window_height);
       sendResponse({_msg: "reader.js received window height " + request.window_height});
       $.sgr.setIframeWindowHeight($('#sgr_preview'), request.window_height);
 

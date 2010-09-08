@@ -11,6 +11,16 @@
 
   console.log('in iframe.js');
 
+  // If the iframe preloader did not find an iframe, return immediately
+  //
+  if ($(".sgr_iframe").length <= 0) {
+    debug("no sgr_iframe exists");
+    return;
+  }
+  //debug("** sgr_iframe exists");
+
+  //$('body').append('<script type="text/javascript">(function(l) { var res = document.createElement(\'SCRIPT\'); res.type = \'text/javascript\'; res.src = l; document.getElementsByTagName(\'head\')[0].appendChild(res); })(\''+chrome.extension.getURL("iframe_raw.js")+'\');</script>');
+
   // Return as quickly as possible if we are not in an iframe
   //
   //if (window.parent == window || typeof window.parent == 'undefined') {
@@ -21,9 +31,10 @@
 
   // If this is the google reader settings iframe, return
   //
-  //if (window.location.href.match(/\/\/(www\.|)google\.com\/reader\/settings/)) {
-    //return;
-  //}
+  if (self.location.href.match(/\/\/(www\.|)google\.com\/reader\/settings/)) {
+    debug("in greader settings iframe, returning");
+    return;
+  }
 
   // Minimum allowed iframe height to be sent to the parent
   //
@@ -96,7 +107,7 @@
   //
   function sendSizeToParent() {
 
-    debug('sendSizeToParent()');
+    //debug('sendSizeToParent()');
 
     // Check if we have exceeded the maximum allowed times to send the height to the parnet.
     // This is here as a catchall or precaution in case we get stuck in a resize loop and continually
