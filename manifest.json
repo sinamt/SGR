@@ -16,14 +16,14 @@
 ,
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["jquery.js", "debug.js", "storage.js", "sgr.js", "iframe.js"],
-      "run_at": "document_end",
+      "js": ["jquery.js", "debug.js", "storage.js", "iframe_preload.js"],
+      "run_at": "document_start",
       "all_frames": true
     }
 ,
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["jquery.js", "debug.js", "storage.js", "iframe_preload.js"],
+      "js": ["jquery.js", "debug.js", "storage.js", "sgr.js", "iframe.js"],
       "run_at": "document_start",
       "all_frames": true
     }

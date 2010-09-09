@@ -9,13 +9,13 @@
 
 (function($) {
 
-  console.log('in iframe.js');
+  //console.log('in iframe.js');
 
   // If the iframe preloader did not find an iframe, return immediately
   //
   if ($(".sgr_iframe").length <= 0) {
-    debug("no sgr_iframe exists");
-    return;
+    //debug("no sgr_iframe exists");
+    //return;
   }
   //debug("** sgr_iframe exists");
 
@@ -122,6 +122,13 @@
       return false;
     }
 
+    try {
+      var scroll_height = document.body.scrollHeight;
+    } catch(e) {
+      console.log("document.body.scrollHeight not found");
+      return false;
+    }
+
     send_size_counter += 1;
 
     //if (window.parent['postMessage']) {
@@ -172,11 +179,41 @@
 
   // Send the window size to the parent right now
   //
-  sendSizeToParent();
+  //sendSizeToParent();
+
+  var sgr_no_div = true;
+  var prev_scrollheight = 0;
+
+  //$(window).bind('DOMNodeInserted', function(ev){
+  $("body").live('DOMNodeInserted', function(ev){
+    //if (document.body && sgr_no_div == true) { // Math.floor(Math.random()*10) == 1) {
+      //sgr_no_div = false;
+      //debug("DOMNodeInserted sendSizeTOParent " + self.location.href);
+      //sendSizeToParent();
+    //}
+    //if ($.inArray(ev.target.tagName,['DIV','P']) > -1 && document.body) {
+    //debug("DOMNodeInserted " + self.location.href);
+    if ($.inArray(ev.target.tagName,['DIV','P']) > -1) {
+      //debug("DOMNodeInserted doducment.body.scrollHeight = " + document.body.scrollHeight + " " + self.location.href);
+      if (document.body.scrollHeight > prev_scrollheight) {
+        debug("DOMNodeInserted sendSizeTOParent " + self.location.href);
+        prev_scrollheight = document.body.scrollHeight;
+        sendSizeToParent();
+      }
+    }
+  });
+
+  $(document).ready(function() {
+    debug("document.ready sendSizeTOParent " + self.location.href);
+    sendSizeToParent();
+  });
 
   // Send the window size to the parent after the window has loaded
   //
-  $(window).load(sendSizeToParent);
+  $(window).load(function() {
+    debug("window.load sendSizeTOParent " + self.location.href);
+    sendSizeToParent();
+  });
 
   // Run the main code
   //

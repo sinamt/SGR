@@ -304,7 +304,7 @@
     //
     if (request.action == 'set_window_height') {
       //debug("reader.js: request.window_height=" + request.window_height);
-      sendResponse({_msg: "reader.js received window height " + request.window_height});
+      //sendResponse({_msg: "reader.js received window height " + request.window_height});
       $.sgr.setIframeWindowHeight($('#sgr_preview'), request.window_height);
 
     // Global setting change from settings iframe
@@ -954,6 +954,52 @@
     entry.find(".entry-body").html($.sgr.entry_original_content);
   }
 
+
+  $.sgr.initBackgroundWindow = function() {
+    chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+      debug("background : received request, request.action = " +request.action);
+
+      // Iframe window height
+      //
+      if (request.action == 'window_height') {
+        sendResponse({_msg: "action " + request.action + ", window height " + request.window_height});
+        $.sgr.sendToTab(sender.tab.id, {action: 'set_window_height', window_height: request.window_height});
+
+      // Fetch readable content
+      //
+      } else if (request.action == 'readability_fetch') {
+        //sendResponse({_msg: "action : " + request.action});
+
+        var stor_url_key = $.sgr.getReadabilityContentStorageKey(request.readability_url, request.extra_data.user_id);
+        var stored_content = $.stor.get(stor_url_key);
+
+        // Use cached content if it exists
+        //
+        if (stored_content !== null && stored_content.length > 0 && stored_content != 'none') {
+          sendResponse($.extend({action: 'readability_content', readability_content: stored_content, _msg: (request.extra_data.pre_fetch ? "[PRE-FETCH] " : "") + "Cached content found for " + request.readability_url},request.extra_data));
+
+        // PDF, PPT in Google Docs
+        //
+        } else if ($.sgr.matchUrlExtension(request.readability_url, ['pdf', 'ppt'])) {
+          sendResponse($.extend({action: 'readability_content', readability_content: $.sgr.getGoogleDocHtml(request.readability_url), _msg: "Google docs content found for " + request.readability_url},request.extra_data));
+
+        } else if (stored_content == 'none') {
+          sendResponse($.extend({action: 'readability_error_use_original_content', _msg: "No content found (cached) for " + request.readability_url},request.extra_data));
+
+        } else {
+          $.sgr.fetchReadableContent(request.readability_url, sendResponse, sendResponse, request.extra_data);
+        }
+
+      // Global setting change from settings iframe
+      //
+      } else if (request.action == 'global_setting_change') {
+        $.sgr.sendToTab(sender.tab.id, {action: 'global_setting_change', setting_name: request.setting_name, setting_value: request.setting_value});
+      } else {
+        sendResponse({}); // snub them.
+      }
+    });
+  }
+
   // Main setup for Google Reader Settings iframe. Initialises listeners and injects settings
   // tab and tab content into the DOM.
   //
@@ -1208,6 +1254,10 @@
     return '<div class="goog-menuseparator sgr-menuitem" style="-moz-user-select: none;" role="separator" id=""></div>';
   }
 
+  $.sgr.getGoogleDocHtml = function(url) {
+    return '<iframe id="google_doc_iframe" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="http://docs.google.com/gview?embedded=true&url=' + url + '" class=""></iframe>';
+  }
+
   $.sgr.getUrlExtension = function(url) {
     return url.match(/.*\.(.*)$/i)[1];
   }
@@ -1220,19 +1270,13 @@
     return false;
   }
 
-  $.sgr.sendToCurrentTab = function(data) {
-    if (chrome) {
-// @FIXME this is not the correct way to do it, this just sends to whatever tab the user is looking at
-      chrome.tabs.getSelected(null, function(tab) {
-        debug("sending data to chrome tab " + tab.id);
-        chrome.tabs.sendRequest(tab.id, data, function(response) {
-          console.log(response._msg);
-        });
-      });
-    }
-  }
-
-  $.sgr.sendToGoogleReaderTabs = function(data) {
+  $.sgr.sendToTab = function(tab_id, data) {
+    debug("sendToTab : sending data to chrome tab " + tab_id);
+    chrome.tabs.sendRequest(tab_id, data, function(response) {
+      if (response._msg) {
+        console.log(response._msg);
+      }
+    });
   }
 
   $.sgr.sendReadabilityContentResponse = function(content) {
@@ -1242,7 +1286,7 @@
   // Main code run for iframe
   //
   $.sgr.run_iframe = function() {
-    $.sgr.initSettings();
+    //$.sgr.initSettings();
     $.sgr.initIframeStyles();
   }
 
