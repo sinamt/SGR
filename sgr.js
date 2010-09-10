@@ -237,8 +237,13 @@
   // Find and return the currently selected feed href or folder name
   //
   $.sgr.getCurrentFeedName = function() {
-    if (typeof $("a.tree-link-selected").attr('href') != 'undefined') {
-      return unescape($("a.tree-link-selected").attr('href').match(/.*\/(.*)/)[1]);
+    // First look for a selected feed or folder, then try for a left-hand nav selection
+    //
+    var selected_href = $("a.tree-link-selected, #lhn-selectors .selected .link").first().attr('href');
+
+    if (typeof selected_href != 'undefined') {
+      //return unescape(selected_href.match(/.*\/(.*)/)[1]);
+      return unescape(selected_href);
     }
   }
 
@@ -277,8 +282,8 @@
   //
   $.sgr.receiveIframeMessage = function(event) {  
     var msg_ev = event.originalEvent;
-    //debug('msg_ev.data = ' + msg_ev.data);
-    //debug('msg_ev.origin = ' + msg_ev.origin);
+    debug('sgr : msg_ev.data = ' + msg_ev.data);
+    debug('sgr : msg_ev.origin = ' + msg_ev.origin);
 
     if (typeof msg_ev.data == 'undefined') {
       return;
@@ -288,7 +293,7 @@
     // we respond with 'hello'.
     //
     if (msg_ev.data == 'helo') {
-      window.frames[0].postMessage('hello', msg_ev.origin);
+      //window.frames[0].postMessage('hello', msg_ev.origin);
 
     // Convert any other data to an integer and set the iframe element height accordingly
     //

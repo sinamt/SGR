@@ -102,7 +102,12 @@ readability['sgrInit'] = function(content) {
 }
 
 readability['sgrPostProcess'] = function(content, entry_url) {
-  var jq_content = $(content);
+  try {
+    var jq_content = $(content);
+  } catch(e) {
+    debug("readability_sgr : html unable to be parsed by jquery. " + e.name + ": " +e.message);
+    return;
+  }
 
   // Process HTML attributes
   //
@@ -121,18 +126,20 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     var el_name = el.tagName.toLowerCase();
 
     if (jQuery.inArray(el_name, readability.sgr_attribute_whitelist) <= -1) {
-      debug("sgrPostProcess: replacing non-whitelist element " + el.tagName );
+      //debug("sgrPostProcess: replacing non-whitelist element " + el.tagName );
       _el.replaceWith("<span>" + _el.text() + "</span>");
       //remove_els.push(el);
       return;
     }
 
+    //debug(el_name);
     // Loop each HTML element's attributes
     //
     $.each(el.attributes, function(j, attrib){
       if (typeof attrib == 'undefined') {
         return;
       }
+      //debug(el_name + " : " + attrib.name);
       var el_attr_keep = readability.sgr_keep_attributes[el_name];
 
       // @TODO whitelist support for specific style params
@@ -172,12 +179,19 @@ readability['sgrPostProcess'] = function(content, entry_url) {
       }
     });
 
+    //debug(el_name + " : attr loop finished");
+
     // Remove any attributes not whitelisted
     //
     for (var k = 0; k < remove_attrs.length; k++) {
       //debug("ATTR: Removing " + remove_attrs[k] + " from " + _el.get(0).tagName);
-      _el.removeAttr(remove_attrs[k]);
+      try {
+        _el.removeAttr(remove_attrs[k]);
+      } catch(e) {
+        debug("sgrPostProcess: ATTR (" + remove_attrs[k] + ") unable to be removed for " + el_name +". Skipping it. Error was " + e.name + " : " + e.message);
+      }
     }
+    //debug(el_name + " : main loop finished");
   });
 
   // Rewrite any relative img src paths to be absolute
@@ -198,7 +212,7 @@ readability['sgrPostProcess'] = function(content, entry_url) {
 */
   //debug(jq_content.html());
   if (readability.sgr_article_title != null && jq_content.html().length > 0) {
-    debug("readability_sgr : adding title: " + readability.sgr_article_title);
+    //debug("readability_sgr : adding title: " + readability.sgr_article_title);
     jq_content.prepend('<h2 class="sgr-entry-heading">' + readability.sgr_article_title + '</h2>');
   }
   return jq_content.html();
