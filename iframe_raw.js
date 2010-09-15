@@ -4,10 +4,35 @@
     //console.log('NO IFRAME : window.parent == window || typeof window.parent == undefined. ' + self.location.href);
     
   } else {
-    //console.log("IFRAME present for " + self.location.href);
-    var div = document.createElement('DIV');
-    div.style.display = "none";
-    div.className = "sgr_iframe";
-    document.documentElement.appendChild(div);
+
+    window.addEventListener('message', function(ev) {
+      //console.log('iframe_raw: ev.data = ' + ev.data);
+      //console.log('iframe_raw: ev.origin = ' + ev.origin);
+
+      if (typeof ev.data == 'undefined') {
+        return;
+      }  
+
+      // Message data from parent is 'hello'. parent is saying we can execute.
+      //
+      if (ev.data == 'sgr:hello') {
+        //console.log('iframe_raw: hello received, iframe confirmed.');
+        var div = document.createElement('DIV');
+        div.style.display = "none";
+        div.className = "sgr_iframe";
+        document.documentElement.appendChild(div);
+      }
+
+    });
+
+    var msg = 'sgr:helo';
+
+    // Ugh. We can't find out what protocol the parent google reader window is using, so
+    // we spam both http and https. Yuck.
+    //
+    window.parent.postMessage(msg,'http://www.google.com');
+    window.parent.postMessage(msg,'https://www.google.com');
+
+
   }
 

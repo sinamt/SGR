@@ -15,16 +15,23 @@
     }
 ,
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["jquery.js", "debug.js", "storage.js", "iframe_preload.js"],
+      "matches": ["http://www.google.com/reader/*"],
+      "js": ["reader_preload.js"],
       "run_at": "document_start",
       "all_frames": true
     }
 ,
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["jquery.js", "debug.js", "storage.js", "sgr.js", "iframe.js"],
+      "js": ["iframe_preload.js"],
       "run_at": "document_start",
+      "all_frames": true
+    }
+,
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["jquery.js", "debug.js", "iframe.js"],
+      "run_at": "document_end",
       "all_frames": true
     }
   ],
