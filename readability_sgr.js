@@ -167,11 +167,11 @@ readability['sgrPostProcess'] = function(content, entry_url) {
           _el.attr(attrib.name, "");
 
         } else if (attrib.value[0] == "/") {
-          debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrl(entry_url) + attrib.value);
+          //debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrl(entry_url) + attrib.value);
           _el.attr(attrib.name, $.sgr.getBaseUrl(entry_url) + attrib.value);
 
         } else if (attrib.value.length > 0 && attrib.value.substr(0,4) != "http") {
-          debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
+          //debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
           _el.attr(attrib.name, $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
         }
 

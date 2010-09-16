@@ -475,6 +475,23 @@
     $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\') </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes) </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry </label> <br /> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content</label> </div> </div> </li>');
 //]]></r>).toString());
 
+    // Inject the Enhanced tab heading html
+    //
+    $("#settings-navigation").append('<h3 id="setting-header-enhanced" class="setting-group-title"><span class="link setting-group-link">Super</span></h3>');
+
+    // Click event for Enhanced tab. Add "selected" state for our enhanced tab and remove it from other tabs.
+    //
+    $("#setting-header-enhanced").click(function(){
+      $("#settings .setting-group-title, #settings .setting-group").removeClass("selected");
+      $("#setting-header-enhanced, #setting-enhanced").addClass("selected");
+    });
+
+    // Click event for non-Enhanced tabs. We need to remove the "selected" state from our enhanced tab.
+    //
+    $(".setting-group-title:not(#setting-header-enhanced)").click(function(){
+      $("#setting-header-enhanced, #setting-enhanced").removeClass("selected");
+    });
+
     var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers', 'readability_pre_fetch', 'entry_tabs'];
 
     // Loop the possible global settings and set the checkboxs to appropriate initial values
@@ -1016,41 +1033,11 @@
       return;
     }
 
-    $.sgr.initSettingsNavigation();
-
-    // Live event for DOMNodeInserted on #settings
-    //
-    $("#settings").live('DOMNodeInserted', function(ev){
-      var ev_target = $(ev.target);
-
-      // If the inserted node is a setting tab, check if we want to insert our own tab.
-      //
-      if (ev_target.hasClass("setting-group-title")) {
-        $.sgr.setting_group_title_add_count += 1;
-
-        // When the 6th (last) setting tab has been inserted, append our Enhanced setting tab
-        // 
-        if ($.sgr.setting_group_title_add_count == 6) {
-
-          // Inject the Enhanced tab heading html
-          //
-          $("#settings-navigation").append('<h3 id="setting-header-enhanced" class="setting-group-title"><span class="link setting-group-link">Super</span></h3>');
-
-          // Click event for Enhanced tab. Add "selected" state for our enhanced tab and remove it from other tabs.
-          //
-          $("#setting-header-enhanced").click(function(){
-            $("#settings .setting-group-title, #settings .setting-group").removeClass("selected");
-            $("#setting-header-enhanced, #setting-enhanced").addClass("selected");
-          });
-
-          // Click event for non-Enhanced tabs. We need to remove the "selected" state from our enhanced tab.
-          //
-          $(".setting-group-title:not(#setting-header-enhanced)").click(function(){
-            $("#setting-header-enhanced, #setting-enhanced").removeClass("selected");
-          });
-        }
-      } 
+    $(document).ready(function() {
+      $.sgr.initSettingsNavigation();
     });
+
+
   }
 
   // Find and return the external/outgoing link for a specific entry
@@ -1176,19 +1163,20 @@
   }
 
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
-    debug("fetchReadableContent() : fetching " + url);
+    debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
     $.ajax({
       url: url,
       data: {},
       success: function(responseHtml) {
+        //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
         //console.log(responseHtml);
 
         var page = document.createElement("DIV");
         //page.innerHTML = responseHtml;
         page.innerHTML = readability.sgrInit(responseHtml);
-        debug("page.innerHTML=");
-        debug(page.innerHTML);
+        //debug("page.innerHTML=");
+        //debug(page.innerHTML);
         //$(page).html(readability.sgrInit(responseHtml));
 //return false;
 
