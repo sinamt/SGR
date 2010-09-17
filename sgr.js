@@ -993,7 +993,7 @@
         //sendResponse({_msg: "action : " + request.action});
 
         var stor_url_key = $.sgr.getReadabilityContentStorageKey(request.readability_url, request.extra_data.user_id);
-        var stored_content = $.stor.get(stor_url_key);
+        var stored_content = $.stor.get(stor_url_key, 'session');
 
         // Use cached content if it exists
         //
@@ -1195,7 +1195,7 @@
 
         } catch(e) {
           debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
-          $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none");
+          $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
           var return_data = $.extend({action: 'readability_error_use_original_content', _msg: "No content found for " + url}, extra_return_data);
           failure_callback(return_data);
           return false;
@@ -1205,7 +1205,7 @@
         content = readability.sgrPostProcess(content, url);
 
         console.log(content);
-        $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content);
+        $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content, 'session');
 
         var return_data = $.extend({action: 'readability_content', readability_content: content, _msg: (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + "Content fetched for " + url}, extra_return_data);
         success_callback(return_data);
