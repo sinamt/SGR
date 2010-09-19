@@ -888,6 +888,17 @@
       }
     });
 
+    // Sign out link click
+    //
+    $("guser").live("click",function(ev) {
+      var ev_target = $(ev.target);
+debug("guser click");
+      if (ev_target.attr('href') == "https://www.google.com/accounts/Logout?service=reader") {
+debug("sign out click");
+        $.sgr.runReaderLogout();
+      }
+    });
+
     if (chrome) {
       // Chrome listener for background messages
       //
@@ -1283,6 +1294,9 @@
     $.sgr.initIframeStyles();
   }
 
+  $.sgr.runReaderLogout = function() {
+    $.stor.clear('session');
+  }
 
   // Main run of all code
   //

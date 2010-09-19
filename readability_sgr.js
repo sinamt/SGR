@@ -71,7 +71,7 @@ readability['sgrGetArticleTitle'] = function(content) {
     curTitle = null;
   }
 
-  return curTitle;
+  return curTitle.replace(/\uffff/g,'');
 }
 
 readability['sgrInit'] = function(content) {

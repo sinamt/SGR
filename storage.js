@@ -83,7 +83,7 @@
   // Clears all the key value pairs in storage
   //
   $.stor.clear = function(store_type) {
-    debug('about to clear local storage');
+    debug('about to clear ' + store_type + ' storage');
     var storage = $.stor.getStorage(store_type);
     if (storage == false) {
       return null;
