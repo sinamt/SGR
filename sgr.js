@@ -890,11 +890,9 @@
 
     // Sign out link click
     //
-    $("guser").live("click",function(ev) {
+    $("#guser").live("click",function(ev) {
       var ev_target = $(ev.target);
-debug("guser click");
       if (ev_target.attr('href') == "https://www.google.com/accounts/Logout?service=reader") {
-debug("sign out click");
         $.sgr.runReaderLogout();
       }
     });
@@ -1027,6 +1025,12 @@ debug("sign out click");
       //
       } else if (request.action == 'global_setting_change') {
         $.sgr.sendToTab(sender.tab.id, {action: 'global_setting_change', setting_name: request.setting_name, setting_value: request.setting_value});
+
+      // Clear storage
+      //
+      } else if (request.action == 'clear_store') {
+        $.stor.clear(request.store_type);
+
       } else {
         sendResponse({}); // snub them.
       }
@@ -1295,7 +1299,13 @@ debug("sign out click");
   }
 
   $.sgr.runReaderLogout = function() {
+    // Clear the content window sessionStore
+    //
     $.stor.clear('session');
+
+    // Tell the background page to clear it's sessionStore
+    //
+    $.sgr.sendRequest({action: 'clear_store', store_type: 'session'});
   }
 
   // Main run of all code
