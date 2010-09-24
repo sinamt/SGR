@@ -49,6 +49,14 @@
   //
   $.sgr.goog_menu_removed_date = new Date();
 
+  $.sgr.youtube_api = {
+    video: "http://gdata.youtube.com/feeds/api/videos/[video_id]?v=2&alt=jsonc"
+  }
+
+  $.sgr.vimeo_api = {
+    video: "http://vimeo.com/api/v2/video/[video_id].json"
+  }
+
   $.sgr.entry_tabs_html = '<div class="sgr-entry-tabs"><div class="sgr-tab-readable sgr-entry-tab">Readable</div><div class="sgr-tab-link sgr-entry-tab">Link</div><div class="sgr-tab-feed sgr-entry-tab">Feed</div></div>';
 
   // Load default global settings.
@@ -403,13 +411,19 @@
 
     // Add the iframe
     //
+    //debug("iframe:");
+    //debug($("iframe"));
+    //debug("$.sgr.getEntryUrl(entry)");
+    //debug($.sgr.getEntryUrl(entry));
     entry.find(".entry-container-preview .entry-main").append('<iframe id="sgr_preview" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
+    //debug($("iframe").attr("src"));
   }
 
   // Completely remove the iframe preview container from the DOM.
   //
   $.sgr.removePreview = function(entry) {
     //debug("removePreview");
+    $("#sgr_preview").remove();
     $(entry).removeClass("preview").find(".entry-container-preview").remove();
   }
 
@@ -587,6 +601,19 @@
     //
 
 
+    /*
+     // iframe buster buster http://stackoverflow.com/questions/958997/frame-buster-buster-buster-code-needed
+    var prevent_bust = 0;
+    window.onbeforeunload = function() { prevent_bust++ }  
+    setInterval(function() {  
+      if (prevent_bust > 0) {  
+        prevent_bust -= 2;
+        debug('** preventing a bust to ' + window.top.location);
+        window.top.location = 'http://supergooglereader.com/204';
+      }  
+    }, 1);
+    */
+    
     // Any keydown event
     //
     //$(document).keydown(function() {
@@ -1179,54 +1206,133 @@
 
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
     debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
-    $.ajax({
-      url: url,
-      data: {},
-      success: function(responseHtml) {
-        //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
-        //console.log(responseHtml);
+    var content_replaced = $.sgr.handleReadableEntryContentReplace(url, success_callback, failure_callback, extra_return_data);
 
-        var page = document.createElement("DIV");
-        //page.innerHTML = responseHtml;
-        page.innerHTML = readability.sgrInit(responseHtml);
-        //debug("page.innerHTML=");
-        //debug(page.innerHTML);
-        //$(page).html(readability.sgrInit(responseHtml));
-//return false;
+    if (content_replaced == false) {
+      $.ajax({
+        url: url,
+        data: {},
+        success: function(responseHtml) {
+          //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
-        readability.flags = 0x1 | 0x2 | 0x4;
+          //console.log(responseHtml);
 
-        try {
-          var content = readability.grabArticle(page);
+          var page = document.createElement("DIV");
+          //page.innerHTML = responseHtml;
+          page.innerHTML = readability.sgrInit(responseHtml);
+          //debug("page.innerHTML=");
+          //debug(page.innerHTML);
+          //$(page).html(readability.sgrInit(responseHtml));
+  //return false;
 
-          if (content == null) {
-            throw new Error("Readability found no valid content.");
+          readability.flags = 0x1 | 0x2 | 0x4;
+
+          try {
+            var content = readability.grabArticle(page);
+
+            if (content == null) {
+              throw new Error("Readability found no valid content.");
+            }
+            //console.log("content.innerHTML after grabArticle:");
+            //console.log(content.innerHTML);
+            readability.removeScripts(content);
+            readability.fixImageFloats(content);
+
+          } catch(e) {
+            debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
+            $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
+            $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
+            return false;
           }
-          //console.log("content.innerHTML after grabArticle:");
+          //console.log("content.innerHTML before sgrPostProcess:");
           //console.log(content.innerHTML);
-          readability.removeScripts(content);
-          readability.fixImageFloats(content);
+          content = readability.sgrPostProcess(content, url);
 
-        } catch(e) {
-          debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
-          $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
-          var return_data = $.extend({action: 'readability_error_use_original_content', _msg: "No content found for " + url}, extra_return_data);
-          failure_callback(return_data);
-          return false;
+          $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
         }
-        //console.log("content.innerHTML before sgrPostProcess:");
-        //console.log(content.innerHTML);
-        content = readability.sgrPostProcess(content, url);
+      });
+    }
+  }
 
-        console.log(content);
-        $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content, 'session');
+  $.sgr.successfulReadableContent = function(content, url, success_callback, extra_return_data) {
+    console.log(content);
+    $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content, 'session');
 
-        var return_data = $.extend({action: 'readability_content', readability_content: content, _msg: (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + "Content fetched for " + url}, extra_return_data);
-        success_callback(return_data);
+    var return_data = $.extend({action: 'readability_content', readability_content: content, _msg: (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + "Content fetched for " + url}, extra_return_data);
+    success_callback(return_data);
+  }
+
+  $.sgr.failedReadableContent = function(url, failure_callback, extra_return_data) {
+    var return_data = $.extend({action: 'readability_error_use_original_content', _msg: "No content found for " + url}, extra_return_data);
+    failure_callback(return_data);
+  }
+
+  $.sgr.handleReadableEntryContentReplace = function(url, success_callback, failure_callback, extra_return_data) {
+    var found_match = false;
+    $($.sgr.readable_entry_content_replace).each(function(){
+      url_matches = url.match(this['regex']);
+      if (url_matches != null) {
+        found_match = this['callback'](url, url_matches, success_callback, failure_callback, extra_return_data);
+        return;
       }
     });
+    return found_match;
   }
+
+  $.sgr.replaceContentYoutube = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
+    var video_id = url_matches[1];
+    if (video_id == null) {
+      return false;
+    }
+    var yt_url = $.sgr.youtube_api['video'].replace(/\[video_id\]/, video_id);
+    $.ajax({
+      url: yt_url,
+      data: {},
+      dataType: 'json',
+      success: function(video){
+        var uploaded = new Date(video.data.uploaded);
+        //var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><object style="height: 390px; width: 640px"><param name="movie" value="http://www.youtube.com/v/' + video_id + '?version=3"><param name="allowFullScreen" value="true"><param name="allowScriptAccess" value="always"><embed src="http://www.youtube.com/v/' + video_id +'?version=3" type="application/x-shockwave-flash" allowfullscreen="true" allowScriptAccess="always" width="640" height="390"></object><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
+        var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' + video_id +'" frameborder="0"></iframe><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
+        $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+      },
+      error: function() {
+        $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
+      }
+      
+    });
+    return true;
+  }
+
+  $.sgr.replaceContentVimeo = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
+    var video_id = url_matches[1];
+    if (video_id == null) {
+      return false;
+    }
+    var vimeo_url = $.sgr.vimeo_api['video'].replace(/\[video_id\]/, video_id);
+    $.ajax({
+      url: vimeo_url,
+      data: {},
+      dataType: 'json',
+      success: function(video){
+        video = video[0];
+        var uploaded = new Date(video.upload_date);
+
+        var content = '<h2 class="sgr-entry-heading">' + video.title + '</h2><iframe type="text/html" width="' + video.width + '" height="' + video.height + '" src="http://player.vimeo.com/video/' + video_id +'" frameborder="0"></iframe><p>' + video.description + '</p><p><strong>Uploader: </strong><a href="' + video.user_url + '">' + video.user_name + '</a></p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
+        $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+      },
+      error: function() {
+        $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
+      }
+      
+    });
+    return true;
+  }
+
+  $.sgr.readable_entry_content_replace = [
+    {name: 'youtube', regex: /^http(?:s|)\:\/\/(?:www\.|)youtube\.com\/(?:watch|)\?v\=(.*?)(?:&.*|)$/, callback: $.sgr.replaceContentYoutube}
+    ,{name: 'vimeo', regex: /^http(?:s|)\:\/\/(?:www\.|)vimeo\.com\/([0-9]*)/, callback: $.sgr.replaceContentVimeo}
+    ];
 
   $.sgr.getReadabilityContentStorageKey = function(url, user_id) {
     return (user_id == null ? $.sgr.USER_ID : user_id) + "_ra_url_" + url.replace(/[^a-zA-Z0-9]+/g,'_');
