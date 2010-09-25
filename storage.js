@@ -49,7 +49,7 @@
       debug("Error inside setItem");
       debug(e);
       if (e.name == "QUOTA_EXCEEDED_ERR") {
-        $.stor.clear();
+        $.stor.clear(store_type);
         $.stor._set(key, value, storage);
       }
     }
