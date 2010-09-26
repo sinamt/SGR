@@ -739,8 +739,8 @@
           if (typeof $.sgr.entry_closed_at_time[entry_xpath] != 'undefined') {
             //debug("found previous entry_closed_at_time for " + entry_xpath + " : " + $.sgr.entry_closed_at_time[entry_xpath]);
 
-            if (500 > (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath])) {
-              //debug("time diff < 500 : " + (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath]));
+            if (50 > (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath])) {
+              //debug("time diff < 50 : " + (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath]));
               return;
             }
           }
@@ -1329,9 +1329,33 @@
     return true;
   }
 
+  $.sgr.replaceContentWikipedia = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
+    var topic = url_matches[1] != null ? url_matches[1] : url_matches[2];
+debug("Wikipedia, topic = " + topic);
+debug(url_matches);
+    if (topic == null) {
+      return false;
+    }
+    var wp_url = url + (url.indexOf('?') > -1 ? '&' : '?') + 'action=render';
+    $.ajax({
+      url: wp_url,
+      data: {},
+      success: function(html){
+
+        $.sgr.successfulReadableContent(html, url, success_callback, extra_return_data);
+      },
+      error: function() {
+        $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
+      }
+      
+    });
+    return true;
+  }
+
   $.sgr.readable_entry_content_replace = [
     {name: 'youtube', regex: /^http(?:s|)\:\/\/(?:www\.|)youtube\.com\/(?:watch|)\?v\=(.*?)(?:&.*|)$/, callback: $.sgr.replaceContentYoutube}
     ,{name: 'vimeo', regex: /^http(?:s|)\:\/\/(?:www\.|)vimeo\.com\/([0-9]*)/, callback: $.sgr.replaceContentVimeo}
+    ,{name: 'wikipedia', regex: /^http(?:s|)\:\/\/.*?\.wikipedia\.org\/(?:wiki\/(.*)|w\/index\.php.*?title=(.*?)(?:&.*|)$)/, callback: $.sgr.replaceContentWikipedia}
     ];
 
   $.sgr.getReadabilityContentStorageKey = function(url, user_id) {
