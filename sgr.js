@@ -112,9 +112,8 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;}';
-//]]></r>).toString();
-
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; }';
+    
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
     if ($.sgr.getSetting('hide_likers')) {
@@ -470,7 +469,7 @@
   //
   $.sgr.showReadableEntry = function(entry) {
 
-      entry.addClass("readable");
+      entry.addClass("readable").addClass($.sgr.generateReadableEntryClass($.sgr.getEntryUrl(entry)));
       $.sgr.updateSelectedEntryTab(entry);
       $.sgr.addHostnameToSubject(entry, '.entry-title');
 
@@ -966,15 +965,17 @@
   $.sgr.sendRequest = function(data) {
     if (chrome) {
       chrome.extension.sendRequest(data, function(response) {
-        console.log("sgr.js: " + response.action + " - " + response._msg);
+        debug("sgr.js: " + response.action + " - " + response._msg);
 
         if (response.action == 'readability_content') {
           //debug("reader.js: request.readability_content=" + request.readability_content);
           //debug("response=");
           //debug(response);
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
-            $("#current-entry .entry-body").html(response.readability_content);
-            $.sgr.postProcessReadabilityFetchRequest($("#current-entry .entry-body"));
+            if ($("#current-entry").hasClass($.sgr.generateReadableEntryClass(data.readability_url))) {
+              $("#current-entry .entry-body").html(response.readability_content);
+              $.sgr.postProcessReadabilityFetchRequest($("#current-entry .entry-body"));
+            }
           }
 
         } else if (response.action == 'readability_error_use_original_content') {
@@ -1331,8 +1332,6 @@
 
   $.sgr.replaceContentWikipedia = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
     var topic = url_matches[1] != null ? url_matches[1] : url_matches[2];
-debug("Wikipedia, topic = " + topic);
-debug(url_matches);
     if (topic == null) {
       return false;
     }
@@ -1341,6 +1340,14 @@ debug(url_matches);
       url: wp_url,
       data: {},
       success: function(html){
+
+        if (html.length > 0) {
+          html = '<h2 class="sgr-entry-heading">' + topic.replace(/_/g,' ') + '</h2>' + html;
+          var jq_html = $('<div>' + html + '</div>')
+          jq_html.find(".editsection").remove();
+          html = jq_html.html();
+          html = '<div class="sgr-wikipedia-content">' + html + '</div>';
+        }
 
         $.sgr.successfulReadableContent(html, url, success_callback, extra_return_data);
       },
@@ -1357,6 +1364,10 @@ debug(url_matches);
     ,{name: 'vimeo', regex: /^http(?:s|)\:\/\/(?:www\.|)vimeo\.com\/([0-9]*)/, callback: $.sgr.replaceContentVimeo}
     ,{name: 'wikipedia', regex: /^http(?:s|)\:\/\/.*?\.wikipedia\.org\/(?:wiki\/(.*)|w\/index\.php.*?title=(.*?)(?:&.*|)$)/, callback: $.sgr.replaceContentWikipedia}
     ];
+
+  $.sgr.generateReadableEntryClass = function(url) {
+    return "sgr-entry-" + url.replace(/[^a-zA-Z0-9]+/g,'_');
+  }
 
   $.sgr.getReadabilityContentStorageKey = function(url, user_id) {
     return (user_id == null ? $.sgr.USER_ID : user_id) + "_ra_url_" + url.replace(/[^a-zA-Z0-9]+/g,'_');
@@ -1415,10 +1426,6 @@ debug(url_matches);
         console.log(response._msg);
       }
     });
-  }
-
-  $.sgr.sendReadabilityContentResponse = function(content) {
-    sendResponse({action: 'readability_content', readability_content: content});
   }
 
   // Main code run for iframe

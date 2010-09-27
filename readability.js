@@ -738,6 +738,7 @@ var readability = {
                 else
                 {
                     /* EXPERIMENTAL */
+                  /* removed by SGR; causes some issues with nested p/div combos
                     for(var i = 0, il = node.childNodes.length; i < il; i++) {
                         var childNode = node.childNodes[i];
                         if(childNode.nodeType == 3) { // Node.TEXT_NODE
@@ -748,6 +749,7 @@ var readability = {
                             childNode.parentNode.replaceChild(p, childNode);
                         }
                     }
+                    */
                 }
             } 
         }
