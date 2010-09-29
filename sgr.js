@@ -49,15 +49,22 @@
   //
   $.sgr.goog_menu_removed_date = new Date();
 
+  // Youtube API URLs
+  //
   $.sgr.youtube_api = {
     video: "http://gdata.youtube.com/feeds/api/videos/[video_id]?v=2&alt=jsonc"
   }
 
+  // Vimeo API URLs
+  //
   $.sgr.vimeo_api = {
     video: "http://vimeo.com/api/v2/video/[video_id].json"
   }
 
+  // Entry tab HTML snippet
+  //
   $.sgr.entry_tabs_html = '<div class="sgr-entry-tabs"><div class="sgr-tab-readable sgr-entry-tab">Readable</div><div class="sgr-tab-link sgr-entry-tab">Link</div><div class="sgr-tab-feed sgr-entry-tab">Feed</div></div>';
+
 
   // Load default global settings.
   //
@@ -85,6 +92,8 @@
     }
   }
 
+  // Initialise the USER_ID. This is found within the javascript itself on the google reader page.
+  //
   $.sgr.initUserId = function() {
     $("head script").each(function(){
       var user_id_matches = this.innerHTML.match(/_USER_ID = "(.*?)"/);
@@ -194,6 +203,9 @@
     return "setting_" + setting_name + "_" + feed;
   }
 
+  // Get a setting key name. Can be either a local or global name depending on setting_type.
+  // Namespace the setting name to the USER_ID.
+  //
   $.sgr.getSettingName = function(setting_name, setting_type) {
     var _setting_name = false;
     if (setting_type == 'local') {
@@ -209,38 +221,6 @@
     return $.sgr.USER_ID + "_" + _setting_name;
   }
 
-  // Initialise global page CSS styles
-  //
-  $.sgr.initIframeStyles = function() {
-
-    var global_styles = ' #sgr_toggle_cmts { cursor: pointer; font-size: 14px; color: black; background-color: #F3F5FC; border: 2px solid #6688EE; padding: 5px; position: absolute; right: 20px; top: 0px; text-decoration: none; font-weight: normal; display: inline; -moz-border-radius: 3px; -webkit-border-radius: 3px; } #sgr_toggle_cmts:hover { text-decoration: underline; } /*html {overflow-y: hidden; }*/ ';
-
-    $.sgr.addStyles(global_styles);
-  }
-
-  // Find and hide elements that appear to be comments. Add a show/hide comments
-  // button to the page to allow comments to be toggled on/off.
-  //
-  $.sgr.hideComments = function() {
-    if ($.sgr.getSetting('hide_comments')) {
-      var comments = $($.sgr.comment_selector);
-      if (comments.size() > 0) {
-        comments.hide();
-        $("body").prepend('<div id="sgr_toggle_cmts" class="sgr_hidden">Show comments</div>');
-        $("#sgr_toggle_cmts").click(function(){
-          if ($(this).hasClass('sgr_hidden')) {
-            $($.sgr.comment_selector).show();
-            $(this).removeClass('sgr_hidden').text('Hide comments');
-          } else {
-            $($.sgr.comment_selector).hide();
-            $(this).addClass('sgr_hidden').text('Show comments');
-          }
-          sendSizeToParent();
-        });
-      }
-    }
-  }
-
   // Find and return the currently selected feed href or folder name
   //
   $.sgr.getCurrentFeedName = function() {
@@ -249,7 +229,6 @@
     var selected_href = $("a.tree-link-selected, #lhn-selectors .selected .link").first().attr('href');
 
     if (typeof selected_href != 'undefined') {
-      //return unescape(selected_href.match(/.*\/(.*)/)[1]);
       return unescape(selected_href);
     }
   }
@@ -276,59 +255,33 @@
     }
     return path;
   }
+ 
 
-  // Main message handler to handle messages from iframe preview window.
+  // Google reader main window content script handler for receiving a request from the background window.
+  // Processes the following requests:
+  //    - set_window_height : adjusts an entry's iframe window to the requested height
+  //    - global_setting_change : processes a global setting change from the google reader settings iframe
   //
-  // There are 2 types of messages we will accept from a child iframe:
-  //  1. Data string of 'helo', to which we respond with 'hello'. This 
-  //     represents the iframe registering itself with it's parent (us)
-  //     so the iframe window knows it is running inside google.com
-  //  2. Data string containing an integer, which represents the height 
-  //     of the iframe window. When receiving this we adjust the height 
-  //     of the iframe element on our page.
-  //
-  $.sgr.receiveIframeMessage = function(event) {  
-    var msg_ev = event.originalEvent;
-    debug('sgr : msg_ev.data = ' + msg_ev.data);
-    debug('sgr : msg_ev.origin = ' + msg_ev.origin);
-
-    if (typeof msg_ev.data == 'undefined') {
-      return;
-    }  
-
-    // Message data from iframe is 'helo'. iframe is registering itself with us,
-    // we respond with 'hello'.
-    //
-    if (msg_ev.data == 'helo') {
-      //window.frames[0].postMessage('hello', msg_ev.origin);
-
-    // Convert any other data to an integer and set the iframe element height accordingly
-    //
-    } else {
-      $.sgr.setIframeWindowHeight($('#sgr_preview'), msg_ev.data);
-    }
-  }  
-
   $.sgr.receiveRequest = function(request, sender, sendResponse) {  
     //debug("reader.js: receiveRequest() called. request.action: " + request.action);
 
     // Iframe window height
     //
     if (request.action == 'set_window_height') {
-      //debug("reader.js: request.window_height=" + request.window_height);
-      //sendResponse({_msg: "reader.js received window height " + request.window_height});
       $.sgr.setIframeWindowHeight($('#sgr_preview'), request.window_height);
 
     // Global setting change from settings iframe
     //
     } else if (request.action == 'global_setting_change') {
       $.sgr.globalSettingChange(request);
-      sendResponse({});
-    } else {
-      sendResponse({}); // snub them.
-    } 
+    }
+
+    sendResponse({}); 
   }
 
+  // Set the specified iframe element to the specified height. Height should be specified
+  // as the integer value of pixels to be set.
+  //
   $.sgr.setIframeWindowHeight = function(iframe, raw_height)  {
     var height = parseInt(raw_height);
 
@@ -374,7 +327,6 @@
     }
   }
 
-  
   // Show an entry preview iframe.
   //
   $.sgr.showPreview = function(entry) {
@@ -410,19 +362,13 @@
 
     // Add the iframe
     //
-    //debug("iframe:");
-    //debug($("iframe"));
-    //debug("$.sgr.getEntryUrl(entry)");
-    //debug($.sgr.getEntryUrl(entry));
     entry.find(".entry-container-preview .entry-main").append('<iframe id="sgr_preview" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
-    //debug($("iframe").attr("src"));
   }
 
   // Completely remove the iframe preview container from the DOM.
   //
   $.sgr.removePreview = function(entry) {
     //debug("removePreview");
-    $("#sgr_preview").remove();
     $(entry).removeClass("preview").find(".entry-container-preview").remove();
   }
 
@@ -483,10 +429,8 @@
   // When a user starts the Settings iframe, we execute this function to inject our 'Enhanced' 
   // settings tab content into the DOM.
   //
-//(<r><![CDATA[
   $.sgr.initSettingsNavigation = function() {
     $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\') </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes) </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry </label> <br /> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content</label> </div> </div> </li>');
-//]]></r>).toString());
 
     // Inject the Enhanced tab heading html
     //
@@ -559,6 +503,8 @@
     $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value});
   }
 
+  // Act on a global setting change in the main Google Reader window
+  //
   $.sgr.globalSettingChange = function(data) {
 
     // Set the changed setting value to reflect changes done in the settings iframe
@@ -576,7 +522,7 @@
     }
   }
 
-  // Main setup for previewing entries in iframes. Sets up appropriate listeners.
+  // Main setup for Google Reader window. Sets up appropriate listeners.
   //
   $.sgr.initMainWindowEvents = function() {
 
@@ -600,37 +546,15 @@
     //
 
 
-    /*
-     // iframe buster buster http://stackoverflow.com/questions/958997/frame-buster-buster-buster-code-needed
-    var prevent_bust = 0;
-    window.onbeforeunload = function() { prevent_bust++ }  
-    setInterval(function() {  
-      if (prevent_bust > 0) {  
-        prevent_bust -= 2;
-        debug('** preventing a bust to ' + window.top.location);
-        window.top.location = 'http://supergooglereader.com/204';
-      }  
-    }, 1);
-    */
-    
-    // Any keydown event
-    //
-    //$(document).keydown(function() {
-      //$.sgr.removeSgrSettingsMenu();
-    //});
-
     // Any click event
     //
     $(document).click(function(ev) {
       //debug("document click");
       var ev_target = $(ev.target);
 
-      //debug(ev_target);
-
       // If the user is clicking the 'Super settings..' button
       //
       if (ev_target.hasClass('sgr-prefs-menu-item')) {
-        //debug("#sgr-prefs-menu click");
         var sgr_prefs_menu = ev_target.closest("#sgr-prefs-menu");
 
         // Remove settings menu
@@ -678,6 +602,8 @@
           );
         }
 
+      // Else if a user is clicking the menu itself, we can remove the super menu
+      //
       } else if (ev_target.hasClass('sgr-menuitem-item')) {
         if (!ev_target.hasClass('goog-menuitem-disabled') && !ev_target.parent().hasClass('goog-menuitem-disabled')) {
           $.sgr.removeSgrSettingsMenu();
@@ -690,16 +616,15 @@
       }
     });
 
-    // div#entries live DOMAttrModified event
-    //
-    //$("#entries").live('DOMAttrModified', function(ev){
-    //$(".entry").live('click', function(ev){
 
     // div#entries live DOMNodeInserted event
     //
     $("#entries").live('DOMNodeInserted', function(ev){
       var ev_target = $(ev.target);
 
+      // If an entry is having it's content inserted (e.g. being opened), take appropriate action to
+      // inject our own tabs or replace the content as necessary.
+      //
       if (ev_target.hasClass("entry-container")) {
 
         var entry = ev_target.closest(".entry");
@@ -708,22 +633,11 @@
 
         $.sgr.setEntryOriginalContent(entry.find(".entry-body").html());
 
-        // If it has the class 'expanded' but doesnt anymore, try to save any iframe.preview that exists
+        // If this entry doesn't have the class 'expanded', and we are using an iframe or readability to view the entry,
+        // process the entry as such. We check for a missing 'expanded' class even though that class is added when an entry
+        // is opened because this code runs before Google Reader has actually assigned the expanded class.
         //
-        if ($(this).hasClass("expanded")) {
-          //debug('article close');
-        
-          // Store the time that this particular entry is being closed
-          //
-          //var entry_closed_at_time = new Date();
-          //$.sgr.entry_closed_at_time[$.sgr.getXPath(ev_target)] = entry_closed_at_time.getTime();
-          //$.sgr.removePreview(ev_target);
-
-        // Else if it doesn't have the class 'expanded' but previously did, try to open an iframe.preview
-        //
-        // TODO support for ctrlKey toggling of iframe on a per-entry basis
-        //
-        } else if ($.sgr.getSetting('use_iframes') || $.sgr.getSetting('use_readability')) {
+        if (!$(this).hasClass("expanded") && ($.sgr.getSetting('use_iframes') || $.sgr.getSetting('use_readability'))) {
           //debug('article open');
 
           // Grab the time that this entry is being opened
@@ -733,7 +647,7 @@
 
           // Check if this entry was recently closed. Google reader seems to remove, add, and remove the 'expanded'
           // class when closing an entry. This causes it to 'flicker' on the screen. We check that the entry
-          // wasn't recently (<500ms) closed before we attempt to open it, in order to avoid the flicker.
+          // wasn't recently (<50ms) closed before we attempt to open it, in order to avoid the flicker.
           //
           if (typeof $.sgr.entry_closed_at_time[entry_xpath] != 'undefined') {
             //debug("found previous entry_closed_at_time for " + entry_xpath + " : " + $.sgr.entry_closed_at_time[entry_xpath]);
@@ -776,9 +690,15 @@
       }
     });
 
+
+    // #entries live DOMNodeRemoved event
+    //
     $("#entries").live('DOMNodeRemoved', function(ev){
       var ev_target = $(ev.target);
 
+      // If the entry is being closed (.entry-container is being removed) note the time and remove
+      // any DOM components we have previously added for this entry.
+      //
       if (ev_target.hasClass("entry-container")) {
         var entry = ev_target.closest(".entry");
 
@@ -789,6 +709,8 @@
         $.sgr.entry_closed_at_time[entry_xpath] = entry_closed_at_time.getTime();
         //debug("setting entry_closed_at_time for " + entry_xpath + " : " + $.sgr.entry_closed_at_time[entry_xpath]);
 
+        // Cleanup any iframes and entry tabs we have previously injected for this entry
+        //
         $.sgr.removePreview(entry);
         entry.removeClass("readable");
         $.sgr.removeEntryTabs(entry);
@@ -800,6 +722,8 @@
     $("#viewer-top-controls").live('DOMNodeInserted', function(ev){
       var ev_target = $(ev.target);
 
+      // After a "Settings..." button has been injected, add our own "Super settings.." button
+      //
       if (ev_target.attr('id') == "stream-prefs-menu") {
         $.sgr.initSgrSettingsButton();
       }
@@ -815,13 +739,6 @@
       if ($(this).hasClass("goog-menuitem-disabled")) {
         return false;
       }
-
-      // Get the setting name
-      //
-      //var var_name = $.sgr.getSettingVarName(var_type);
-      //if (var_name == false) {
-        //return false;
-      //}
 
       // If this feed/folder doesn't already have a setting for this, use
       // the global setting to determine what to set the feed/folder setting to
@@ -856,28 +773,19 @@
         $(this).removeClass("goog-option-selected");
       }
 
+      // Entry tabs toggle
+      //
       if (setting_name == 'entry_tabs') {
         $.sgr.toggleEntryTabs();
+
+      // Show hostname in subject toggle
+      //
       } else if (setting_name == 'url_in_subject') {
         $.sgr.toggleHostnameInSubjects();
       }
 
     });
 
-    // Capture node removal from the dropdown feed/folder setting menu
-    //
-/*
-    $("#stream-prefs-menu-menu").live('DOMNodeRemoved', function(ev){
-//debug("menu DOMNodeRemoved : " + ev.target.tagName);
-      var now = new Date();
-//debug(now.getTime() - $.sgr.goog_menu_removed_date.getTime());
-      if (100 < (now.getTime() - $.sgr.goog_menu_removed_date.getTime()) && $(ev.target).hasClass("goog-option")) {
-        $.sgr.goog_menu_removed_date = new Date();
-        //debug("goog-option being removed");
-        setTimeout(function(){$("#stream-prefs-menu-menu .sgr-menuitem").remove()},20);
-      }
-    });
-*/
 
     // Entry tab live click
     //
@@ -927,24 +835,24 @@
       // Chrome listener for background messages
       //
       chrome.extension.onRequest.addListener($.sgr.receiveRequest);
-
-    } else {
-      // Listener for iframe messages
-      //
-      $(window).bind("message", $.sgr.receiveIframeMessage);
     }
-
   }
 
+  // Remove our "Super settings.." menu from the DOM
+  //
   $.sgr.removeSgrSettingsMenu = function() {
     $("#sgr-prefs-menu").removeClass("goog-button-base-open");
     $("#sgr-prefs-menu-menu").remove();
   }
 
+  // Add our "Super settings..." menu to the DOM
+  //
   $.sgr.initSgrSettingsButton = function() {
     $("#stream-prefs-menu").after($.sgr.getSgrSettingsButtonHtml());
   }
 
+  // Update the selected Entry Tab based on the entry content being shown
+  //
   $.sgr.updateSelectedEntryTab = function(entry) {
     //debug("$.sgr.updateSelectedEntryTab()");
     var tab = null;
@@ -962,23 +870,46 @@
   }
 
 
+  // Send a request from a content script to the background window. Wait for a response and take 
+  // appropriate action in some specific cases.
+  //
   $.sgr.sendRequest = function(data) {
     if (chrome) {
       chrome.extension.sendRequest(data, function(response) {
         debug("sgr.js: " + response.action + " - " + response._msg);
 
+        // If we have received readable content for an entry, check if we need to display this content
+        // for the currently open entry.
+        //
         if (response.action == 'readability_content') {
-          //debug("reader.js: request.readability_content=" + request.readability_content);
-          //debug("response=");
-          //debug(response);
+          // If this isn't a pre-fetched reabable content chunk, keep going
+          //
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
+            // If the readable chunk matches the currently open entry, keep going
+            //
             if ($("#current-entry").hasClass($.sgr.generateReadableEntryClass(data.readability_url))) {
-              $("#current-entry .entry-body").html(response.readability_content);
-              $.sgr.postProcessReadabilityFetchRequest($("#current-entry .entry-body"));
+              var jq_rc = $(response.readability_content);
+
+              // Find any img elements with an sgr-src attribute and replace the src value if it doesnt match sgr-src
+              //
+              jq_rc.find("img[sgr-src]").each(function() {
+                if ($(this).attr('src') != $(this).attr('sgr-src')) {
+                  $(this).attr('src', $(this).attr('sgr-src'));
+                }
+              });
+
+              // replace the currently open entry content with the readable content
+              //
+              $("#current-entry .entry-body").html(jq_rc);
             }
           }
 
+        // If we have asked for readable content and have not found any, revert to using the original
+        // content of the entry.
+        //
         } else if (response.action == 'readability_error_use_original_content') {
+          // If this isn't a pre-fetched reabable content chunk, keep going
+          //
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
             $.sgr.useEntryOriginalContent($("#current-entry"));
           }
@@ -988,32 +919,29 @@
     }
   }
 
+  // Ask the background window to fetch us readable content for the specified entry
+  //
   $.sgr.sendReadabilityFetchRequest = function(entry, extra_data) {
     extra_data = $.extend(extra_data, {user_id: $.sgr.USER_ID});
     $.sgr.sendRequest({action: 'readability_fetch', readability_url: $.sgr.getEntryUrl(entry), extra_data: extra_data});
   }
 
-  $.sgr.postProcessReadabilityFetchRequest = function(entry_body) {
-    // Find any img elements with an sgr-src attribute and replace the src value if it doesnt match sgr-src
-    //
-    entry_body.find("img[sgr-src]").each(function() {
-      if ($(this).attr('src') != $(this).attr('sgr-src')) {
-        $(this).attr('src', $(this).attr('sgr-src'));
-      }
-    });
-  }
-
+  // Store the original feed content for an entry. We use this if we can't find any readable content for the entry.
+  //
   $.sgr.setEntryOriginalContent = function(html) {
     $.sgr.entry_original_content = html;
   }
 
+  // Revert to using the entry's original feed content.
+  //
   $.sgr.useEntryOriginalContent = function(entry) {
     entry.removeClass("preview").removeClass("readable");
     $.sgr.updateSelectedEntryTab(entry);
     entry.find(".entry-body").html($.sgr.entry_original_content);
   }
 
-
+  // Initialise the background window, mainly for a request listener.
+  //
   $.sgr.initBackgroundWindow = function() {
     chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
       debug("background : received request, request.action = " +request.action);
@@ -1042,9 +970,14 @@
         } else if ($.sgr.matchUrlExtension(request.readability_url, ['pdf', 'ppt'])) {
           sendResponse($.extend({action: 'readability_content', readability_content: $.sgr.getGoogleDocHtml(request.readability_url), _msg: "Google docs content found for " + request.readability_url},request.extra_data));
 
+        // If stored content exists but has been set to 'none', meaning previously no readable content could be found,
+        // report a readability error and use the original feed content.
+        //
         } else if (stored_content == 'none') {
           sendResponse($.extend({action: 'readability_error_use_original_content', _msg: "No content found (cached) for " + request.readability_url},request.extra_data));
 
+        // Otherwise we can fetch readable content from the source
+        //
         } else {
           $.sgr.fetchReadableContent(request.readability_url, sendResponse, sendResponse, request.extra_data);
         }
@@ -1426,13 +1359,6 @@
         console.log(response._msg);
       }
     });
-  }
-
-  // Main code run for iframe
-  //
-  $.sgr.run_iframe = function() {
-    //$.sgr.initSettings();
-    $.sgr.initIframeStyles();
   }
 
   $.sgr.runReaderLogout = function() {

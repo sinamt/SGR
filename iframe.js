@@ -36,7 +36,7 @@
   function sendMessageToParent(msg) {
     if (chrome) {
       chrome.extension.sendRequest({action: "window_height", window_height: msg}, function(response) {
-        console.log("iframe.js: " + response.action + " - " + response._msg);
+        debug("iframe.js: " + response.action + " - " + response._msg);
       });
     }
   }
@@ -65,43 +65,42 @@
     try {
       var scroll_height = document.body.scrollHeight;
     } catch(e) {
-      console.log("document.body.scrollHeight not found");
+      debug("document.body.scrollHeight not found");
       return false;
     }
 
     send_size_counter += 1;
 
-    //if (window.parent['postMessage']) {
-      var height;
+    var height;
 
-      // If jQuery has loaded, use it to find the window height
+    // If jQuery has loaded, use it to find the window height
+    //
+    if (jQuery) { 
+      // document.body.scrollHeight *seems* to be the correct height to use in 
+      // cases where a page has been shortened in height during it's load process. 
+      // So if document.body.scrollHeight is less than $(document).height(), but 
+      // still larger than the minimum allowable iframe height, use it.
       //
-      if (jQuery) { 
-        // document.body.scrollHeight *seems* to be the correct height to use in 
-        // cases where a page has been shortened in height during it's load process. 
-        // So if document.body.scrollHeight is less than $(document).height(), but 
-        // still larger than the minimum allowable iframe height, use it.
-        //
-        if (scroll_height < $(document).height() && scroll_height > MIN_IFRAME_HEIGHT) {
-          // Add a little fudge (20px) to cover fringe cases of incorrect height
-          //
-          height = scroll_height + 20;
-        } else {
-          height = $(document).height();
-        }
-
-      // If we don't have access to jQuery, simply use document.body.scrollHeight
-      //
-      } else {
+      if (scroll_height < $(document).height() && scroll_height > MIN_IFRAME_HEIGHT) {
         // Add a little fudge (20px) to cover fringe cases of incorrect height
         //
         height = scroll_height + 20;
+      } else {
+        height = $(document).height();
       }
 
-      // Send the height to the parent using postMessage()
+    // If we don't have access to jQuery, simply use document.body.scrollHeight
+    //
+    } else {
+      // Add a little fudge (20px) to cover fringe cases of incorrect height
       //
-      sendMessageToParent(height);
-    //}
+      height = scroll_height + 20;
+    }
+
+    // Send the height to the parent using postMessage()
+    //
+    sendMessageToParent(height);
+
     return false;
   }
 
@@ -114,29 +113,6 @@
   sendSizeToParent();
 
 
-/*
-  var sgr_no_div = true;
-  var prev_scrollheight = 0;
-  //$(window).bind('DOMNodeInserted', function(ev){
-  $("body").live('DOMNodeInserted', function(ev){
-    //if (document.body && sgr_no_div == true) { // Math.floor(Math.random()*10) == 1) {
-      //sgr_no_div = false;
-      //debug("DOMNodeInserted sendSizeTOParent " + self.location.href);
-      //sendSizeToParent();
-    //}
-    //if ($.inArray(ev.target.tagName,['DIV','P']) > -1 && document.body) {
-    //debug("DOMNodeInserted " + self.location.href);
-    if ($.inArray(ev.target.tagName,['DIV','P']) > -1) {
-      //debug("DOMNodeInserted doducment.body.scrollHeight = " + document.body.scrollHeight + " " + self.location.href);
-      if (document.body.scrollHeight > prev_scrollheight) {
-        debug("DOMNodeInserted sendSizeTOParent " + self.location.href);
-        prev_scrollheight = document.body.scrollHeight;
-        sendSizeToParent();
-      }
-    }
-  });
-*/
-
   $(document).ready(function() {
     //debug("document.ready sendSizeTOParent " + self.location.href);
     sendSizeToParent();
@@ -148,10 +124,6 @@
     //debug("window.load sendSizeTOParent " + self.location.href);
     sendSizeToParent();
   });
-
-  // Run the main code
-  //
-  //$.sgr.run_iframe();
 
 })(jQuery);
 
