@@ -65,6 +65,16 @@
   //
   $.sgr.entry_tabs_html = '<div class="sgr-entry-tabs"><div class="sgr-tab-readable sgr-entry-tab">Readable</div><div class="sgr-tab-link sgr-entry-tab">Link</div><div class="sgr-tab-feed sgr-entry-tab">Feed</div></div>';
 
+  // Settings feedback messages
+  //
+  $.sgr.setting_feedback_messages = {
+    url_in_subject: {'true': 'Default to include entry hostname in subject.', 'false': 'Default to <em>not</em> include entry hostname in subject.'},
+    hide_likers: {'true': "Hide 'Liked by users' for each entry.", 'false': "Show 'Liked by users' for each entry."},
+    entry_tabs: {'true': "Display 'Content Type' tabs for each entry ('Readable', 'Link', 'Feed').", 'false': "<em>Do not</em> display 'Content Type' tabs for each entry ('Readable', 'Link', 'Feed')."},
+    use_iframes: {'true': 'Default to open all entries as previews (iframes).', 'false': 'Default to <em>not</em> open all entries as previews (iframes).'},
+    use_readability: {'true': 'Default to open all entries as readable content.', 'false': 'Default to <em>not</em> open all entries as readable content.'},
+    readability_pre_fetch: {'true': 'If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.', 'false': 'If readability enabled for feed/folder, <em>do not</em> default to pre-fetch all non-read entries as readable content.'}
+  }
 
   // Load default global settings.
   //
@@ -430,7 +440,7 @@
   // settings tab content into the DOM.
   //
   $.sgr.initSettingsNavigation = function() {
-    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\') </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes) </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry </label> <br /> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content</label> </div> </div> </li>');
+    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\'). </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes). </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry. </label> <br /> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.</label> </div> </div> </li>');
 
     // Inject the Enhanced tab heading html
     //
@@ -472,11 +482,15 @@
       });
     });
 
+    // Initialise the settings feedback message area
+    //
+    $("#message-area-outer").addClass("hidden").addClass("info-message");
   }
 
   // Settings checkbox click event handler. Handles a user changing a setting.
   //
   $.sgr.globalSettingClickEventHandler = function(gs_name, gs_default, gs_id) {
+    gs_name = gs_name.toString();
     var gs_value = !$.sgr.getGlobalSetting(gs_name);
     $.sgr.setGlobalSetting(gs_name, gs_value);
 
@@ -485,6 +499,8 @@
     } else {
       $("#" + gs_id).removeAttr('checked');
     }
+
+    $.sgr.showSettingChangeFeedbackMesssage(gs_name, gs_value);
 
     // Special case for use_iframes / use_readability. If either is being enabled, make sure the opposite is disabled
     //
@@ -519,6 +535,31 @@
       $.sgr.toggleEntryLikers();
     } else if (data.setting_name == 'entry_tabs') {
       $.sgr.toggleEntryTabs();
+    }
+  }
+
+
+  // Display a feedback 'flash' message on screen after a global setting is changed
+  //
+  $.sgr.showSettingChangeFeedbackMesssage = function(gs_name, gs_value) {
+    var fb_value = gs_value;
+    if (gs_value === true) {
+      fb_value = 'true';
+    } else if (gs_value === false) {
+      fb_value = 'false';
+    }
+
+    var msg = $.sgr.setting_feedback_messages[gs_name][fb_value];
+    if (msg != null) {
+      $("#message-area-inner").html(msg);
+      $("#message-area-outer").removeClass("hidden").width($("#message-area-inner").width() + 15).css('margin-left', '-' + ($("#message-area-outer").width() / 2) + 'px');
+
+      // Timeout handling for removing the flash message
+      //
+      clearTimeout($.sgr.setting_feedback_timer);
+      $.sgr.setting_feedback_timer = setTimeout(function(){
+          $("#message-area-outer").addClass("hidden");
+        }, 6000);
     }
   }
 
