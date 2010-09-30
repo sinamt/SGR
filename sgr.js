@@ -679,7 +679,7 @@
         // is opened because this code runs before Google Reader has actually assigned the expanded class.
         //
         if (!$(this).hasClass("expanded") && ($.sgr.getSetting('use_iframes') || $.sgr.getSetting('use_readability'))) {
-          //debug('article open');
+          debug('article open');
 
           // Grab the time that this entry is being opened
           //
@@ -872,6 +872,26 @@
       }
     });
 
+    $(document).bind('keydown', '[', function(ev){
+      debug('[ pressed');
+      debug(ev);
+      debug($("#current-entry"));
+      //e = jQuery.Event("keydown");
+      //e.keyCode = 79;
+      //e.which = 79;
+      //$("#current-entry").mousedown();
+      //$(document).trigger('keypress', [79]);
+    });
+
+    $(document).bind('keydown', ']', function(ev){
+      debug('[]\\ pressed');
+      debug(ev);
+    });
+    //$(document).bind('keydown', 'o', function(ev){
+      //debug("o pressed");
+      //debug(ev);
+    //});
+
     if (chrome) {
       // Chrome listener for background messages
       //
@@ -1050,6 +1070,9 @@
       return;
     }
 
+    // Inject the global settings tab and listeners once the entire DOM is ready, so we can
+    // ensure we place our tab in the correct location.
+    //
     $(document).ready(function() {
       $.sgr.initSettingsNavigation();
     });
@@ -1111,6 +1134,8 @@
     return url.match(/(.*?\/\/[^\/]*?)(?:\/|$)/)[1];
   }
 
+  // Find the base domain url and path (exlcuding filename if present) for a given url
+  //
   $.sgr.getBaseUrlWithPath = function(url) {
     try {
       var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
@@ -1125,6 +1150,8 @@
     return url_match;
   }
 
+  // Toggle display of 'X users liked this' for all entries, depending on user's settings.
+  //
   $.sgr.toggleEntryLikers = function() {
     // If hide_likers is enabled, hide all entry likers
     //
@@ -1142,6 +1169,8 @@
     }
   }
 
+  // Inject entry tabs into an entry
+  //
   $.sgr.injectEntryTabs = function(entry) {
     //entry.find(".collapsed .entry-main").append($.sgr.entry_tabs_html);
     if (entry.length <= 0) {
@@ -1154,11 +1183,15 @@
     }
   }
 
+  // Remove entry tabs from an entry
+  //
   $.sgr.removeEntryTabs = function(entry) {
     entry.find(".sgr-entry-tabs").remove();
     entry.find(".entry-secondary-snippet").show();
   }
 
+  // Toggle the display of entry tabs in an entry, depending on a user's settings.
+  //
   $.sgr.toggleEntryTabs = function() {
     var entry = $("#current-entry");
     if (entry.length <= 0) {
@@ -1171,6 +1204,9 @@
     }
   }
 
+  // Toggle the display of the readability pre-fetch menu option, depending on the user's setting
+  // for 'use_readability'.
+  //
   $.sgr.togglePreFetchReadableContentMenuOption = function() {
     if ($.sgr.getSetting('use_readability')) {
       $("#menu_readability_pre_fetch").removeClass("goog-menuitem-disabled").addClass("goog-option");
@@ -1179,6 +1215,10 @@
     }
   }
 
+  // Fetch readable content for an entry. First we check if the entry is a known type (e.g. youtube video) and
+  // handle it appropriately if it is. If not, we perform an ajax request to grab the content and then parse
+  // it through readability.
+  //
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
     debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
@@ -1194,12 +1234,9 @@
           //console.log(responseHtml);
 
           var page = document.createElement("DIV");
-          //page.innerHTML = responseHtml;
           page.innerHTML = readability.sgrInit(responseHtml);
           //debug("page.innerHTML=");
           //debug(page.innerHTML);
-          //$(page).html(readability.sgrInit(responseHtml));
-  //return false;
 
           readability.flags = 0x1 | 0x2 | 0x4;
 
@@ -1230,6 +1267,8 @@
     }
   }
 
+  // Handle a successful generation of readable content. We store the content and execute the provided calback.
+  //
   $.sgr.successfulReadableContent = function(content, url, success_callback, extra_return_data) {
     console.log(content);
     $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content, 'session');
@@ -1238,11 +1277,15 @@
     success_callback(return_data);
   }
 
+  // Handle a failed generation of readable content. We execute the provided calback.
+  //
   $.sgr.failedReadableContent = function(url, failure_callback, extra_return_data) {
     var return_data = $.extend({action: 'readability_error_use_original_content', _msg: "No content found for " + url}, extra_return_data);
     failure_callback(return_data);
   }
 
+  // Look for a matched known entry type to replace content with readable content (e.g. youtube).
+  //
   $.sgr.handleReadableEntryContentReplace = function(url, success_callback, failure_callback, extra_return_data) {
     var found_match = false;
     $($.sgr.readable_entry_content_replace).each(function(){
@@ -1255,6 +1298,9 @@
     return found_match;
   }
 
+  // Readable content generator for Youtube videos. Fetches info on the video via the youtube api
+  // and renders an embedded link to the video along with some info.
+  //
   $.sgr.replaceContentYoutube = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
     var video_id = url_matches[1];
     if (video_id == null) {
@@ -1279,6 +1325,9 @@
     return true;
   }
 
+  // Readable content generator for Vimeo videos. Fetches info on the video via the vimeo api
+  // and renders an embedded link to the video along with some info.
+  //
   $.sgr.replaceContentVimeo = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
     var video_id = url_matches[1];
     if (video_id == null) {
@@ -1304,6 +1353,9 @@
     return true;
   }
 
+  // Readable content generator for Wikipedia articles. Fetches the article content via the wikipedia api
+  // and renders it nicely.
+  //
   $.sgr.replaceContentWikipedia = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
     var topic = url_matches[1] != null ? url_matches[1] : url_matches[2];
     if (topic == null) {
@@ -1333,58 +1385,60 @@
     return true;
   }
 
+  // Settings for known readable content types. Includes regex to match against entry links. This
+  // must be defined after the callback functions have been initiated so references to the callbacks
+  // can be listed in this settings object.
+  //
   $.sgr.readable_entry_content_replace = [
     {name: 'youtube', regex: /^http(?:s|)\:\/\/(?:www\.|)youtube\.com\/(?:watch|)\?v\=(.*?)(?:&.*|)$/, callback: $.sgr.replaceContentYoutube}
     ,{name: 'vimeo', regex: /^http(?:s|)\:\/\/(?:www\.|)vimeo\.com\/([0-9]*)/, callback: $.sgr.replaceContentVimeo}
     ,{name: 'wikipedia', regex: /^http(?:s|)\:\/\/.*?\.wikipedia\.org\/(?:wiki\/(.*)|w\/index\.php.*?title=(.*?)(?:&.*|)$)/, callback: $.sgr.replaceContentWikipedia}
     ];
 
+  // Generate a class name for an entry based on it's URL
+  //
   $.sgr.generateReadableEntryClass = function(url) {
     return "sgr-entry-" + url.replace(/[^a-zA-Z0-9]+/g,'_');
   }
 
+  // Generate a storage key for readability content based on USER_ID and URL
+  //
   $.sgr.getReadabilityContentStorageKey = function(url, user_id) {
     return (user_id == null ? $.sgr.USER_ID : user_id) + "_ra_url_" + url.replace(/[^a-zA-Z0-9]+/g,'_');
   }
 
-  $.sgr.preFetchReadableEntry = function(entry) {
-    $.sgr.fetchReadableContent($.sgr.getEntryUrl(entry), function(){}, function(){}, {pre_fetch: true});
-  }
-
-  $.sgr.preFetchReadableEntries = function() {
-    if ($.sgr.getSetting('readability_pre_fetch')) {
-      $(".entry").not(".read").each(function(){
-        $.sgr.preFetchReadableEntry($(this));
-      });
-    }
-  }
-
-  // Contruct the HTML for a 'Super settings' menu button
+  // Construct the HTML for a 'Super settings' menu button
   //
   $.sgr.getSgrSettingsButtonHtml = function() {
     return '<div role="wairole:button" tabindex="1" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-menu-button goog-button-tight sgr-prefs-menu-item" id="sgr-prefs-menu"><div class="goog-button-base-outer-box goog-inline-block sgr-prefs-menu-item"><div class="goog-button-base-inner-box goog-inline-block sgr-prefs-menu-item"><div class="goog-button-base-pos sgr-prefs-menu-item"><div class="goog-button-base-top-shadow sgr-prefs-menu-item">&nbsp;</div><div class="goog-button-base-content sgr-prefs-menu-item"><div class="goog-button-body sgr-prefs-menu-item">Super settings...</div><div class="goog-menu-button-dropdown sgr-prefs-menu-item"></div></div></div></div></div></div>';
   }
 
-  // Contruct the HTML for a dropdown menu option item
+  // Construct the HTML for a dropdown menu option item
   //
   $.sgr.getGoogMenuitemHtml = function(id, label, selected) {
       return '<div class="sgr-menuitem sgr-menuitem-item goog-menuitem goog-option' + (selected ? ' goog-option-selected' : '') + '" role="menuitem" style="-moz-user-select: none;" id="' + id + '"><div class="sgr-menuitem-item goog-menuitem-content"><div class="sgr-menuitem-item goog-menuitem-checkbox"></div>' + label + '</div></div>';
   }
 
-  // Contruct the HTML for a dropdown menu separator item
+  // Construct the HTML for a dropdown menu separator item
   //
   $.sgr.getGoogMenuseparatorHtml = function() {
     return '<div class="goog-menuseparator sgr-menuitem" style="-moz-user-select: none;" role="separator" id=""></div>';
   }
 
+  // Construct HTML for am embedded Google Docs iframe
+  //
   $.sgr.getGoogleDocHtml = function(url) {
     return '<iframe id="google_doc_iframe" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="http://docs.google.com/gview?embedded=true&url=' + url + '" class=""></iframe>';
   }
 
+  // Get the URL extension (e.g. php) if it exists.
+  //
   $.sgr.getUrlExtension = function(url) {
     return url.match(/.*\.(.*)$/i)[1];
   }
 
+  // Match a URL's extension to a given array of extensions.
+  //
   $.sgr.matchUrlExtension = function(url, match_arr) {
     var url_ext = $.sgr.getUrlExtension(url);
     if (jQuery.inArray(url_ext, match_arr) > -1) {
@@ -1393,6 +1447,8 @@
     return false;
   }
 
+  // Send a request to a specific chrome tab. Usually executed from a background window.
+  //
   $.sgr.sendToTab = function(tab_id, data) {
     debug("sendToTab : sending data to chrome tab " + tab_id);
     chrome.tabs.sendRequest(tab_id, data, function(response) {
@@ -1402,6 +1458,9 @@
     });
   }
 
+  // Handle a logout from google reader. Clear the sessionStore on this content page 
+  // and on the background page.
+  //
   $.sgr.runReaderLogout = function() {
     // Clear the content window sessionStore
     //
@@ -1424,14 +1483,6 @@
 
     $.sgr.initSettingsWindow();
 
-/*
-var html = '<p>some text <img class="dsfg" src="/images/blah2.gif" id="dsgdsg"></p>';
-html = html.replace(/<img.*?src=("|')(.*?)("|')/gi, '<img src="" sgr-src="$2"');
-debug(html);
-var page = document.createElement("DIV");
-page.innerHTML = html;
-debug(page.innerHTML);
-*/
   }
 
 })(jQuery);
