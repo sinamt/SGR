@@ -18,6 +18,11 @@ if (sessionStorage.getItem('sgr_no_reload') == null) {
   sessionStorage.removeItem('sgr_no_reload');
 }
 
+var res = document.createElement('SCRIPT'); 
+res.type = 'text/javascript'; 
+res.src = chrome.extension.getURL("jquery.js");
+document.documentElement.appendChild(res);
+
 // Inject the reader_raw script directly into the document
 //
 var res = document.createElement('SCRIPT'); 
