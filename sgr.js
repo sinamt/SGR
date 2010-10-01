@@ -355,6 +355,20 @@
 
   }
 
+  // Show an entry preview iframe only if one isn't already being shown.
+  //
+  $.sgr.checkAndShowPreview = function(entry, scroll_to) {
+    if (typeof scroll_to == 'undefined') {
+      scroll_to = false;
+    }
+    if (!entry.hasClass("preview")) {
+      if (scroll_to) {
+        $.sgr.scrollTo(entry);
+      }
+      $.sgr.showPreview(entry); 
+    }
+  }
+
   // Create a new iframe element for previewing an entry.
   //
   $.sgr.createPreviewIframe = function(entry, hidden) {
@@ -433,6 +447,23 @@
       entry_body.html("<p>Loading...</p>");
 
       $.sgr.sendReadabilityFetchRequest(entry);
+  }
+
+  // Wrapper for displaying an entry containing readable content that
+  // checks if it's already showing a readable entry, and if not also trys to 
+  // save any iframe being shown for the entry.
+  //
+  $.sgr.checkAndShowReadableEntry = function(entry, scroll_to) {
+    if (typeof scroll_to == 'undefined') {
+      scroll_to = false;
+    }
+    if (!entry.hasClass("readable")) {
+      $.sgr.savePreview(entry);
+      if (scroll_to) {
+        $.sgr.scrollTo(entry);
+      }
+      $.sgr.showReadableEntry(entry);
+    }
   }
 
   // Setup the Settings window. Google Reader settings are handled via a seperate iframe. 
@@ -586,6 +617,34 @@
     // This keeps the amount of live events to a minimum.
     //
 
+    // Any keydown event
+    //
+    $(document).keydown(function(ev){
+
+      // keydown 8, 9 or 0 : switch between readable, iframe and original 
+      // entry views
+      //
+      if (jQuery.inArray(parseInt(ev.keyCode), [48,56,57]) > -1) {
+        var entry = $("#current-entry");
+        if (entry.hasClass("expanded")) {
+          // Keydown 0 - show original content
+          //
+          if (ev.keyCode == 48) {
+            $.sgr.checkAndShowEntryOriginalContent(entry, true);
+
+          // Keydown 8 - show readable content
+          //
+          } else if (ev.keyCode == 56) {
+            $.sgr.checkAndShowReadableEntry(entry, true);
+
+          // Keydown 9 - show iframe content
+          //
+          } else if (ev.keyCode == 57) {
+            $.sgr.checkAndShowPreview(entry, true);
+          }
+        }
+      }
+    });
 
     // Any click event
     //
@@ -837,29 +896,17 @@
       // Readable
       //
       if (tab.hasClass("sgr-tab-readable")) {
-        if (!entry.hasClass("readable")) {
-          $.sgr.savePreview(entry);
-          $.sgr.showReadableEntry(entry);
-        }
+        $.sgr.checkAndShowReadableEntry(entry);
 
       // Link
       //
       } else if (tab.hasClass("sgr-tab-link")) {
-        if (!entry.hasClass("preview")) {
-          $.sgr.showPreview(entry); 
-        }
+        $.sgr.checkAndShowPreview(entry); 
 
       // Feed
       //
       } else if (tab.hasClass("sgr-tab-feed")) {
-        if (entry.hasClass("preview") || entry.hasClass("readable")) {
-          if (entry.hasClass("preview")) {
-            $.sgr.savePreview(entry);
-          } else {
-            entry.removeClass("readable");
-          }
-          $.sgr.useEntryOriginalContent(entry);
-        }
+        $.sgr.checkAndShowEntryOriginalContent(entry);
       }
     });
 
@@ -871,26 +918,6 @@
         $.sgr.runReaderLogout();
       }
     });
-
-    $(document).bind('keydown', '[', function(ev){
-      debug('[ pressed');
-      debug(ev);
-      debug($("#current-entry"));
-      //e = jQuery.Event("keydown");
-      //e.keyCode = 79;
-      //e.which = 79;
-      //$("#current-entry").mousedown();
-      //$(document).trigger('keypress', [79]);
-    });
-
-    $(document).bind('keydown', ']', function(ev){
-      debug('[]\\ pressed');
-      debug(ev);
-    });
-    //$(document).bind('keydown', 'o', function(ev){
-      //debug("o pressed");
-      //debug(ev);
-    //});
 
     if (chrome) {
       // Chrome listener for background messages
@@ -939,16 +966,19 @@
       chrome.extension.sendRequest(data, function(response) {
         debug("sgr.js: " + response.action + " - " + response._msg);
 
-        // If we have received readable content for an entry, check if we need to display this content
-        // for the currently open entry.
-        //
-        if (response.action == 'readability_content') {
-          // If this isn't a pre-fetched reabable content chunk, keep going
+        if (response.action == 'readability_content' 
+            || response.action == 'readability_error_use_original_content') {
+
+          // If this isn't a pre-fetched reabable content chunk, and
+          // the readable chunk matches the currently open entry, keep going
           //
-          if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
-            // If the readable chunk matches the currently open entry, keep going
+          if ((typeof response.pre_fetch == 'undefined' || response.pre_fetch == false)
+              && $("#current-entry").hasClass($.sgr.generateReadableEntryClass(data.readability_url))) {
+
+            // If we have received readable content for an entry, check if we need to display this content
+            // for the currently open entry.
             //
-            if ($("#current-entry").hasClass($.sgr.generateReadableEntryClass(data.readability_url))) {
+            if (response.action == 'readability_content') {
               var jq_rc = $(response.readability_content);
 
               // Find any img elements with an sgr-src attribute and replace the src value if it doesnt match sgr-src
@@ -962,20 +992,15 @@
               // replace the currently open entry content with the readable content
               //
               $("#current-entry .entry-body").html(jq_rc);
+
+            // If we have asked for readable content and have not found any, revert to using the original
+            // content of the entry.
+            //
+            } else if (response.action == 'readability_error_use_original_content') {
+              $.sgr.useEntryOriginalContent($("#current-entry"));
             }
           }
-
-        // If we have asked for readable content and have not found any, revert to using the original
-        // content of the entry.
-        //
-        } else if (response.action == 'readability_error_use_original_content') {
-          // If this isn't a pre-fetched reabable content chunk, keep going
-          //
-          if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
-            $.sgr.useEntryOriginalContent($("#current-entry"));
-          }
         }
-
       });
     }
   }
@@ -999,6 +1024,26 @@
     entry.removeClass("preview").removeClass("readable");
     $.sgr.updateSelectedEntryTab(entry);
     entry.find(".entry-body").html($.sgr.entry_original_content);
+  }
+
+  // Revert to using the entry's original feed content, after checking it isn't
+  // already being shown and then saving any iframe being shown.
+  //
+  $.sgr.checkAndShowEntryOriginalContent = function(entry, scroll_to) {
+    if (typeof scroll_to == 'undefined') {
+      scroll_to = false;
+    }
+    if (entry.hasClass("preview") || entry.hasClass("readable")) {
+      if (entry.hasClass("preview")) {
+        $.sgr.savePreview(entry);
+      } else {
+        entry.removeClass("readable");
+      }
+      if (scroll_to) {
+        $.sgr.scrollTo(entry);
+      }
+      $.sgr.useEntryOriginalContent(entry);
+    }
   }
 
   // Initialise the background window, mainly for a request listener.
