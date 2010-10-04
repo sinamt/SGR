@@ -15,7 +15,7 @@
   // If this is the google reader settings iframe, return
   //
   if (self.location.href.match(/\/\/(www\.|)google\.com\/reader\/settings/)) {
-    debug("in greader settings iframe, returning");
+    //debug("in greader settings iframe, returning");
     return;
   }
 
@@ -36,7 +36,7 @@
   function sendMessageToParent(msg) {
     if (chrome) {
       chrome.extension.sendRequest({action: "window_height", window_height: msg}, function(response) {
-        debug("iframe.js: " + response.action + " - " + response._msg);
+        //debug("iframe.js: " + response.action + " - " + response._msg);
       });
     }
   }
@@ -49,13 +49,13 @@
 
     //debug('sendSizeToParent()');
 
-    // Check if we have exceeded the maximum allowed times to send the height to the parnet.
+    // Check if we have exceeded the maximum allowed times to send the height to the parent.
     // This is here as a catchall or precaution in case we get stuck in a resize loop and continually
     // spam the parent with height values. This can sometimes occur if we use a window resize event 
     // handler to determine when to send height to the parent.
     //
     if (send_size_counter > MAX_SEND_SIZE) {
-      debug("sendSizeToParent() exceeded call limit");
+      //debug("sendSizeToParent() exceeded call limit");
       if (jQuery) {
         $(window).unbind('resize', sendSizeToParent);
       }

@@ -16,10 +16,6 @@
   $.sgr.minimum_iframe_height = 700;
   $.sgr.minimum_iframe_height_str = $.sgr.minimum_iframe_height.toString() + 'px';
 
-  // Comment selector snippet for finding comments on a page
-  //
-  $.sgr.comment_selector = "[class*=comment], [id*=comment]";
-
   ////////////
   // End CONFIG
   ////////////
@@ -27,10 +23,6 @@
   // Settings cache
   //
   $.sgr._settings = {};
-
-  // Setting tab counter, so we know when to insert our settings tab
-  //
-  $.sgr.setting_group_title_add_count = 0;
 
   // Container to store when an entry has been closed. Used to prevent entry 'flicker'
   // when entry is closed/opened/closed too quickly
@@ -44,10 +36,6 @@
   // Google Reader _USER_ID value
   //
   $.sgr.USER_ID = null;
-
-  // Date & time of last removal of goog-menu
-  //
-  $.sgr.goog_menu_removed_date = new Date();
 
   // Youtube API URLs
   //
@@ -159,7 +147,7 @@
   //
   $.sgr.setGlobalSetting = function(setting_name,value) {
     var key = $.sgr.getSettingName(setting_name, 'global');
-    debug("setGlobalSetting() : " + key + " = " + value);
+    //debug("setGlobalSetting() : " + key + " = " + value);
     $.stor.set(key, value);
     $.sgr._settings[key] = value;
   }
@@ -738,7 +726,7 @@
         // is opened because this code runs before Google Reader has actually assigned the expanded class.
         //
         if (!$(this).hasClass("expanded") && ($.sgr.getSetting('use_iframes') || $.sgr.getSetting('use_readability'))) {
-          debug('article open');
+          //debug('article open');
 
           // Grab the time that this entry is being opened
           //
@@ -919,6 +907,24 @@
       }
     });
 
+    // Keyboard shortcut help - DOMNodeInserted live event 
+    //
+    $(".keyboard-help-banner .secondary-message").live('DOMNodeInserted',function(ev){
+      var ev_target = $(ev.target);
+      if (ev_target.attr('id') == 'keyboard-help-container') {
+        var start_tr = ev_target.find("#keyboard-help tr:eq(9)");
+        start_tr.find("td:eq(0)").remove();
+        start_tr.find("td:eq(0)").replaceWith('<th colspan="2">Super - acting on items</th>');
+
+        start_tr.next().find("td:eq(0)").addClass("key").html("8:");
+        start_tr.next().find("td:eq(1)").addClass("desc").html("view readable content");
+        start_tr.next().next().find("td:eq(0)").addClass("key").html("9:");
+        start_tr.next().next().find("td:eq(1)").addClass("desc").html("view link in iframe");
+        start_tr.next().next().next().find("td:eq(0)").addClass("key").html("0:");
+        start_tr.next().next().next().find("td:eq(1)").addClass("desc").html("view original entry");
+      }
+    });
+
     if (chrome) {
       // Chrome listener for background messages
       //
@@ -964,7 +970,7 @@
   $.sgr.sendRequest = function(data) {
     if (chrome) {
       chrome.extension.sendRequest(data, function(response) {
-        debug("sgr.js: " + response.action + " - " + response._msg);
+        //debug("sgr.js: " + response.action + " - " + response._msg);
 
         if (response.action == 'readability_content' 
             || response.action == 'readability_error_use_original_content') {
@@ -1050,7 +1056,7 @@
   //
   $.sgr.initBackgroundWindow = function() {
     chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-      debug("background : received request, request.action = " +request.action);
+      //debug("background : received request, request.action = " +request.action);
 
       // Iframe window height
       //
@@ -1185,7 +1191,7 @@
     try {
       var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
     } catch(e) {
-      console.log("Error running getBaseUrlWidth() for url " + url + ".");
+      debug("Error running getBaseUrlWidth() for url " + url + ".");
       return null;
     }
     //debug("url match: url=" + url + ", url_match=" + url_match);
@@ -1201,14 +1207,12 @@
     // If hide_likers is enabled, hide all entry likers
     //
     if ($.sgr.getSetting('hide_likers')) {
-      debug("hiding entry-likers");
       $.sgr.addStyles(' .entry-likers { display: none; }');
       $(".entry-likers").css('display','none');
 
     // If hide_likers is disabled, show all entry likers
     //
     } else {
-      debug("showing entry-likers");
       $.sgr.addStyles(' .entry-likers { display: block; }');
       $(".entry-likers").css('display','block');
     }
@@ -1265,7 +1269,7 @@
   // it through readability.
   //
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
-    debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
+    //debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
     var content_replaced = $.sgr.handleReadableEntryContentReplace(url, success_callback, failure_callback, extra_return_data);
 
@@ -1275,8 +1279,6 @@
         data: {},
         success: function(responseHtml) {
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
-
-          //console.log(responseHtml);
 
           var page = document.createElement("DIV");
           page.innerHTML = readability.sgrInit(responseHtml);
@@ -1291,8 +1293,8 @@
             if (content == null) {
               throw new Error("Readability found no valid content.");
             }
-            //console.log("content.innerHTML after grabArticle:");
-            //console.log(content.innerHTML);
+            //debug("content.innerHTML after grabArticle:");
+            //debug(content.innerHTML);
             readability.removeScripts(content);
             readability.fixImageFloats(content);
 
@@ -1302,8 +1304,8 @@
             $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
             return false;
           }
-          //console.log("content.innerHTML before sgrPostProcess:");
-          //console.log(content.innerHTML);
+          //debug("content.innerHTML before sgrPostProcess:");
+          //debug(content.innerHTML);
           content = readability.sgrPostProcess(content, url);
 
           $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
@@ -1315,7 +1317,7 @@
   // Handle a successful generation of readable content. We store the content and execute the provided calback.
   //
   $.sgr.successfulReadableContent = function(content, url, success_callback, extra_return_data) {
-    console.log(content);
+    //debug(content);
     $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content, 'session');
 
     var return_data = $.extend({action: 'readability_content', readability_content: content, _msg: (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + "Content fetched for " + url}, extra_return_data);
@@ -1495,10 +1497,10 @@
   // Send a request to a specific chrome tab. Usually executed from a background window.
   //
   $.sgr.sendToTab = function(tab_id, data) {
-    debug("sendToTab : sending data to chrome tab " + tab_id);
+    //debug("sendToTab : sending data to chrome tab " + tab_id);
     chrome.tabs.sendRequest(tab_id, data, function(response) {
       if (response._msg) {
-        console.log(response._msg);
+        debug(response._msg);
       }
     });
   }
