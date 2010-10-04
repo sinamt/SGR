@@ -7,6 +7,9 @@
     "https://*/*",
     "tabs"
   ],
+  "icons": { "16": "rss_16x16.png",
+             "48": "rss_48x48.png",
+            "128": "rss_128x128.png" },
   "content_scripts": [
     {
       "matches": ["http://www.google.com/reader/*", "https://www.google.com/reader/*"],
