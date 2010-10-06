@@ -1,4 +1,7 @@
 
+     var _gaq = _gaq || [];
+     _gaq.push(['_setAccount', 'UA-18940431-1']);
+     _gaq.push(['_trackPageview']);
 (function($) {
 
   // $.sgr namespace constructor
@@ -1505,6 +1508,11 @@
     });
   }
 
+  $.sgr.gaTrackEvent = function(name, action) {
+    debug(_gaq);
+    _gaq.push(['_trackEvent', name, action]);
+  }
+  
   // Handle a logout from google reader. Clear the sessionStore on this content page 
   // and on the background page.
   //
@@ -1530,6 +1538,15 @@
 
     $.sgr.initSettingsWindow();
 
+    $.getScript('https://ssl.google-analytics.com/ga.js',function(){
+        debug("ga.js loaded. _gaq=");
+        debug(_gaq);
+        
+        debug(_gaq);
+        //$.sgr.gaTrackEvent('main_window', 'loaded');
+    _gaq.push(['_trackEvent', 'main window', 'loaded']);
+        debug(_gaq);
+    });
   }
 
 })(jQuery);
