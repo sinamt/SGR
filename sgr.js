@@ -1134,13 +1134,21 @@
   // Google Analytics track pageview. Needs to be called from background window.
   //
   $.sgr.gaTrackPageView = function(url) {
-    _gaq.push(['_trackPageview', url]);
+    if (DEBUG) {
+      debug('gaTrackPageView : ' + url);
+    } else {
+      _gaq.push(['_trackPageview', url]);
+    }
   }
 
   // Google Analytics track event. Needs to be called from background window.
   //
   $.sgr.gaTrackEvent = function(ga_obj) {
-    _gaq.push(['_trackEvent', ga_obj.ga_category, ga_obj.ga_action, ga_obj.ga_opt_label, ga_obj.ga_opt_value]);
+    if (DEBUG) {
+      debug('gaTrackEvent : ' + ga_obj.ga_category + ', ' + ga_obj.ga_action + ', ' + ga_obj.ga_opt_label + ', ' + ga_obj.ga_opt_value);
+    } else {
+      _gaq.push(['_trackEvent', ga_obj.ga_category, ga_obj.ga_action, ga_obj.ga_opt_label, ga_obj.ga_opt_value]);
+    }
   }
 
   // Main setup for Google Reader Settings iframe. Initialises listeners and injects settings
