@@ -75,7 +75,7 @@
 
     // Set the defaults for global settings
     //
-    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: true, entry_tabs: true};
+    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: false, entry_tabs: true};
 
     $.each(default_settings, function(key,value) {
       var stored_setting = $.sgr.getGlobalSetting(key);
