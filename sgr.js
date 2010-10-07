@@ -622,16 +622,19 @@
           //
           if (ev.keyCode == 48) {
             $.sgr.checkAndShowEntryOriginalContent(entry, true);
+            $.sgr.sendRequest({action: 'ga_track_event', ga_category: 'OriginalEntry', ga_action: 'keydown'});
 
           // Keydown 8 - show readable content
           //
           } else if (ev.keyCode == 56) {
             $.sgr.checkAndShowReadableEntry(entry, true);
+            $.sgr.sendRequest({action: 'ga_track_event', ga_category: 'ReadableEntry', ga_action: 'keydown'});
 
           // Keydown 9 - show iframe content
           //
           } else if (ev.keyCode == 57) {
             $.sgr.checkAndShowPreview(entry, true);
+            $.sgr.sendRequest({action: 'ga_track_event', ga_category: 'IframeEntry', ga_action: 'keydown'});
           }
         }
       }
@@ -888,16 +891,19 @@
       //
       if (tab.hasClass("sgr-tab-readable")) {
         $.sgr.checkAndShowReadableEntry(entry);
+        $.sgr.sendRequest({action: 'ga_track_event', ga_category: 'ReadableEntry', ga_action: 'click'});
 
       // Link
       //
       } else if (tab.hasClass("sgr-tab-link")) {
         $.sgr.checkAndShowPreview(entry); 
+        $.sgr.sendRequest({action: 'ga_track_event', ga_category: 'IframeEntry', ga_action: 'click'});
 
       // Feed
       //
       } else if (tab.hasClass("sgr-tab-feed")) {
         $.sgr.checkAndShowEntryOriginalContent(entry);
+        $.sgr.sendRequest({action: 'ga_track_event', ga_category: 'OriginalEntry', ga_action: 'click'});
       }
     });
 
@@ -933,6 +939,8 @@
       //
       chrome.extension.onRequest.addListener($.sgr.receiveRequest);
     }
+
+    $.sgr.sendRequest({action: 'ga_track_pageview', track_url: self.location.pathname});
   }
 
   // Remove our "Super settings.." menu from the DOM
@@ -1059,7 +1067,7 @@
   //
   $.sgr.initBackgroundWindow = function() {
     chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-      //debug("background : received request, request.action = " +request.action);
+      debug("background : received request, request.action = " +request.action);
 
       // Iframe window height
       //
@@ -1107,10 +1115,32 @@
       } else if (request.action == 'clear_store') {
         $.stor.clear(request.store_type);
 
+      // Google Analytics Track Pageview
+      //
+      } else if (request.action == 'ga_track_pageview') {
+        $.sgr.gaTrackPageView(request.track_url);
+
+      // Google Analytics Track Event
+      //
+      } else if (request.action == 'ga_track_event') {
+        $.sgr.gaTrackEvent(request);
+
       } else {
         sendResponse({}); // snub them.
       }
     });
+  }
+
+  // Google Analytics track pageview. Needs to be called from background window.
+  //
+  $.sgr.gaTrackPageView = function(url) {
+    _gaq.push(['_trackPageview', url]);
+  }
+
+  // Google Analytics track event. Needs to be called from background window.
+  //
+  $.sgr.gaTrackEvent = function(ga_obj) {
+    _gaq.push(['_trackEvent', ga_obj.ga_category, ga_obj.ga_action, ga_obj.ga_opt_label, ga_obj.ga_opt_value]);
   }
 
   // Main setup for Google Reader Settings iframe. Initialises listeners and injects settings
@@ -1508,11 +1538,6 @@
     });
   }
 
-  $.sgr.gaTrackEvent = function(name, action) {
-    debug(_gaq);
-    _gaq.push(['_trackEvent', name, action]);
-  }
-  
   // Handle a logout from google reader. Clear the sessionStore on this content page 
   // and on the background page.
   //
@@ -1530,6 +1555,13 @@
   //
   $.sgr.run = function() {
 
+    // Check if we need to reload. If we do, there is no need to continue.
+    // The 'sgr_no_reload' value is setup in reader_preload.js
+    //
+    if (sessionStorage.getItem('sgr_no_reload')) {
+      return;
+    }
+
     $.sgr.initSettings();
 
     $.sgr.initStyles();
@@ -1538,15 +1570,6 @@
 
     $.sgr.initSettingsWindow();
 
-    $.getScript('https://ssl.google-analytics.com/ga.js',function(){
-        debug("ga.js loaded. _gaq=");
-        debug(_gaq);
-        
-        debug(_gaq);
-        //$.sgr.gaTrackEvent('main_window', 'loaded');
-    _gaq.push(['_trackEvent', 'main window', 'loaded']);
-        debug(_gaq);
-    });
   }
 
 })(jQuery);
