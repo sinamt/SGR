@@ -876,6 +876,11 @@
       //
       } else if (setting_name == 'url_in_subject') {
         $.sgr.toggleHostnameInSubjects();
+
+      // Pre-fetch readable content if this is being enabled
+      //
+      } else if (setting_name == 'readability_pre_fetch' && setting_value && $.sgr.getSetting("use_readability")) {
+        $.sgr.preFetchAllUnreadEntries();
       }
 
     });
@@ -974,6 +979,13 @@
     } catch(e) {}
   }
 
+  // Loop all current unread entries and pre-fetch readable content for them.
+  //
+  $.sgr.preFetchAllUnreadEntries = function() {
+    $("#entries .entry:not(.read)").each(function(){
+      $.sgr.sendReadabilityFetchRequest($(this), {pre_fetch: true});
+    });
+  }
 
   // Send a request from a content script to the background window. Wait for a response and take 
   // appropriate action in some specific cases.
@@ -1310,7 +1322,7 @@
   // it through readability.
   //
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
-    //debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
+    debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
     var content_replaced = $.sgr.handleReadableEntryContentReplace(url, success_callback, failure_callback, extra_return_data);
 
