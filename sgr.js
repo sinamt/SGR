@@ -264,12 +264,13 @@
   //    - global_setting_change : processes a global setting change from the google reader settings iframe
   //
   $.sgr.receiveRequest = function(request, sender, sendResponse) {  
-    //debug("reader.js: receiveRequest() called. request.action: " + request.action);
+    debug("reader.js: receiveRequest() called. request.action: " + request.action);
 
     // Iframe window height
     //
     if (request.action == 'set_window_height') {
-      $.sgr.setIframeWindowHeight($('#sgr_preview'), request.window_height);
+      // FIXME
+      //$.sgr.setIframeWindowHeight($('#sgr_preview'), request.window_height);
 
     // Global setting change from settings iframe
     //
@@ -313,7 +314,7 @@
   //
   $.sgr.togglePreview = function(entry) {
 
-    //debug("togglePreview");
+    debug("togglePreview");
 
     // If this entry is already open in an iframe, close it
     //
@@ -331,11 +332,14 @@
   // Show an entry preview iframe.
   //
   $.sgr.showPreview = function(entry) {
+    debug("showPreview");
+    debug(entry);
 
     entry.removeClass("readable").addClass("preview");
 
     $.sgr.updateSelectedEntryTab(entry);
 
+    debug('entry.find(".entry-container-preview-hidden").size()=' + entry.find(".entry-container-preview-hidden").size());
     // If there is already a hidden preview container for this entry, show it
     //
     if (entry.find(".entry-container-preview-hidden").size() > 0) {
@@ -349,6 +353,7 @@
   // Show an entry preview iframe only if one isn't already being shown.
   //
   $.sgr.checkAndShowPreview = function(entry, scroll_to) {
+    debug("checkAndShowPreview ");
     if (typeof scroll_to == 'undefined') {
       scroll_to = false;
     }
@@ -369,7 +374,7 @@
 
     // Create a new div.entry-container-preview for our iframe. 
     //
-    entry.find(".collapsed").after('<div class="entry-container-preview' + (hidden ? ' entry-container-preview-hidden' : '') + '"></div>');
+    entry.find(".entry-container").after('<div class="entry-container-preview' + (hidden ? ' entry-container-preview-hidden' : '') + '"></div>');
 
     // Add the entry header to our iframe container
     //
@@ -377,27 +382,41 @@
 
     // Add the iframe
     //
-    entry.find(".entry-container-preview .entry-main").append('<iframe id="sgr_preview" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
+    debug($.sgr.getEntryUrl(entry));
+    debug(".entry-container-preview .entry-main =");
+    debug(entry.find(".entry-container-preview .entry-main"));
+    debug('<iframe id="" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
+
+    var _iframe = $('<iframe id="" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="http://gettingmoreawesome.blogspot.com/2010/10/advertise-on-facebook-for-cheap-give.html" class="preview"></iframe>');
+    debug(_iframe);
+    //entry.find(".entry-container-preview .entry-main").append($('<iframe id="" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>'));
+    entry.find(".entry-container-preview .entry-main").append(_iframe);
+    debug(".entry-container-preview .entry-main iframe=");
+    debug(entry.find(".entry-container-preview .entry-main iframe"));
+    if (entry.find(".entry-container-preview .entry-main iframe").length <= 0) {
+      debug("no iframe found");
+entry.find(".entry-container-preview").append(_iframe);
+    }
   }
 
   // Completely remove the iframe preview container from the DOM.
   //
   $.sgr.removePreview = function(entry) {
-    //debug("removePreview");
+    debug("removePreview");
     $(entry).removeClass("preview").find(".entry-container-preview").remove();
   }
 
   // Save the preview iframe container (effectively hiding it) for possible re-use later.
   //
   $.sgr.savePreview = function(entry) {
-    //debug("savePreview");
+    debug("savePreview");
     $(entry).removeClass("preview").find(".entry-container-preview").addClass("entry-container-preview-hidden");
   }
 
   // Restore a previously saved/hidden preview iframe.
   //
   $.sgr.restorePreview = function(entry) {
-    //debug("restorePreview");
+    debug("restorePreview");
     entry.find(".entry-container-preview-hidden").removeClass("entry-container-preview-hidden");
     $.sgr.populateIframeHeading(entry);
   }
@@ -720,65 +739,35 @@
       // inject our own tabs or replace the content as necessary.
       //
       if (ev_target.hasClass("entry-container")) {
-
         var entry = ev_target.closest(".entry");
+        debug("#entries DOMNodeInserted .entry-container");
 
         $.sgr.removePreview($(".preview"));
-
         $.sgr.setEntryOriginalContent(entry.find(".entry-body").html());
 
-        // If this entry doesn't have the class 'expanded', and we are using an iframe or readability to view the entry,
-        // process the entry as such. We check for a missing 'expanded' class even though that class is added when an entry
-        // is opened because this code runs before Google Reader has actually assigned the expanded class.
-        //
-        if (!$(this).hasClass("expanded") && ($.sgr.getSetting('use_iframes') || $.sgr.getSetting('use_readability'))) {
-          //debug('article open');
-
-          // Grab the time that this entry is being opened
-          //
-          var entry_opened_at_time = new Date();
-          var entry_xpath = $.sgr.getXPath(entry);
-
-          // Check if this entry was recently closed. Google reader seems to remove, add, and remove the 'expanded'
-          // class when closing an entry. This causes it to 'flicker' on the screen. We check that the entry
-          // wasn't recently (<50ms) closed before we attempt to open it, in order to avoid the flicker.
-          //
-          if (typeof $.sgr.entry_closed_at_time[entry_xpath] != 'undefined') {
-            //debug("found previous entry_closed_at_time for " + entry_xpath + " : " + $.sgr.entry_closed_at_time[entry_xpath]);
-
-            if (50 > (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath])) {
-              //debug("time diff < 50 : " + (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath]));
-              return;
-            }
-          }
-
-          // Show the preview iframe
-          //
-          if ($.sgr.getSetting('use_iframes')) {
-            $.sgr.togglePreview(entry);
-
-          // Fetch the article content and parse through readability
-          //
-          } else if ($.sgr.getSetting('use_readability')) {
-            $.sgr.showReadableEntry(entry);
-          }
-
-        }
-
-        $.sgr.injectEntryTabs(entry);
+        $.sgr.handleEntryOpen(entry);
       }
 
       // If this is an .entry node being inserted
       //
       if (ev_target.hasClass("entry")) {
-        // Add hostname to subject
-        //
-        $.sgr.addHostnameToSubject(ev_target, '.entry-title');
+        var entry = ev_target;
 
-        // Pre fetch readable content
+        // If we are in expanded view
         //
-        if (!ev_target.hasClass("read") && $.sgr.getSetting("use_readability") && $.sgr.getSetting("readability_pre_fetch")) {
-          $.sgr.sendReadabilityFetchRequest(ev_target, {pre_fetch: true});
+        if ($.sgr.isExpandedView()) {
+        debug("#entries DOMNodeInserted .entry");
+          $.sgr.handleEntryOpen(entry);
+        } else {
+          // Add hostname to subject
+          //
+          $.sgr.addHostnameToSubject(entry, '.entry-title');
+
+          // Pre fetch readable content
+          //
+          if (!entry.hasClass("read") && $.sgr.getSetting("use_readability") && $.sgr.getSetting("readability_pre_fetch")) {
+            $.sgr.sendReadabilityFetchRequest(entry, {pre_fetch: true});
+          }
         }
 
       }
@@ -901,6 +890,7 @@
       // Link
       //
       } else if (tab.hasClass("sgr-tab-link")) {
+        debug(".sgr-entry-tab live click for sgr-tab-link");
         $.sgr.checkAndShowPreview(entry); 
         $.sgr.sendRequest({action: 'ga_track_event', ga_category: 'IframeEntry', ga_action: 'click'});
 
@@ -964,7 +954,7 @@
   // Update the selected Entry Tab based on the entry content being shown
   //
   $.sgr.updateSelectedEntryTab = function(entry) {
-    //debug("$.sgr.updateSelectedEntryTab()");
+    debug("$.sgr.updateSelectedEntryTab()");
     var tab = null;
     if (entry.hasClass("preview")) {
       tab = entry.find(".sgr-tab-link");
@@ -977,6 +967,55 @@
     try {
       tab.addClass("selected");
     } catch(e) {}
+  }
+
+  $.sgr.handleEntryOpen = function(entry) {
+
+    // If this entry doesn't have the class 'expanded', and we are using an iframe or readability to view the entry,
+    // process the entry as such. We check for a missing 'expanded' class even though that class is added when an entry
+    // is opened because this code runs before Google Reader has actually assigned the expanded class.
+    //
+    if (!entry.hasClass("expanded") && ($.sgr.getSetting('use_iframes') || $.sgr.getSetting('use_readability'))) {
+      debug('article open');
+
+      // Grab the time that this entry is being opened
+      //
+      var entry_opened_at_time = new Date();
+      var entry_xpath = $.sgr.getXPath(entry);
+
+      // Check if this entry was recently closed. Google reader seems to remove, add, and remove the 'expanded'
+      // class when closing an entry. This causes it to 'flicker' on the screen. We check that the entry
+      // wasn't recently (<50ms) closed before we attempt to open it, in order to avoid the flicker.
+      //
+      if (typeof $.sgr.entry_closed_at_time[entry_xpath] != 'undefined') {
+        debug("found previous entry_closed_at_time for " + entry_xpath + " : " + $.sgr.entry_closed_at_time[entry_xpath]);
+
+        if (50 > (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath])) {
+          debug("time diff < 50 : " + (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath]));
+          return;
+        }
+      }
+
+      // Show the preview iframe
+      //
+      if ($.sgr.getSetting('use_iframes')) {
+        $.sgr.togglePreview(entry);
+
+      // Fetch the article content and parse through readability
+      //
+      } else if ($.sgr.getSetting('use_readability')) {
+        $.sgr.showReadableEntry(entry);
+      }
+
+    }
+
+    $.sgr.injectEntryTabs(entry);
+  }
+
+  // Check if the current view of enties is the 'Expanded' view
+  //
+  $.sgr.isExpandedView = function(){
+     return $("#entries").hasClass("cards");
   }
 
   // Loop all current unread entries and pre-fetch readable content for them.
@@ -993,7 +1032,7 @@
   $.sgr.sendRequest = function(data) {
     if (chrome) {
       chrome.extension.sendRequest(data, function(response) {
-        //debug("sgr.js: " + response.action + " - " + response._msg);
+        debug("sgr.js: " + response.action + " - " + response._msg);
 
         if (response.action == 'readability_content' 
             || response.action == 'readability_error_use_original_content') {
@@ -1001,32 +1040,34 @@
           // If this isn't a pre-fetched reabable content chunk, and
           // the readable chunk matches the currently open entry, keep going
           //
-          if ((typeof response.pre_fetch == 'undefined' || response.pre_fetch == false)
-              && $("#current-entry").hasClass($.sgr.generateReadableEntryClass(data.readability_url))) {
+          if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
+            var entry = $('.' + $.sgr.generateReadableEntryClass(data.readability_url));
 
-            // If we have received readable content for an entry, check if we need to display this content
-            // for the currently open entry.
-            //
-            if (response.action == 'readability_content') {
-              var jq_rc = $(response.readability_content);
-
-              // Find any img elements with an sgr-src attribute and replace the src value if it doesnt match sgr-src
+            if (entry.length > 0) {
+              // If we have received readable content for an entry, check if we need to display this content
+              // for the currently open entry.
               //
-              jq_rc.find("img[sgr-src]").each(function() {
-                if ($(this).attr('src') != $(this).attr('sgr-src')) {
-                  $(this).attr('src', $(this).attr('sgr-src'));
-                }
-              });
+              if (response.action == 'readability_content') {
+                var jq_rc = $(response.readability_content);
 
-              // replace the currently open entry content with the readable content
+                // Find any img elements with an sgr-src attribute and replace the src value if it doesnt match sgr-src
+                //
+                jq_rc.find("img[sgr-src]").each(function() {
+                  if ($(this).attr('src') != $(this).attr('sgr-src')) {
+                    $(this).attr('src', $(this).attr('sgr-src'));
+                  }
+                });
+
+                // replace the currently open entry content with the readable content
+                //
+                entry.find(".entry-body").html(jq_rc);
+
+              // If we have asked for readable content and have not found any, revert to using the original
+              // content of the entry.
               //
-              $("#current-entry .entry-body").html(jq_rc);
-
-            // If we have asked for readable content and have not found any, revert to using the original
-            // content of the entry.
-            //
-            } else if (response.action == 'readability_error_use_original_content') {
-              $.sgr.useEntryOriginalContent($("#current-entry"));
+              } else if (response.action == 'readability_error_use_original_content') {
+                $.sgr.useEntryOriginalContent(entry);
+              }
             }
           }
         }
@@ -1187,7 +1228,7 @@
   // Find and return the external/outgoing link for a specific entry
   //
   $.sgr.getEntryUrl = function(entry) {
-    return entry.find('.entry-original').attr('href');
+    return entry.find('.entry-original, .entry-title-link').first().attr('href');
   }
 
   // Append an entry's hostname to it's subject (or any specified selector).
