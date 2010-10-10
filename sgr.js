@@ -314,7 +314,7 @@
   //
   $.sgr.togglePreview = function(entry) {
 
-    debug("togglePreview");
+    //debug("togglePreview");
 
     // If this entry is already open in an iframe, close it
     //
@@ -332,14 +332,12 @@
   // Show an entry preview iframe.
   //
   $.sgr.showPreview = function(entry) {
-    debug("showPreview");
-    debug(entry);
+    //debug("showPreview");
 
     entry.removeClass("readable").addClass("preview");
 
     $.sgr.updateSelectedEntryTab(entry);
 
-    debug('entry.find(".entry-container-preview-hidden").size()=' + entry.find(".entry-container-preview-hidden").size());
     // If there is already a hidden preview container for this entry, show it
     //
     if (entry.find(".entry-container-preview-hidden").size() > 0) {
@@ -353,7 +351,6 @@
   // Show an entry preview iframe only if one isn't already being shown.
   //
   $.sgr.checkAndShowPreview = function(entry, scroll_to) {
-    debug("checkAndShowPreview ");
     if (typeof scroll_to == 'undefined') {
       scroll_to = false;
     }
@@ -382,43 +379,40 @@
 
     // Add the iframe
     //
-    debug($.sgr.getEntryUrl(entry));
-    debug(".entry-container-preview .entry-main =");
-    debug(entry.find(".entry-container-preview .entry-main"));
-    debug('<iframe id="" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
-
-    var _iframe = $('<iframe id="" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="http://gettingmoreawesome.blogspot.com/2010/10/advertise-on-facebook-for-cheap-give.html" class="preview"></iframe>');
-    debug(_iframe);
-    //entry.find(".entry-container-preview .entry-main").append($('<iframe id="" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>'));
-    entry.find(".entry-container-preview .entry-main").append(_iframe);
-    debug(".entry-container-preview .entry-main iframe=");
-    debug(entry.find(".entry-container-preview .entry-main iframe"));
-    if (entry.find(".entry-container-preview .entry-main iframe").length <= 0) {
-      debug("no iframe found");
-entry.find(".entry-container-preview").append(_iframe);
-    }
+    entry.find(".entry-container-preview .entry-main").append('<iframe name="sgr_preview_' + $.sgr.generateRandomString(8) +'" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
   }
 
   // Completely remove the iframe preview container from the DOM.
   //
   $.sgr.removePreview = function(entry) {
-    debug("removePreview");
+    //debug("removePreview");
     $(entry).removeClass("preview").find(".entry-container-preview").remove();
   }
 
   // Save the preview iframe container (effectively hiding it) for possible re-use later.
   //
   $.sgr.savePreview = function(entry) {
-    debug("savePreview");
+    //debug("savePreview");
     $(entry).removeClass("preview").find(".entry-container-preview").addClass("entry-container-preview-hidden");
   }
 
   // Restore a previously saved/hidden preview iframe.
   //
   $.sgr.restorePreview = function(entry) {
-    debug("restorePreview");
+    //debug("restorePreview");
     entry.find(".entry-container-preview-hidden").removeClass("entry-container-preview-hidden");
     $.sgr.populateIframeHeading(entry);
+  }
+
+  $.sgr.generateRandomString = function(str_len) {
+ var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 5; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+
   }
 
   // When adding a preview iframe, we need to rebuild the entry header elements to prepend
@@ -1315,7 +1309,6 @@ entry.find(".entry-container-preview").append(_iframe);
   // Inject entry tabs into an entry
   //
   $.sgr.injectEntryTabs = function(entry) {
-    //entry.find(".collapsed .entry-main").append($.sgr.entry_tabs_html);
     if (entry.length <= 0) {
       return;
     }

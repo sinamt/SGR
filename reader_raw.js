@@ -13,6 +13,15 @@ window.addEventListener('message', function(ev) {
   //
   if (ev.data == 'sgr:helo') {
     //console.log('reader_raw: helo received, hello send to ' + ev.origin);
+/*
+console.log(window.frames.length);
+for (var i=0; i < window.frames.length; i++) {
+  console.log(window.frames[i]);
+  if (window.frames[i] == ev.source) {
+    console.log("iframe found " + i + " id=" + window.frames[i].name);
+  }
+}
+*/
     ev.source.postMessage('sgr:hello', ev.origin);
   }
 
