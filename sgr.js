@@ -34,7 +34,7 @@
 
   // Stored original entry content for entry being replaced by readability.
   //
-  $.sgr.entry_original_content = '';
+  $.sgr.entry_original_content = {};
 
   // Google Reader _USER_ID value
   //
@@ -122,7 +122,7 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; }';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; }';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -264,13 +264,16 @@
   //    - global_setting_change : processes a global setting change from the google reader settings iframe
   //
   $.sgr.receiveRequest = function(request, sender, sendResponse) {  
-    debug("reader.js: receiveRequest() called. request.action: " + request.action);
+    //debug("reader.js: receiveRequest() called. request.action: " + request.action);
 
     // Iframe window height
     //
     if (request.action == 'set_window_height') {
-      // FIXME
-      //$.sgr.setIframeWindowHeight($('#sgr_preview'), request.window_height);
+      //debug("set_window_height: " + request.window_height + ", " + request.iframe_id);
+      if (typeof request.iframe_id == 'undefined' || request.iframe_id == null || request.iframe_id == '' || request.iframe_id.match(/^[A-Za-z0-9]{8}$/) == null) {
+        return;
+      }
+      $.sgr.setIframeWindowHeight($('#sgr_preview_' + request.iframe_id), request.window_height);
 
     // Global setting change from settings iframe
     //
@@ -324,7 +327,9 @@
     // Else show the entry in an iframe
     //
     } else {
-      $.sgr.scrollTo(entry);
+      if ($.sgr.isExpandedView() == false) {
+        $.sgr.scrollTo(entry);
+      }
       $.sgr.showPreview(entry);
     }
   }
@@ -604,7 +609,7 @@
 
     // Do not execute this for the settings iframe
     //
-    if (window.location.href.match(/\/\/(www\.|)google\.com\/reader\/settings/)) {
+    if (window.location.href.match(/\/\/(www\.|)google\.co(m|)(\.[A-Za-z]{2}|)\/reader\/settings/)) {
       //debug("returning, reader settings");
       return;
     }
@@ -629,8 +634,16 @@
       // entry views
       //
       if (jQuery.inArray(parseInt(ev.keyCode), [48,56,57]) > -1) {
+        // Don't fire in text-accepting inputs that we didn't directly bind to
+        // from jquery.hotkeys.js
+        //
+        if ( this !== ev.target && (/textarea|select/i.test( ev.target.nodeName ) ||
+           ev.target.type === "text") ) {
+          return;
+        }
+
         var entry = $("#current-entry");
-        if (entry.hasClass("expanded")) {
+        if (entry.hasClass("expanded") || $.sgr.isExpandedView()) {
           // Keydown 0 - show original content
           //
           if (ev.keyCode == 48) {
@@ -734,10 +747,10 @@
       //
       if (ev_target.hasClass("entry-container")) {
         var entry = ev_target.closest(".entry");
-        debug("#entries DOMNodeInserted .entry-container");
+        //debug("#entries DOMNodeInserted .entry-container");
 
         $.sgr.removePreview($(".preview"));
-        $.sgr.setEntryOriginalContent(entry.find(".entry-body").html());
+        $.sgr.setEntryOriginalContent(entry);
 
         $.sgr.handleEntryOpen(entry);
       }
@@ -747,10 +760,11 @@
       if (ev_target.hasClass("entry")) {
         var entry = ev_target;
 
+        $.sgr.setEntryOriginalContent(entry);
+
         // If we are in expanded view
         //
         if ($.sgr.isExpandedView()) {
-        debug("#entries DOMNodeInserted .entry");
           $.sgr.handleEntryOpen(entry);
         } else {
           // Add hostname to subject
@@ -838,12 +852,16 @@
           }
           $.sgr.togglePreFetchReadableContentMenuOption();
 
+          $.sgr.switchAllEntriesToPreview();
+
         } else if (setting_name == 'use_readability') {
           $.sgr.setLocalSetting('use_iframes', !setting_value);
           if (setting_value) {
             $("#menu_use_iframes").removeClass("goog-option-selected");
           }
           $.sgr.togglePreFetchReadableContentMenuOption();
+
+          $.sgr.switchAllEntriesToReadable();
         }
 
       } else {
@@ -970,7 +988,7 @@
     // is opened because this code runs before Google Reader has actually assigned the expanded class.
     //
     if (!entry.hasClass("expanded") && ($.sgr.getSetting('use_iframes') || $.sgr.getSetting('use_readability'))) {
-      debug('article open');
+      //debug('article open');
 
       // Grab the time that this entry is being opened
       //
@@ -982,10 +1000,10 @@
       // wasn't recently (<50ms) closed before we attempt to open it, in order to avoid the flicker.
       //
       if (typeof $.sgr.entry_closed_at_time[entry_xpath] != 'undefined') {
-        debug("found previous entry_closed_at_time for " + entry_xpath + " : " + $.sgr.entry_closed_at_time[entry_xpath]);
+        //debug("found previous entry_closed_at_time for " + entry_xpath + " : " + $.sgr.entry_closed_at_time[entry_xpath]);
 
         if (50 > (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath])) {
-          debug("time diff < 50 : " + (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath]));
+          //debug("time diff < 50 : " + (entry_opened_at_time.getTime() - $.sgr.entry_closed_at_time[entry_xpath]));
           return;
         }
       }
@@ -1004,6 +1022,30 @@
     }
 
     $.sgr.injectEntryTabs(entry);
+  }
+
+  // Convert all entries to readable view
+  //
+  $.sgr.switchAllEntriesToReadable = function() {
+    if ($.sgr.isExpandedView()) {
+      $("#entries .entry").each(function(){
+        $.sgr.checkAndShowReadableEntry($(this));
+      });
+    } else {
+      $.sgr.checkAndShowReadableEntry($("#current-entry"));
+    }
+  }
+
+  // Convert all entries to preview view
+  //
+  $.sgr.switchAllEntriesToPreview = function() {
+    if ($.sgr.isExpandedView()) {
+      $("#entries .entry").each(function(){
+        $.sgr.checkAndShowPreview($(this));
+      });
+    } else {
+      $.sgr.checkAndShowPreview($("#current-entry"));
+    }
   }
 
   // Check if the current view of enties is the 'Expanded' view
@@ -1078,8 +1120,14 @@
 
   // Store the original feed content for an entry. We use this if we can't find any readable content for the entry.
   //
-  $.sgr.setEntryOriginalContent = function(html) {
-    $.sgr.entry_original_content = html;
+  $.sgr.setEntryOriginalContent = function(entry) {
+    $.sgr.entry_original_content[$.sgr.generateReadableEntryClass($.sgr.getEntryUrl(entry))] = entry.find(".entry-body").html();
+  }
+
+  // Retrieve the stored original feed content for an entry
+  //
+  $.sgr.getEntryOriginalContent = function(entry) {
+    return $.sgr.entry_original_content[$.sgr.generateReadableEntryClass($.sgr.getEntryUrl(entry))];
   }
 
   // Revert to using the entry's original feed content.
@@ -1087,7 +1135,7 @@
   $.sgr.useEntryOriginalContent = function(entry) {
     entry.removeClass("preview").removeClass("readable");
     $.sgr.updateSelectedEntryTab(entry);
-    entry.find(".entry-body").html($.sgr.entry_original_content);
+    entry.find(".entry-body").html($.sgr.getEntryOriginalContent(entry));
   }
 
   // Revert to using the entry's original feed content, after checking it isn't
@@ -1120,7 +1168,7 @@
       //
       if (request.action == 'window_height') {
         sendResponse({_msg: "action " + request.action + ", window height " + request.window_height});
-        $.sgr.sendToTab(sender.tab.id, {action: 'set_window_height', window_height: request.window_height});
+        $.sgr.sendToTab(sender.tab.id, {action: 'set_window_height', window_height: request.window_height, iframe_id: request.iframe_id});
 
       // Fetch readable content
       //
@@ -1205,7 +1253,7 @@
 
     // Only execute this for the settings iframe
     //
-    if (!window.location.href.match(/\/\/(www\.|)google\.com\/reader\/settings/)) {
+    if (!window.location.href.match(/\/\/(www\.|)google\.co(m|)(\.[A-Za-z]{2}|)\/reader\/settings/)) {
       return;
     }
 

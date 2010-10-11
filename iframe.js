@@ -35,9 +35,12 @@
   //
   function sendMessageToParent(msg) {
     if (chrome) {
-      chrome.extension.sendRequest({action: "window_height", window_height: msg}, function(response) {
-        //debug("iframe.js: " + response.action + " - " + response._msg);
-      });
+      var iframe_id = document.getElementsByClassName("sgr_iframe")[0].innerText;
+      if (iframe_id) {
+        chrome.extension.sendRequest({action: "window_height", window_height: msg, iframe_id: iframe_id}, function(response) {
+          //debug("iframe.js: " + response.action + " - " + response._msg);
+        });
+      }
     }
   }
 

@@ -18,7 +18,7 @@
       if (ev.data.substr(0,9) == 'sgr:hello') {
         data_arr = ev.data.split(':');
         if (data_arr[2]) {
-          console.log('iframe_raw: hello received, iframe confirmed.');
+          //console.log('iframe_raw: hello received, iframe confirmed.');
           var div = document.createElement('DIV');
           div.style.display = "none";
           div.className = "sgr_iframe";
@@ -31,12 +31,11 @@
 
     var msg = 'sgr:helo';
 
-    // Ugh. We can't find out what protocol the parent google reader window is using, so
-    // we spam both http and https. Yuck.
+    // Post our message to our parent. We do not limit the domain we are posting to because
+    // our google reader parent could be running on a variety of country-specific google domains
+    // such as google.co.jp, google.com, google.com.au etc
     //
-    window.parent.postMessage(msg, '*'); //,window.parent.href.location);
-    //window.parent.postMessage(msg,'http://www.google.com');
-    //window.parent.postMessage(msg,'https://www.google.com');
+    window.parent.postMessage(msg, '*');
 
 
   }
