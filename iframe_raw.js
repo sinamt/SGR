@@ -15,12 +15,16 @@
 
       // Message data from parent is 'hello'. parent is saying we can execute.
       //
-      if (ev.data == 'sgr:hello') {
-        //console.log('iframe_raw: hello received, iframe confirmed.');
-        var div = document.createElement('DIV');
-        div.style.display = "none";
-        div.className = "sgr_iframe";
-        document.documentElement.appendChild(div);
+      if (ev.data.substr(0,9) == 'sgr:hello') {
+        data_arr = ev.data.split(':');
+        if (data_arr[2]) {
+          console.log('iframe_raw: hello received, iframe confirmed.');
+          var div = document.createElement('DIV');
+          div.style.display = "none";
+          div.className = "sgr_iframe";
+          div.innerText = data_arr[2];
+          document.documentElement.appendChild(div);
+        }
       }
 
     });
@@ -30,8 +34,9 @@
     // Ugh. We can't find out what protocol the parent google reader window is using, so
     // we spam both http and https. Yuck.
     //
-    window.parent.postMessage(msg,'http://www.google.com');
-    window.parent.postMessage(msg,'https://www.google.com');
+    window.parent.postMessage(msg, '*'); //,window.parent.href.location);
+    //window.parent.postMessage(msg,'http://www.google.com');
+    //window.parent.postMessage(msg,'https://www.google.com');
 
 
   }

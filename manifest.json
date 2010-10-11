@@ -12,13 +12,13 @@
             "128": "rss_128x128.png" },
   "content_scripts": [
     {
-      "matches": ["http://www.google.com/reader/*", "https://www.google.com/reader/*"],
+      "matches": ["*://*/reader/*"],
       "js": ["jquery.js", "debug.js", "storage.js", "readability.js", "readability_sgr.js", "sgr.js", "reader.js"],
       "all_frames": true
     }
 ,
     {
-      "matches": ["http://www.google.com/reader/*", "https://www.google.com/reader/*"],
+      "matches": ["*://*/reader/*"],
       "js": ["reader_preload.js"],
       "run_at": "document_start",
       "all_frames": true

@@ -379,7 +379,7 @@
 
     // Add the iframe
     //
-    entry.find(".entry-container-preview .entry-main").append('<iframe name="sgr_preview_' + $.sgr.generateRandomString(8) +'" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
+    entry.find(".entry-container-preview .entry-main").append('<iframe id="sgr_preview_' + $.sgr.generateRandomString(8) +'" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="' + $.sgr.getEntryUrl(entry) + '" class="preview"></iframe>');
   }
 
   // Completely remove the iframe preview container from the DOM.
@@ -408,7 +408,7 @@
  var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    for( var i=0; i < 5; i++ )
+    for( var i=0; i < parseInt(str_len); i++ )
         text += possible.charAt(Math.floor(Math.random() * possible.length));
 
     return text;
@@ -1592,6 +1592,24 @@
     });
   }
 
+  $.sgr.canRun = function() {
+
+    // Check we are running on the Google Reader domain. Needs to allow country tlds.
+    //
+    if (self.location.host.match(/\.google\.co(m|)(\.[A-Za-z]{2}|)$/) == null) {
+      return false;
+    }
+
+    // Check if we need to reload. If we do, there is no need to continue.
+    // The 'sgr_no_reload' value is setup in reader_preload.js
+    //
+    if (sessionStorage.getItem('sgr_no_reload')) {
+      return false;
+    }
+
+    return true;
+  }
+
   // Handle a logout from google reader. Clear the sessionStore on this content page 
   // and on the background page.
   //
@@ -1609,10 +1627,7 @@
   //
   $.sgr.run = function() {
 
-    // Check if we need to reload. If we do, there is no need to continue.
-    // The 'sgr_no_reload' value is setup in reader_preload.js
-    //
-    if (sessionStorage.getItem('sgr_no_reload')) {
+    if ($.sgr.canRun() == false) {
       return;
     }
 
