@@ -1,6 +1,6 @@
 {
   "name": "Super Google Reader",
-  "version": "1.1",
+  "version": "1.1.1",
   "description": "Enables full content feeds for Google Reader. Provides readable content or iframing of feed entries.",
   "permissions": [
     "http://*/*", 
@@ -12,13 +12,13 @@
             "128": "rss_128x128.png" },
   "content_scripts": [
     {
-      "matches": ["*://*/reader/*"],
+      "matches": ["*://*/reader/view*", "*://*/reader/settings*"],
       "js": ["jquery.js", "debug.js", "storage.js", "readability.js", "readability_sgr.js", "sgr.js", "reader.js"],
       "all_frames": true
     }
 ,
     {
-      "matches": ["*://*/reader/*"],
+      "matches": ["*://*/reader/view*", "*://*/reader/settings*"],
       "js": ["reader_preload.js"],
       "run_at": "document_start",
       "all_frames": true

@@ -966,7 +966,7 @@
   // Update the selected Entry Tab based on the entry content being shown
   //
   $.sgr.updateSelectedEntryTab = function(entry) {
-    debug("$.sgr.updateSelectedEntryTab()");
+    //debug("$.sgr.updateSelectedEntryTab()");
     var tab = null;
     if (entry.hasClass("preview")) {
       tab = entry.find(".sgr-tab-link");
