@@ -1552,7 +1552,7 @@
         if (html.length > 0) {
           html = '<h2 class="sgr-entry-heading">' + topic.replace(/_/g,' ') + '</h2>' + html;
           var jq_html = $('<div>' + html + '</div>')
-          jq_html.find(".editsection").remove();
+          jq_html.find(".editsection, script, link, style").remove();
           html = jq_html.html();
           html = '<div class="sgr-wikipedia-content">' + html + '</div>';
         }
