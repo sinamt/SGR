@@ -1712,20 +1712,22 @@ Array.prototype.remove = function(from, to) {
   //$.sgr.gr_lhn_tree_html = '<li class="sub unselectable expanded unread" id="sub-tree-item-[__id__]-main"><a class="" href="javascript:" id="">test</a></li>';
 
   $.sgr.filters = [
-    {name: 'Herald Sun: "coach" inc', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: /coach/i}] },
-    {name: 'Hacker News: "ask hn|tell hn" exc', id: 100002, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: /tell hn|ask hn/i}] }
+    {name: 'Herald Sun: inc "coach"', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'coach'}] }
+,
+    {name: 'Hacker News: exc "ask hn|tell hn|show hn"', id: 100002, feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
+,
+    {name: 'Techcrunch: exc "apple|microsoft|facebook"', id: 100003, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple|microsoft|facebook'}] }
   ]
 
   $.sgr.initFilters = function() {
-    $($.sgr.filters).each(function(idx){
-      debug(this.name);
+    $($.sgr.filters).each(function(idx, filter){
     setTimeout(function(){
       var lhn_html = $.sgr.gr_lhn_tree_html;
-      var lhn_jq = $(lhn_html.replace(/\[__id__\]/g, this.id));
+      var lhn_jq = $(lhn_html.replace(/\[__id__\]/g, filter.id));
       //lhn_jq.find(".name").attr('title', this.name);
       //lhn_jq.find(".name-text").html(this.name);
-      lhn_jq.find(".sgr-lhn-link").attr('href', '/reader/view/filter/' + this.id);
-      lhn_jq.find(".sgr-lhn-link-text").html(this.name);
+      lhn_jq.find(".sgr-lhn-link").attr('href', '/reader/view/filter/' + filter.id);
+      lhn_jq.find(".sgr-lhn-link-text").html(filter.name);
       //debug($.sgr.gr_lhn_tree_html);
       lhn_jq.click(function(ev){
         debug('lhn click: ');
@@ -1747,13 +1749,13 @@ Array.prototype.remove = function(from, to) {
     //var feed = $.sgr.getCurrentFeedName(true);
     //var feed = 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml';
     //var feed = 'http://feedproxy.google.com/TechCrunch';
-    var api_contents_url = $.sgr.gr_api['contents'] + filter.url + '?r=n&client=sgr&n=50&ck=' + d.getTime() + (filter.continuation ? '&c=' + filter.continuation : '');
-    debug(api_contents_url);
+    var api_contents_url = $.sgr.gr_api['contents'] + filter.url + '?r=n&client=sgr&n=100&ck=' + d.getTime() + (filter.continuation ? '&c=' + filter.continuation : '');
+    //debug(api_contents_url);
     $.ajax({
       url: api_contents_url,
       dataType: 'json',
       success: function(feed_data) {
-        debug(feed_data);
+        //debug(feed_data);
         var new_feed_data = jQuery.extend(true, {}, feed_data);
         new_feed_data.items = [];
         //var exclude_list = [];
@@ -1769,21 +1771,67 @@ Array.prototype.remove = function(from, to) {
     //{name: 'Herald Sun: "coach" inc', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: /coach/i}] },
     //{name: 'Hacker News: "ask hn|tell hn" exc', id: 100002, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: /tell hn|ask hn/i}] }
     //
-        $(feed_data.items).each(function(idx){
-          $(this.filters).each(function(idx2, _filter){
+        $(feed_data.items).each(function(idx, feed){
+          $(filter.filters).each(function(idx2, _filter){
+//debug("_filter=");
+//debug(_filter);
             var check_fields = [];
-            if (_filter.item == 'post') {
-              check_fields = ['author', 'summary', 'categories', 'content', 'title'];
+            if ((_filter.item == 'post' || _filter.item == 'author') && typeof feed.author != 'undefined' ) {
+              check_fields.push(feed.author);
             }
+            if ((_filter.item == 'post' || _filter.item == 'summary') && typeof feed.summary != 'undefined' && typeof feed.summary.content != 'undefined' ) {
+              check_fields.push(feed.summary.content.replace(/<.*?>/g, ''));
+            }
+            if ((_filter.item == 'post' || _filter.item == 'categories') && typeof feed.categories != 'undefined' ) {
+              $(feed.categories).each(function(idx4, category){
+                if (category.match(/^(?!user\/)/) != null) {
+                  check_fields.push(category);
+                }
+              });
+            }
+            if ((_filter.item == 'post' || _filter.item == 'content') && typeof feed.content != 'undefined' && typeof feed.content.content != 'undefined' ) {
+              check_fields.push(feed.content.content.replace(/<.*?>/g, ''));
+            }
+            if ((_filter.item == 'post' || _filter.item == 'title') && typeof feed.title != 'undefined' ) {
+              check_fields.push(feed.title);
+            }
+//debug("check_fields=");
+//debug(check_fields);
+            var num_matches_found = 0;
             $(check_fields).each(function(idx3,check_field){
+              //type_filter = _filter.type == 'include' ? '' : '?!';
+              var re = new RegExp('(' + _filter.content +')', 'i');
+//debug("re=");
+//debug(re);
+              if (check_field.match(re) != null) {
+                //debug("check_field match : " + feed.id + " : " + re + " : " + check_field);
+                if (_filter.type == 'include') {
+                  new_feed_data.items.push(feed);
+                  return false;
+                } else {
+                  //debug("check_field match : " + re + " : " + check_field);
+                  return false;
+                }
+              } else if (_filter.type == 'exclude') {
+                //debug("check_field no match : " + re + " : " + check_field);
+                num_matches_found += 1;
+              }
             });
+            if (_filter.type == 'exclude' && num_matches_found == check_fields.length) {
+//debug("not excluding:");
+//debug(feed);
+              new_feed_data.items.push(feed);
+            } else {
+//debug("excluding:");
+//debug(feed);
+            }
           //if(this.summary.content && this.summary.content.match(/coach/)) {
             //debug(idx + " " + this.summary.content);
             //this.sgr_match = true;
-            new_feed_data.items.push(this);
             //$.sgr.insertNewEntry(this);
           });
         });
+        debug("new_feed_data=");
         debug(new_feed_data);
         //$(exclude_list).each(function(){
           //feed_data.items.remove(this);
