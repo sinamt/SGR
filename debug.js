@@ -1,5 +1,5 @@
 
-  var DEBUG = false;
+  var DEBUG = true;
 
   // Helper function to output debug statements
   //

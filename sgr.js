@@ -1,7 +1,17 @@
 
-     var _gaq = _gaq || [];
-     _gaq.push(['_setAccount', 'UA-18940431-1']);
-     _gaq.push(['_trackPageview']);
+ var _gaq = _gaq || [];
+ _gaq.push(['_setAccount', 'UA-18940431-1']);
+ _gaq.push(['_trackPageview']);
+
+// Array Remove - By John Resig (MIT Licensed)
+// http://ejohn.org/blog/javascript-array-remove/
+//
+Array.prototype.remove = function(from, to) {
+  var rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+     
 (function($) {
 
   // $.sgr namespace constructor
@@ -50,6 +60,13 @@
   //
   $.sgr.vimeo_api = {
     video: "http://vimeo.com/api/v2/video/[video_id].json"
+  }
+
+  $.sgr.gr_api_base = self.location.protocol + '//' + self.location.host + '/reader/api/0/';
+  debug($.sgr.gr_api_base);
+
+  $.sgr.gr_api = {
+    contents: $.sgr.gr_api_base + 'stream/contents/feed/'
   }
 
   // Entry tab HTML snippet
@@ -224,13 +241,17 @@
 
   // Find and return the currently selected feed href or folder name
   //
-  $.sgr.getCurrentFeedName = function() {
+  $.sgr.getCurrentFeedName = function(no_unescape) {
     // First look for a selected feed or folder, then try for a left-hand nav selection
     //
     var selected_href = $("a.tree-link-selected, #lhn-selectors .selected .link").first().attr('href');
 
     if (typeof selected_href != 'undefined') {
-      return unescape(selected_href);
+      if (no_unescape) {
+        return unescape(selected_href);
+      } else {
+        return selected_href;
+      }
     }
   }
 
@@ -1658,6 +1679,21 @@
     return true;
   }
 
+
+  $.sgr.entry_base_jq= $(' <div class="entry entry-0" id=""><div class="collapsed"><div class="entry-icons"><div class="item-star star link unselectable empty"></div></div><div class="entry-date"></div><div class="entry-main" style=""><a class="entry-original" target="_blank" href=""></a><span class="entry-source-title"></span><div class="entry-secondary"><h2 class="entry-title"></h2><span class="entry-secondary-snippet" style="display: inline; "> - <span class="snippet"></span></span></div></div></div><div class="entry-container" style="display: none;"><div class="entry-main"><div class="entry-date"></div><h2 class="entry-title"><a class="entry-title-link" target="_blank" href=""><div class="entry-title-go-to"></div></a></h2><div class="entry-author"><span class="entry-source-title-parent">from <a class="entry-source-title" target="_blank" href=""></a></span> <div class="entry-likers"></div></div><div class="entry-debug"></div><div class="entry-annotations"></div><div class="entry-body"><h2 class="sgr-entry-heading"></h2> </div></div></div></div></div><div class="entry-comments"></div><div class="entry-actions" style="display: none;"><span class="item-star star link unselectable">Add star</span><wbr><span class="like-inactive like link unselectable">Like</span><wbr><span class="broadcast-inactive broadcast link unselectable">Share</span><wbr><span class="broadcast-with-note link"><span class="link unselectable">Share with note</span></span><wbr><span class="email"><span class="link unselectable">Email</span></span><wbr><span class="read-state-read read-state link unselectable">Mark as read</span><wbr><span class="item-link link unselectable"><wbr><span class="entry-link-action-title">Send to</span><div class="item-link-drop-down-arrow"></div></span><wbr><span class="tag link unselectable"><span class="entry-tagging-action-title">Edit tags: </span><ul class="user-tags-list"><li><a href="">main</a></li></ul></span></div></div>');
+  
+  $.sgr.buildNewEntry = function(entry_data) {
+    var entry = $.sgr.entry_base_jq.clone();
+    entry.find(".entry-original, .entry-title-link").attr('href', entry_data.alternate[0].href);
+    entry.find(".snippet").html(entry_data.summary.content);
+    entry.find(".entry-secondary .entry-title, .entry-title-go-to, .entry-title-link").html(entry_data.title);
+    return entry;
+  }
+
+  $.sgr.insertNewEntry = function(entry_data) {
+    $("#entries").append($.sgr.buildNewEntry(entry_data));
+  }
+
   // Handle a logout from google reader. Clear the sessionStore on this content page 
   // and on the background page.
   //
@@ -1671,6 +1707,91 @@
     $.sgr.sendRequest({action: 'clear_store', store_type: 'session'});
   }
 
+  //$.sgr.gr_lhn_tree_html = '<li class="sub unselectable expanded unread" id="sub-tree-item-[__id__]-main"><div class="toggle sub-toggle toggle-d-1 hidden"></div><a class="link" href="" id="sub-tree-item-[__id__]-link"><span class="icon sub-icon icon-d-1" id="sub-tree-item-[__id__]-icon"></span><span class="name sub-name name-d-1 name-unread" id="sub-tree-item-[__id__]-name" title=""><span class="name-text sub-name-text name-text-d-1"></span><span class="unread-count sub-unread-count unread-count-d-1" id="sub-tree-item-[__id__]-unread-count"></span></span><div class="tree-item-action-container"><div id="sub-tree-item-[__id__]-action" class="action tree-item-action section-button section-menubutton goog-menu-button"></div></div></a></li>';
+  $.sgr.gr_lhn_tree_html = '<li class="sub unselectable expanded unread" id="sub-tree-item-[__id__]-main"><div class="toggle sub-toggle toggle-d-1 hidden"></div><a class="sgr-lhn-link" href="javascript:" id=""><span class="sgr-lhn-link-text"></span><span class="unread-count sub-unread-count unread-count-d-1" id="sub-tree-item-[__id__]-unread-count"></span></a></li>';
+  //$.sgr.gr_lhn_tree_html = '<li class="sub unselectable expanded unread" id="sub-tree-item-[__id__]-main"><a class="" href="javascript:" id="">test</a></li>';
+
+  $.sgr.filters = [
+    {name: 'Herald Sun: "coach" inc', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: /coach/i}] },
+    {name: 'Hacker News: "ask hn|tell hn" exc', id: 100002, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: /tell hn|ask hn/i}] }
+  ]
+
+  $.sgr.initFilters = function() {
+    $($.sgr.filters).each(function(idx){
+      debug(this.name);
+    setTimeout(function(){
+      var lhn_html = $.sgr.gr_lhn_tree_html;
+      var lhn_jq = $(lhn_html.replace(/\[__id__\]/g, this.id));
+      //lhn_jq.find(".name").attr('title', this.name);
+      //lhn_jq.find(".name-text").html(this.name);
+      lhn_jq.find(".sgr-lhn-link").attr('href', '/reader/view/filter/' + this.id);
+      lhn_jq.find(".sgr-lhn-link-text").html(this.name);
+      //debug($.sgr.gr_lhn_tree_html);
+      lhn_jq.click(function(ev){
+        debug('lhn click: ');
+       debug($(ev.target));
+        return false;
+      });
+      $("#sub-tree-item-0-main ul:first").prepend(lhn_jq);
+    }, 2000);
+      
+      // Fetch the filtered feed or label contents
+      //
+      $.sgr.fetchFilteredContent(this);
+    });
+  }
+
+  $.sgr.fetchFilteredContent = function(filter) {
+
+    var d = new Date();
+    //var feed = $.sgr.getCurrentFeedName(true);
+    //var feed = 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml';
+    //var feed = 'http://feedproxy.google.com/TechCrunch';
+    var api_contents_url = $.sgr.gr_api['contents'] + filter.url + '?r=n&client=sgr&n=50&ck=' + d.getTime() + (filter.continuation ? '&c=' + filter.continuation : '');
+    debug(api_contents_url);
+    $.ajax({
+      url: api_contents_url,
+      dataType: 'json',
+      success: function(feed_data) {
+        debug(feed_data);
+        var new_feed_data = jQuery.extend(true, {}, feed_data);
+        new_feed_data.items = [];
+        //var exclude_list = [];
+        //var c = $("#chrome").clone();
+        ////entries.empty().css({position: 'relative', 'z-index': '100'}).find('.same-dir').css('position','absolute');
+        ////$("#chrome-viewer-container").remove();
+        //c.find('#entries').empty();
+        //debug(c);
+        //$("#chrome").after(c);
+
+        //$("#chrome").attr('id','chrome-orig').css({position:'absolute', left:'-9999px'}).find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
+
+    //{name: 'Herald Sun: "coach" inc', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: /coach/i}] },
+    //{name: 'Hacker News: "ask hn|tell hn" exc', id: 100002, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: /tell hn|ask hn/i}] }
+    //
+        $(feed_data.items).each(function(idx){
+          $(this.filters).each(function(idx2, _filter){
+            var check_fields = [];
+            if (_filter.item == 'post') {
+              check_fields = ['author', 'summary', 'categories', 'content', 'title'];
+            }
+            $(check_fields).each(function(idx3,check_field){
+            });
+          //if(this.summary.content && this.summary.content.match(/coach/)) {
+            //debug(idx + " " + this.summary.content);
+            //this.sgr_match = true;
+            new_feed_data.items.push(this);
+            //$.sgr.insertNewEntry(this);
+          });
+        });
+        debug(new_feed_data);
+        //$(exclude_list).each(function(){
+          //feed_data.items.remove(this);
+        //});
+      }
+    });
+  }
+    
   // Main run of all code
   //
   $.sgr.run = function() {
@@ -1687,6 +1808,46 @@
 
     $.sgr.initSettingsWindow();
 
+    $.sgr.initFilters();
+
+    /*
+    var d = new Date();
+    //var feed = $.sgr.getCurrentFeedName(true);
+    var feed = 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml';
+    //var feed = 'http://feedproxy.google.com/TechCrunch';
+    var api_contents_url = $.sgr.gr_api['contents'] + feed + '?r=n&client=sgr&n=50&ck=' + d.getTime();
+    debug(api_contents_url);
+    $.ajax({
+      url: api_contents_url,
+      dataType: 'json',
+      success: function(feed_data) {
+        debug(feed_data);
+        var exclude_list = [];
+        var c = $("#chrome").clone();
+        //entries.empty().css({position: 'relative', 'z-index': '100'}).find('.same-dir').css('position','absolute');
+        //$("#chrome-viewer-container").remove();
+        c.find('#entries').empty();
+        debug(c);
+        $("#chrome").after(c);
+
+        $("#chrome").attr('id','chrome-orig').css({position:'absolute', left:'-9999px'}).find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
+
+        $(feed_data.items).each(function(idx){
+          if(this.summary.content && this.summary.content.match(/coach/)) {
+            //debug(idx + " " + this.summary.content);
+            this.sgr_match = true;
+            $.sgr.insertNewEntry(this);
+          } else {
+            //exclude_list.push(idx);
+          }
+        });
+        //debug(exclude_list);
+        //$(exclude_list).each(function(){
+          //feed_data.items.remove(this);
+        //});
+      }
+    });
+    */
   }
 
 })(jQuery);
