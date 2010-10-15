@@ -278,6 +278,11 @@ Array.prototype.remove = function(from, to) {
     return path;
   }
  
+  // Helper function to (crudely) strip HTML from a given string
+  //
+  $.sgr.stripHtml = function(text) {
+    return text.replace(/<.*?>/g, '');
+  }
 
   // Google reader main window content script handler for receiving a request from the background window.
   // Processes the following requests:
@@ -944,6 +949,37 @@ Array.prototype.remove = function(from, to) {
       }
     });
 
+    // Left-hand nav filter click event
+    //
+    $(".sgr-lhn-link").live('click',function(ev){
+      //debug('lhn click: ');
+      //debug(this);
+      
+      $.sgr.clearLhnSelection();
+
+      var link_el = $(this);
+      link_el.addClass("tree-link-selected").closest("li").addClass("tree-selected");
+      try {
+        $.sgr.displayFilteredEntries($.sgr.getFilterIdFromLink(this));
+      } catch(e) {
+        debug("error with $.sgr.displayFilteredEntries() : " + e.name + " : " + e.message);
+      }
+      return false;
+    });
+
+    // Any #nav click event
+    //
+    $("#nav").live('click',function(ev) {
+      var ev_target = $(ev.target);
+      debug("#nav click");
+      if (!ev_target.hasClass("sgr-lhn-link") && !ev_target.closest("li").hasClass("sgr-lhn-link")) {
+        debug("#nav click, non-sgr-lhn-link");
+        $.sgr.clearSgrLhnSelection();
+        // FIXME
+        $("#chrome-orig").remove();
+      }
+    });
+
     // Keyboard shortcut help - DOMNodeInserted live event 
     //
     $(".keyboard-help-banner .secondary-message").live('DOMNodeInserted',function(ev){
@@ -962,6 +998,21 @@ Array.prototype.remove = function(from, to) {
       }
     });
 
+    // SGR inserted entry - live click
+    //
+    $(".sgr-entry").live('click',function(ev){
+
+      debug(".sgr-entry open");
+      var entry = $(this);
+
+      $.sgr.removePreview($(".preview"));
+      $.sgr.setEntryOriginalContent(entry);
+
+      $.sgr.handleEntryOpen(entry);
+      entry.addClass("expanded").addClass("read").attr('id','current-entry');
+      entry.find(".entry-container, .entry-actions").show();
+    });
+
     if (chrome) {
       // Chrome listener for background messages
       //
@@ -969,6 +1020,17 @@ Array.prototype.remove = function(from, to) {
     }
 
     $.sgr.sendRequest({action: 'ga_track_pageview', track_url: self.location.pathname});
+  }
+
+  $.sgr.clearLhnSelection = function() {
+    $(".tree-selected").removeClass("tree-selected");
+    $(".tree-link-selected").removeClass("tree-link-selected");
+    $("#lhn-selectors .selected").removeClass("selected");
+  }
+
+  $.sgr.clearSgrLhnSelection = function() {
+    $(".sgr-lhn-link").closest("li").removeClass("tree-selected");
+    $(".sgr-lhn-link").removeClass("tree-link-selected");
   }
 
   // Remove our "Super settings.." menu from the DOM
@@ -1680,13 +1742,16 @@ Array.prototype.remove = function(from, to) {
   }
 
 
-  $.sgr.entry_base_jq= $(' <div class="entry entry-0" id=""><div class="collapsed"><div class="entry-icons"><div class="item-star star link unselectable empty"></div></div><div class="entry-date"></div><div class="entry-main" style=""><a class="entry-original" target="_blank" href=""></a><span class="entry-source-title"></span><div class="entry-secondary"><h2 class="entry-title"></h2><span class="entry-secondary-snippet" style="display: inline; "> - <span class="snippet"></span></span></div></div></div><div class="entry-container" style="display: none;"><div class="entry-main"><div class="entry-date"></div><h2 class="entry-title"><a class="entry-title-link" target="_blank" href=""><div class="entry-title-go-to"></div></a></h2><div class="entry-author"><span class="entry-source-title-parent">from <a class="entry-source-title" target="_blank" href=""></a></span> <div class="entry-likers"></div></div><div class="entry-debug"></div><div class="entry-annotations"></div><div class="entry-body"><h2 class="sgr-entry-heading"></h2> </div></div></div></div></div><div class="entry-comments"></div><div class="entry-actions" style="display: none;"><span class="item-star star link unselectable">Add star</span><wbr><span class="like-inactive like link unselectable">Like</span><wbr><span class="broadcast-inactive broadcast link unselectable">Share</span><wbr><span class="broadcast-with-note link"><span class="link unselectable">Share with note</span></span><wbr><span class="email"><span class="link unselectable">Email</span></span><wbr><span class="read-state-read read-state link unselectable">Mark as read</span><wbr><span class="item-link link unselectable"><wbr><span class="entry-link-action-title">Send to</span><div class="item-link-drop-down-arrow"></div></span><wbr><span class="tag link unselectable"><span class="entry-tagging-action-title">Edit tags: </span><ul class="user-tags-list"><li><a href="">main</a></li></ul></span></div></div>');
+  $.sgr.entry_base_jq= $(' <div class="entry entry-0 sgr-entry" id=""><div class="collapsed"><div class="entry-icons"><div class="item-star star link unselectable empty"></div></div><div class="entry-date"></div><div class="entry-main" style=""><a class="entry-original" target="_blank" href=""></a><span class="entry-source-title"></span><div class="entry-secondary"><h2 class="entry-title"></h2><span class="entry-secondary-snippet" style="display: inline; "> - <span class="snippet"></span></span></div></div></div><div class="entry-container" style="display: none;"><div class="entry-main"><div class="entry-date"></div><h2 class="entry-title"><a class="entry-title-link" target="_blank" href=""><div class="entry-title-go-to"></div></a></h2><div class="entry-author"><span class="entry-source-title-parent">from <a class="entry-source-title" target="_blank" href=""></a></span> <div class="entry-likers"></div></div><div class="entry-debug"></div><div class="entry-annotations"></div><div class="entry-body"><h2 class="sgr-entry-heading"></h2> </div></div></div></div></div><div class="entry-comments"></div><div class="entry-actions" style="display: none;"><span class="item-star star link unselectable">Add star</span><wbr><span class="like-inactive like link unselectable">Like</span><wbr><span class="broadcast-inactive broadcast link unselectable">Share</span><wbr><span class="broadcast-with-note link"><span class="link unselectable">Share with note</span></span><wbr><span class="email"><span class="link unselectable">Email</span></span><wbr><span class="read-state-read read-state link unselectable">Mark as read</span><wbr><span class="item-link link unselectable"><wbr><span class="entry-link-action-title">Send to</span><div class="item-link-drop-down-arrow"></div></span><wbr><span class="tag link unselectable"><span class="entry-tagging-action-title">Edit tags: </span><ul class="user-tags-list"><li><a href="">main</a></li></ul></span></div></div>');
   
   $.sgr.buildNewEntry = function(entry_data) {
     var entry = $.sgr.entry_base_jq.clone();
     entry.find(".entry-original, .entry-title-link").attr('href', entry_data.alternate[0].href);
-    entry.find(".snippet").html(entry_data.summary.content);
+    entry.find(".snippet").html(entry_data._sgr_snippet);
     entry.find(".entry-secondary .entry-title, .entry-title-go-to, .entry-title-link").html(entry_data.title);
+    if (entry_data._sgr_read == true) {
+      entry.addClass("read");
+    }
     return entry;
   }
 
@@ -1712,52 +1777,100 @@ Array.prototype.remove = function(from, to) {
   //$.sgr.gr_lhn_tree_html = '<li class="sub unselectable expanded unread" id="sub-tree-item-[__id__]-main"><a class="" href="javascript:" id="">test</a></li>';
 
   $.sgr.filters = [
-    {name: 'Herald Sun: inc "coach"', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'coach'}] }
+    {name: 'Herald Sun: inc "coach"', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'geelong'}, {type: 'include', item: 'post', content: 'ablett'}] }
 ,
     {name: 'Hacker News: exc "ask hn|tell hn|show hn"', id: 100002, feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
 ,
-    {name: 'Techcrunch: exc "apple|microsoft|facebook"', id: 100003, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple|microsoft|facebook'}] }
+    {name: 'Techcrunch: exc "apple|microsoft|facebook"', id: 100003, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple'}, {type: 'exclude', item: 'post', content: 'microsoft'}, {type: 'exclude', item: 'post', content: 'funsdjgkdsg'}] }
   ]
 
+  $.sgr.filtered_feed_data = {};
+  $.sgr.filtered_feed_item_threshold = 40;
+
   $.sgr.initFilters = function() {
+    // Fetch the filtered feed or label contents
+    //
     $($.sgr.filters).each(function(idx, filter){
+      $.sgr.fetchFilteredContent(filter);
+    });
+
+    // Inject left-hand nav entries for each filter
+    //
     setTimeout(function(){
-      var lhn_html = $.sgr.gr_lhn_tree_html;
-      var lhn_jq = $(lhn_html.replace(/\[__id__\]/g, filter.id));
-      //lhn_jq.find(".name").attr('title', this.name);
-      //lhn_jq.find(".name-text").html(this.name);
-      lhn_jq.find(".sgr-lhn-link").attr('href', '/reader/view/filter/' + filter.id);
-      lhn_jq.find(".sgr-lhn-link-text").html(filter.name);
-      //debug($.sgr.gr_lhn_tree_html);
-      lhn_jq.click(function(ev){
-        debug('lhn click: ');
-       debug($(ev.target));
-        return false;
+      $($.sgr.filters).each(function(idx, filter){
+        var lhn_html = $.sgr.gr_lhn_tree_html;
+        var lhn_jq = $(lhn_html.replace(/\[__id__\]/g, filter.id));
+        //lhn_jq.find(".name").attr('title', this.name);
+        //lhn_jq.find(".name-text").html(this.name);
+        lhn_jq.find(".sgr-lhn-link").attr('href', '/reader/view/filter/' + filter.id);
+        lhn_jq.find(".sgr-lhn-link-text").html(filter.name);
+        //debug($.sgr.gr_lhn_tree_html);
+
+
+        $("#sub-tree-item-0-main ul:first").prepend(lhn_jq);
       });
-      $("#sub-tree-item-0-main ul:first").prepend(lhn_jq);
-    }, 2000);
-      
-      // Fetch the filtered feed or label contents
-      //
-      $.sgr.fetchFilteredContent(this);
+    }, 1000);
+  }
+
+  $.sgr.getFilterIdFromLink = function(link_el) {
+    return $(link_el).attr('href').match(/\/([0-9]*$)/)[1];
+  }
+
+  $.sgr.displayFilteredEntries = function(filter_id) {
+    if (typeof $.sgr.filtered_feed_data[filter_id] == 'undefined') {
+      // FIXME
+      return false;
+    }
+    debug("Displaying filter " + filter_id);
+
+    $.sgr.prepFilteredEntriesDisplay();
+
+    $($.sgr.filtered_feed_data[filter_id].items).each(function(idx,item) {
+      $.sgr.insertNewEntry(item);
     });
   }
 
-  $.sgr.fetchFilteredContent = function(filter) {
+  $.sgr.prepFilteredEntriesDisplay = function() {
+    var c = $("#chrome").clone();
+    ////entries.empty().css({position: 'relative', 'z-index': '100'}).find('.same-dir').css('position','absolute');
+    ////$("#chrome-viewer-container").remove();
+    c.find('#entries').empty();
+    debug(c);
+    $("#chrome").after(c);
 
-    var d = new Date();
-    //var feed = $.sgr.getCurrentFeedName(true);
-    //var feed = 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml';
-    //var feed = 'http://feedproxy.google.com/TechCrunch';
-    var api_contents_url = $.sgr.gr_api['contents'] + filter.url + '?r=n&client=sgr&n=100&ck=' + d.getTime() + (filter.continuation ? '&c=' + filter.continuation : '');
-    //debug(api_contents_url);
+    $("#chrome").attr('id','chrome-orig').css({position:'absolute', left:'-9999px'}).find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
+  }
+
+
+  $.sgr.fetchFilteredContent = function(filter, filtered_feed_item_threshold) {
+
+    if ($.sgr.filtered_feed_data[filter.id]) {
+      filter.continuation = $.sgr.filtered_feed_data[filter.id].continuation;
+      if (typeof filtered_feed_item_threshold == 'undefined') {
+        filtered_feed_item_threshold += $.sgr.filtered_feed_data[filter.id].items.length;
+      }
+    }
+
+    if (typeof filtered_feed_item_threshold == 'undefined') {
+      filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold;
+    }
+
+    var api_contents_url = $.sgr.gr_api['contents'] + filter.url + '?r=n&client=sgr&n=100&ck=' + (new Date()).getTime() + (filter.continuation ? '&c=' + filter.continuation : '');
+    debug(api_contents_url);
+
     $.ajax({
       url: api_contents_url,
       dataType: 'json',
       success: function(feed_data) {
+        //debug("Success : " + api_contents_url);
         //debug(feed_data);
-        var new_feed_data = jQuery.extend(true, {}, feed_data);
-        new_feed_data.items = [];
+        if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
+          $.sgr.filtered_feed_data[filter.id] = jQuery.extend(true, {}, feed_data);
+          $.sgr.filtered_feed_data[filter.id].items = [];
+        }
+        $.sgr.filtered_feed_data[filter.id].continuation = feed_data.continuation;
+        $.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
+
         //var exclude_list = [];
         //var c = $("#chrome").clone();
         ////entries.empty().css({position: 'relative', 'z-index': '100'}).find('.same-dir').css('position','absolute');
@@ -1771,29 +1884,33 @@ Array.prototype.remove = function(from, to) {
     //{name: 'Herald Sun: "coach" inc', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: /coach/i}] },
     //{name: 'Hacker News: "ask hn|tell hn" exc', id: 100002, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: /tell hn|ask hn/i}] }
     //
-        $(feed_data.items).each(function(idx, feed){
+        var included_item_count = 0;
+        var excluded_item_count = 0;
+
+        $(feed_data.items).each(function(idx, item){
+          var add_feed_item_count = 0;
           $(filter.filters).each(function(idx2, _filter){
 //debug("_filter=");
 //debug(_filter);
             var check_fields = [];
-            if ((_filter.item == 'post' || _filter.item == 'author') && typeof feed.author != 'undefined' ) {
-              check_fields.push(feed.author);
+            if ((_filter.item == 'post' || _filter.item == 'author') && typeof item.author != 'undefined' ) {
+              check_fields.push(item.author);
             }
-            if ((_filter.item == 'post' || _filter.item == 'summary') && typeof feed.summary != 'undefined' && typeof feed.summary.content != 'undefined' ) {
-              check_fields.push(feed.summary.content.replace(/<.*?>/g, ''));
+            if ((_filter.item == 'post' || _filter.item == 'summary') && typeof item.summary != 'undefined' && typeof item.summary.content != 'undefined' ) {
+              check_fields.push($.sgr.stripHtml(item.summary.content));
             }
-            if ((_filter.item == 'post' || _filter.item == 'categories') && typeof feed.categories != 'undefined' ) {
-              $(feed.categories).each(function(idx4, category){
+            if ((_filter.item == 'post' || _filter.item == 'categories') && typeof item.categories != 'undefined' ) {
+              $(item.categories).each(function(idx4, category){
                 if (category.match(/^(?!user\/)/) != null) {
                   check_fields.push(category);
                 }
               });
             }
-            if ((_filter.item == 'post' || _filter.item == 'content') && typeof feed.content != 'undefined' && typeof feed.content.content != 'undefined' ) {
-              check_fields.push(feed.content.content.replace(/<.*?>/g, ''));
+            if ((_filter.item == 'post' || _filter.item == 'content') && typeof item.content != 'undefined' && typeof item.content.content != 'undefined' ) {
+              check_fields.push($.sgr.stripHtml(item.content.content));
             }
-            if ((_filter.item == 'post' || _filter.item == 'title') && typeof feed.title != 'undefined' ) {
-              check_fields.push(feed.title);
+            if ((_filter.item == 'post' || _filter.item == 'title') && typeof item.title != 'undefined' ) {
+              check_fields.push(item.title);
             }
 //debug("check_fields=");
 //debug(check_fields);
@@ -1804,9 +1921,9 @@ Array.prototype.remove = function(from, to) {
 //debug("re=");
 //debug(re);
               if (check_field.match(re) != null) {
-                //debug("check_field match : " + feed.id + " : " + re + " : " + check_field);
+                //debug("check_field match : " + item.id + " : " + re + " : " + check_field);
                 if (_filter.type == 'include') {
-                  new_feed_data.items.push(feed);
+                  add_feed_item_count += 1;
                   return false;
                 } else {
                   //debug("check_field match : " + re + " : " + check_field);
@@ -1817,29 +1934,70 @@ Array.prototype.remove = function(from, to) {
                 num_matches_found += 1;
               }
             });
+            //debug("num_matches_found=" + num_matches_found + ", check_fields.length=" + check_fields.length);
             if (_filter.type == 'exclude' && num_matches_found == check_fields.length) {
-//debug("not excluding:");
-//debug(feed);
-              new_feed_data.items.push(feed);
+              add_feed_item_count += 1;
             } else {
 //debug("excluding:");
-//debug(feed);
+//debug(item);
             }
           //if(this.summary.content && this.summary.content.match(/coach/)) {
             //debug(idx + " " + this.summary.content);
             //this.sgr_match = true;
             //$.sgr.insertNewEntry(this);
           });
+          if (add_feed_item_count >= filter.filters.length) {
+//debug("not excluding:");
+//debug(item);
+            included_item_count += 1;
+            $.sgr.filtered_feed_data[filter.id].items.push($.sgr.cleanFilteredFeedItem(item));
+          } else {
+            excluded_item_count += 1;
+//debug("excluding:");
+//debug(item);
+          }
         });
-        debug("new_feed_data=");
-        debug(new_feed_data);
-        //$(exclude_list).each(function(){
-          //feed_data.items.remove(this);
-        //});
+        debug("FILTER: " + feed_data.title + " : Included " + included_item_count + " items, Excluded " +excluded_item_count+" items. new_feed_data=");
+        debug($.sgr.filtered_feed_data[filter.id]);
+
+        // Recurse if items are below threshold
+        //
+        //debug("$.sgr.filtered_feed_data[filter.id].items.length = " + $.sgr.filtered_feed_data[filter.id].items.length + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
+        if ($.sgr.filtered_feed_data[filter.id].items.length < filtered_feed_item_threshold) {
+          $.sgr.fetchFilteredContent(filter, filtered_feed_item_threshold);
+        }
       }
     });
   }
     
+  $.sgr.cleanFilteredFeedItem = function(item) {
+    // Add a snippet for display in List view
+    //
+    if (typeof item.summary != 'undefined' && typeof item.summary.content != 'undefined') {
+      item._sgr_snippet = $.trim($.sgr.stripHtml(item.summary.content));
+    } else if (typeof item.content != 'undefined' && typeof item.content.content != 'undefined') {
+      item._sgr_snippet = $.trim($.sgr.stripHtml(item.content.content).substr(0,255));
+    } else {
+      item._sgr_snippet = '';
+    }
+
+    // Flag entry as read or not
+    //
+    $(item.categories).each(function(idx,category) {
+      if (category == $.sgr.getReadCategory()) {
+        item._sgr_read = true;
+        return false;
+      } else {
+        item._sgr_read = false;
+      }
+    });
+    return item;
+  }
+
+  $.sgr.getReadCategory = function() {
+    return 'user/' + $.sgr.USER_ID + '/state/com.google/read';
+  }
+
   // Main run of all code
   //
   $.sgr.run = function() {
