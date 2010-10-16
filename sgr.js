@@ -139,7 +139,7 @@ Array.prototype.remove = function(from, to) {
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; }';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} ';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -241,17 +241,13 @@ Array.prototype.remove = function(from, to) {
 
   // Find and return the currently selected feed href or folder name
   //
-  $.sgr.getCurrentFeedName = function(no_unescape) {
+  $.sgr.getCurrentFeedName = function() {
     // First look for a selected feed or folder, then try for a left-hand nav selection
     //
     var selected_href = $("a.tree-link-selected, #lhn-selectors .selected .link").first().attr('href');
 
     if (typeof selected_href != 'undefined') {
-      if (no_unescape) {
-        return unescape(selected_href);
-      } else {
-        return selected_href;
-      }
+      return unescape(selected_href);
     }
   }
 
@@ -976,7 +972,11 @@ Array.prototype.remove = function(from, to) {
         debug("#nav click, non-sgr-lhn-link");
         $.sgr.clearSgrLhnSelection();
         // FIXME
-        $("#chrome-orig").remove();
+        if ($("#chrome-orig").length > 0) {
+        debug("#nav click, non-sgr-lhn-link, #chrome-orig");
+          $("#chrome").remove();
+          $("#chrome-orig").attr('id','chrome').find("#viewer-container-orig").attr('id','viewer-container').find('#entries-orig').attr('id','entries');
+        }
       }
     });
 
@@ -1002,15 +1002,31 @@ Array.prototype.remove = function(from, to) {
     //
     $(".sgr-entry").live('click',function(ev){
 
-      debug(".sgr-entry open");
+      debug(".sgr-entry click");
+
       var entry = $(this);
 
-      $.sgr.removePreview($(".preview"));
-      $.sgr.setEntryOriginalContent(entry);
+      var already_open = false;
 
-      $.sgr.handleEntryOpen(entry);
-      entry.addClass("expanded").addClass("read").attr('id','current-entry');
-      entry.find(".entry-container, .entry-actions").show();
+      // Close any entry already open
+      //
+      if (entry.hasClass("expanded")) {
+        already_open = true;
+      }
+
+      $.sgr.closeSgrEntryBody();
+
+      if (already_open == false) {
+        $.sgr.removePreview($(".preview"));
+
+        // Setup original entry content
+        //
+        entry.find('.entry-body').html(entry.data().sgr_content);
+        $.sgr.setEntryOriginalContent(entry);
+
+        $.sgr.handleEntryOpen(entry);
+        $.sgr.openSgrEntryBody(entry);
+      }
     });
 
     if (chrome) {
@@ -1020,6 +1036,14 @@ Array.prototype.remove = function(from, to) {
     }
 
     $.sgr.sendRequest({action: 'ga_track_pageview', track_url: self.location.pathname});
+  }
+
+  $.sgr.closeSgrEntryBody = function() {
+    $("#current-entry").removeClass("expanded").attr('id','').find(".entry-container, .entry-comments, .entry-actions").addClass("hidden");
+  }
+
+  $.sgr.openSgrEntryBody = function(entry) {
+    entry.addClass("expanded").addClass("read").attr('id','current-entry').find(".entry-container, .entry-comments, .entry-actions").removeClass("hidden");
   }
 
   $.sgr.clearLhnSelection = function() {
@@ -1742,7 +1766,7 @@ Array.prototype.remove = function(from, to) {
   }
 
 
-  $.sgr.entry_base_jq= $(' <div class="entry entry-0 sgr-entry" id=""><div class="collapsed"><div class="entry-icons"><div class="item-star star link unselectable empty"></div></div><div class="entry-date"></div><div class="entry-main" style=""><a class="entry-original" target="_blank" href=""></a><span class="entry-source-title"></span><div class="entry-secondary"><h2 class="entry-title"></h2><span class="entry-secondary-snippet" style="display: inline; "> - <span class="snippet"></span></span></div></div></div><div class="entry-container" style="display: none;"><div class="entry-main"><div class="entry-date"></div><h2 class="entry-title"><a class="entry-title-link" target="_blank" href=""><div class="entry-title-go-to"></div></a></h2><div class="entry-author"><span class="entry-source-title-parent">from <a class="entry-source-title" target="_blank" href=""></a></span> <div class="entry-likers"></div></div><div class="entry-debug"></div><div class="entry-annotations"></div><div class="entry-body"><h2 class="sgr-entry-heading"></h2> </div></div></div></div></div><div class="entry-comments"></div><div class="entry-actions" style="display: none;"><span class="item-star star link unselectable">Add star</span><wbr><span class="like-inactive like link unselectable">Like</span><wbr><span class="broadcast-inactive broadcast link unselectable">Share</span><wbr><span class="broadcast-with-note link"><span class="link unselectable">Share with note</span></span><wbr><span class="email"><span class="link unselectable">Email</span></span><wbr><span class="read-state-read read-state link unselectable">Mark as read</span><wbr><span class="item-link link unselectable"><wbr><span class="entry-link-action-title">Send to</span><div class="item-link-drop-down-arrow"></div></span><wbr><span class="tag link unselectable"><span class="entry-tagging-action-title">Edit tags: </span><ul class="user-tags-list"><li><a href="">main</a></li></ul></span></div></div>');
+  $.sgr.entry_base_jq= $(' <div class="entry entry-0 sgr-entry" id=""><div class="collapsed"><div class="entry-icons"><div class="item-star star link unselectable empty"></div></div><div class="entry-date"></div><div class="entry-main" style=""><a class="entry-original" target="_blank" href=""></a><span class="entry-source-title"></span><div class="entry-secondary"><h2 class="entry-title"></h2><span class="entry-secondary-snippet" style="display: inline; "> - <span class="snippet"></span></span></div></div></div><div class="entry-container hidden"><div class="entry-main"><div class="entry-date"></div><h2 class="entry-title"><a class="entry-title-link" target="_blank" href=""><div class="entry-title-go-to"></div></a></h2><div class="entry-author"><span class="entry-source-title-parent">from <a class="entry-source-title" target="_blank" href=""></a></span> <div class="entry-likers"></div></div><div class="entry-debug"></div><div class="entry-annotations"></div><div class="entry-body"></div></div></div></div></div><div class="entry-comments hidden"></div><div class="entry-actions hidden"><span class="item-star star link unselectable">Add star</span><wbr><span class="like-inactive like link unselectable">Like</span><wbr><span class="broadcast-inactive broadcast link unselectable">Share</span><wbr><span class="broadcast-with-note link"><span class="link unselectable">Share with note</span></span><wbr><span class="email"><span class="link unselectable">Email</span></span><wbr><span class="read-state-read read-state link unselectable">Mark as read</span><wbr><span class="item-link link unselectable"><wbr><span class="entry-link-action-title">Send to</span><div class="item-link-drop-down-arrow"></div></span><wbr><span class="tag link unselectable"><span class="entry-tagging-action-title">Edit tags: </span><ul class="user-tags-list"><li><a href="">main</a></li></ul></span></div></div>');
   
   $.sgr.buildNewEntry = function(entry_data) {
     var entry = $.sgr.entry_base_jq.clone();
@@ -1752,6 +1776,7 @@ Array.prototype.remove = function(from, to) {
     if (entry_data._sgr_read == true) {
       entry.addClass("read");
     }
+    entry.data({sgr_content: entry_data._sgr_content});
     return entry;
   }
 
@@ -1779,7 +1804,7 @@ Array.prototype.remove = function(from, to) {
   $.sgr.filters = [
     {name: 'Herald Sun: inc "coach"', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'geelong'}, {type: 'include', item: 'post', content: 'ablett'}] }
 ,
-    {name: 'Hacker News: exc "ask hn|tell hn|show hn"', id: 100002, feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
+    {name: 'Hacker News: exc "ask hn|tell hn|show hn"', id: 100002, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
 ,
     {name: 'Techcrunch: exc "apple|microsoft|facebook"', id: 100003, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple'}, {type: 'exclude', item: 'post', content: 'microsoft'}, {type: 'exclude', item: 'post', content: 'funsdjgkdsg'}] }
   ]
@@ -1818,27 +1843,32 @@ Array.prototype.remove = function(from, to) {
 
   $.sgr.displayFilteredEntries = function(filter_id) {
     if (typeof $.sgr.filtered_feed_data[filter_id] == 'undefined') {
-      // FIXME
+      // FIXME go fetch the data?
       return false;
     }
     debug("Displaying filter " + filter_id);
 
-    $.sgr.prepFilteredEntriesDisplay();
+    $.sgr.prepFilteredEntriesDisplay($.sgr.filtered_feed_data[filter_id]);
 
     $($.sgr.filtered_feed_data[filter_id].items).each(function(idx,item) {
       $.sgr.insertNewEntry(item);
     });
   }
 
-  $.sgr.prepFilteredEntriesDisplay = function() {
-    var c = $("#chrome").clone();
-    ////entries.empty().css({position: 'relative', 'z-index': '100'}).find('.same-dir').css('position','absolute');
-    ////$("#chrome-viewer-container").remove();
-    c.find('#entries').empty();
-    debug(c);
-    $("#chrome").after(c);
+  $.sgr.prepFilteredEntriesDisplay = function(feed) {
+    if ($("#chrome-orig").length <= 0) {
+      var c = $("#chrome").clone();
+    } else {
+      var c = $("#chrome");
+    }
 
-    $("#chrome").attr('id','chrome-orig').css({position:'absolute', left:'-9999px'}).find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
+    c.find('#entries').empty();
+    c.find("#chrome-title a").html(feed._sgr_filter.name + ' <span class="chevron">&#0187;</span>').attr('href',feed._sgr_site);
+
+    if ($("#chrome-orig").length <= 0) {
+      $("#chrome").after(c);
+      $("#chrome").attr('id','chrome-orig').find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
+    }
   }
 
 
@@ -1867,9 +1897,15 @@ Array.prototype.remove = function(from, to) {
         if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
           $.sgr.filtered_feed_data[filter.id] = jQuery.extend(true, {}, feed_data);
           $.sgr.filtered_feed_data[filter.id].items = [];
+          $.sgr.filtered_feed_data[filter.id]._sgr_filter = filter;
         }
         $.sgr.filtered_feed_data[filter.id].continuation = feed_data.continuation;
         $.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
+        try {
+          $.sgr.filtered_feed_data[filter.id]._sgr_site = feed_data.alternate[0].href;
+        } catch(e) {
+          $.sgr.filtered_feed_data[filter.id]._sgr_site = '';
+        }
 
         //var exclude_list = [];
         //var c = $("#chrome").clone();
@@ -1981,6 +2017,16 @@ Array.prototype.remove = function(from, to) {
       item._sgr_snippet = '';
     }
 
+    // Find main entry content
+    //
+    if (typeof item.content != 'undefined' && typeof item.content.content != 'undefined') {
+      item._sgr_content = item.content.content;
+    } else if (typeof item.summary != 'undefined' && typeof item.summary.content != 'undefined') {
+      item._sgr_content = item.summary.content;
+    } else {
+      item._sgr_content = '';
+    }
+
     // Flag entry as read or not
     //
     $(item.categories).each(function(idx,category) {
@@ -1991,6 +2037,7 @@ Array.prototype.remove = function(from, to) {
         item._sgr_read = false;
       }
     });
+
     return item;
   }
 
