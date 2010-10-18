@@ -12,6 +12,16 @@ Array.prototype.remove = function(from, to) {
   return this.push.apply(this, rest);
 };
      
+// Object size()
+// From http://stackoverflow.com/questions/5223/length-of-javascript-associative-array
+//
+Object.prototype.size = function() {
+  var len = this.length ? --this.length : -1;
+    for (var k in this)
+      len++;
+  return len;
+};
+
 (function($) {
 
   // $.sgr namespace constructor
@@ -139,7 +149,7 @@ Array.prototype.remove = function(from, to) {
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} ';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} #filtered-entries {display: none;}';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -763,6 +773,7 @@ Array.prototype.remove = function(from, to) {
     //
     $("#entries").live('DOMNodeInserted', function(ev){
       var ev_target = $(ev.target);
+      var entries = $(this);
 
       // If an entry is having it's content inserted (e.g. being opened), take appropriate action to
       // inject our own tabs or replace the content as necessary.
@@ -782,6 +793,19 @@ Array.prototype.remove = function(from, to) {
       if (ev_target.hasClass("entry")) {
         var entry = ev_target;
 
+        // If this is the first entry being inserted, then it must be an initial load of entries.
+        // Setup our filters nav (if filters exist).
+        //
+        if (entries.find(".entry").length == 1) {
+          $(".filter-nav").remove();
+          var filters = $.sgr.getCurrentFeedFilters();
+          $(filters).each(function(idx,filter) {
+            if ($("#filter-nav-" + filter.id).length <= 0) {
+              $("#chrome-title").css('display', 'inline').after('<a href="/reader/view/filter/' + filter.id + '" class="filter-nav" id="filter-nav-' + filter.id + '">' + (filter.name.length > $.sgr.filter_name_max_display ? filter.name.substr(0,$.sgr.filter_name_max_display) + '..' : filter.name) + '</a>');
+
+            }
+          });
+        }
         $.sgr.setEntryOriginalContent(entry);
 
         // If we are in expanded view
@@ -945,8 +969,21 @@ Array.prototype.remove = function(from, to) {
       }
     });
 
+    // Filter nav
+    //
+    $('.filter-nav').live('click', function(ev) {
+      debug('filter-nav click');
+      try {
+        $.sgr.toggleFilter($.sgr.getFilterIdFromLink(this));
+      } catch(e) {
+        debug("error with $.sgr.toggleFilter() : " + e.name + " : " + e.message);
+      }
+      return false;
+    });
+
     // Left-hand nav filter click event
     //
+/*
     $(".sgr-lhn-link").live('click',function(ev){
       //debug('lhn click: ');
       //debug(this);
@@ -979,6 +1016,7 @@ Array.prototype.remove = function(from, to) {
         }
       }
     });
+*/
 
     // Keyboard shortcut help - DOMNodeInserted live event 
     //
@@ -1000,6 +1038,7 @@ Array.prototype.remove = function(from, to) {
 
     // SGR inserted entry - live click
     //
+/*
     $(".sgr-entry").live('click',function(ev){
 
       debug(".sgr-entry click");
@@ -1028,6 +1067,7 @@ Array.prototype.remove = function(from, to) {
         $.sgr.openSgrEntryBody(entry);
       }
     });
+*/
 
     if (chrome) {
       // Chrome listener for background messages
@@ -1802,15 +1842,17 @@ Array.prototype.remove = function(from, to) {
   //$.sgr.gr_lhn_tree_html = '<li class="sub unselectable expanded unread" id="sub-tree-item-[__id__]-main"><a class="" href="javascript:" id="">test</a></li>';
 
   $.sgr.filters = [
-    {name: 'Herald Sun: inc "coach"', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'geelong'}, {type: 'include', item: 'post', content: 'ablett'}] }
+    {name: 'inc "coach|ablett"', id: 100001, base: '/reader/view/feed/http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'geelong'}, {type: 'include', item: 'post', content: 'ablett'}] }
 ,
-    {name: 'Hacker News: exc "ask hn|tell hn|show hn"', id: 100002, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
+    {name: 'Exc "ask hn|tell hn|show hn|facebook"', id: 100002, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
 ,
-    {name: 'Techcrunch: exc "apple|microsoft|facebook"', id: 100003, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple'}, {type: 'exclude', item: 'post', content: 'microsoft'}, {type: 'exclude', item: 'post', content: 'funsdjgkdsg'}] }
+    {name: 'Exc "apple|microsoft|facebook"', id: 100003, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple'}, {type: 'exclude', item: 'post', content: 'microsoft'}, {type: 'exclude', item: 'post', content: 'funsdjgkdsg'}] }
   ]
 
   $.sgr.filtered_feed_data = {};
   $.sgr.filtered_feed_item_threshold = 40;
+  $.sgr.filter_name_max_display = 30;
+  $.sgr.filters_enabled = {};
 
   $.sgr.initFilters = function() {
     // Fetch the filtered feed or label contents
@@ -1819,8 +1861,11 @@ Array.prototype.remove = function(from, to) {
       $.sgr.fetchFilteredContent(filter);
     });
 
+    $("body").append('<div id="filtered-entries"></div>');
+
     // Inject left-hand nav entries for each filter
     //
+/*
     setTimeout(function(){
       $($.sgr.filters).each(function(idx, filter){
         var lhn_html = $.sgr.gr_lhn_tree_html;
@@ -1835,12 +1880,136 @@ Array.prototype.remove = function(from, to) {
         $("#sub-tree-item-0-main ul:first").prepend(lhn_jq);
       });
     }, 1000);
+*/
+  }
+
+  $.sgr.getCurrentFeedFilters = function() {
+    var curr_feed = $.sgr.getCurrentFeedName();
+    var matched_filters = [];
+    $($.sgr.filters).each(function(idx,filter) {
+      if (filter.base == curr_feed) {
+        matched_filters.push(filter);
+      }
+    });
+    return matched_filters;
+  }
+
+  $.sgr.getFilterSetting = function(filter_id) {
+    var key = $.sgr.getSettingName('filter_' + filter_id, 'global');
+
+    if (typeof $.sgr.filters_enabled[filter_id] != 'undefined') {
+      return $.sgr.filters_enabled[filter_id];
+    }
+
+    var value = $.stor.get(key);
+    if (value == null) {
+      $.sgr.filters_enabled[filter_id] = false;
+    } else {
+      $.sgr.filters_enabled[filter_id] = true;
+    }
+    return $.sgr.filters_enabled[filter_id];
+  }
+
+  $.sgr.setFilterSetting = function(filter_id, setting) {
+    var key = $.sgr.getSettingName('filter_' + filter_id, 'global');
+    if (setting) {
+      $.stor.set(key, true);
+      $.sgr.filters_enabled[filter_id] = true;
+    } else {
+      $.stor.remove(key);
+      if ($.sgr.filters_enabled[filter_id]) {
+        $.sgr.filters_enabled[filter_id] = false;
+      }
+    }
+
   }
 
   $.sgr.getFilterIdFromLink = function(link_el) {
     return $(link_el).attr('href').match(/\/([0-9]*$)/)[1];
   }
 
+  $.sgr.toggleFilter = function(filter_id) {
+    if ($.sgr.getFilterSetting(filter_id)) {
+      $.sgr.disableFilter(filter_id);
+    } else {
+      $.sgr.enableFilter(filter_id);
+    }
+  }
+
+  $.sgr.enableFilter = function(filter_id) {
+    $.sgr.setFilterSetting(filter_id, true);
+
+    var first_entry = $(".entry:first");
+    var entry_height = first_entry.outerHeight();
+    var entry_url = $.sgr.getEntryUrl(first_entry);
+
+    var remaining_entries_count = 0;
+
+    //$.sgr.scrollTo($(".entry:last"));
+    //$.sgr.scrollTo($(".entry:first"));
+    // Loop all displayed entries to filter as necessary
+    //
+    $(".entry").each(function(idx,entry) {
+      if (idx <= 1) {
+        remaining_entries_count += 1;
+      } else {
+      if (typeof $.sgr.filtered_feed_data[filter_id].items[entry_url] == 'undefined') {
+        debug("Filter: removed entry:");
+        debug($(entry));
+        //$("#filtered-entries").append($(entry).addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id)).remove());
+        $(entry).remove();
+      } else {
+        remaining_entries_count += 1;
+      }
+      }
+    });
+    debug(remaining_entries_count);
+    debug(entry_height);
+    debug($("#entries").outerHeight());
+    debug($("#entries").height());
+    debug($("#entries"));
+    if ((($("#entries").outerHeight() / entry_height) + 5) >= remaining_entries_count) {
+      var prev_entries_height = $("#entries").height();
+      $("#entries").height(entry_height / 2);
+      $.sgr.scrollTo($(".entry:last"));
+      $.sgr.scrollTo($(".entry:first"));
+      debug($("#entries").height());
+      $("#entries").height(prev_entries_height);
+    }
+  }
+
+  $.sgr.disableFilter = function(filter_id) {
+    if (typeof filter_id == 'undefined' || filter_id == null) {
+      return false;
+    }
+    $.sgr.setFilterSetting(filter_id, false);
+
+    // Loop all displayed entries to remove this filter as necessary
+    //
+    $(".entry").each(function(idx,entry) {
+      var entry = $(entry);
+      if (entry.hasClass($.sgr.getFilteredClass(filter_id))) {
+        entry.removeClass($.sgr.getFilteredClass(filter_id));
+
+        var found_another_filter = false;
+        $(entry.attr('class').split(/\s+/)).each(function(idx2,class_name) {
+          if (class_name.substr(0,'sgr-filtered-by-'.length) == 'sgr-filtered-by-') {
+            found_another_filter = true;
+            return false;
+          }
+        });
+        if (found_another_filter == false) {
+          entry.removeClass('sgr-filtered');
+        }
+      }
+    });
+  }
+
+  $.sgr.getFilteredClass = function(filter_id) {
+    return 'sgr-filtered-by-' + filter_id;
+  }
+
+  /*
   $.sgr.displayFilteredEntries = function(filter_id) {
     if (typeof $.sgr.filtered_feed_data[filter_id] == 'undefined') {
       // FIXME go fetch the data?
@@ -1871,6 +2040,7 @@ Array.prototype.remove = function(from, to) {
     }
   }
 
+  */
 
   $.sgr.fetchFilteredContent = function(filter, filtered_feed_item_threshold) {
 
@@ -1895,17 +2065,21 @@ Array.prototype.remove = function(from, to) {
         //debug("Success : " + api_contents_url);
         //debug(feed_data);
         if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
-          $.sgr.filtered_feed_data[filter.id] = jQuery.extend(true, {}, feed_data);
-          $.sgr.filtered_feed_data[filter.id].items = [];
-          $.sgr.filtered_feed_data[filter.id]._sgr_filter = filter;
+          $.sgr.filtered_feed_data[filter.id] = {};
+          $.sgr.filtered_feed_data[filter.id].items = {};
+          //$.sgr.filtered_feed_data[filter.id] = jQuery.extend(true, {}, feed_data);
+          //$.sgr.filtered_feed_data[filter.id].items = [];
+          //$.sgr.filtered_feed_data[filter.id]._sgr_filter = filter;
         }
         $.sgr.filtered_feed_data[filter.id].continuation = feed_data.continuation;
-        $.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
+        //$.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
+/*
         try {
           $.sgr.filtered_feed_data[filter.id]._sgr_site = feed_data.alternate[0].href;
         } catch(e) {
           $.sgr.filtered_feed_data[filter.id]._sgr_site = '';
         }
+*/
 
         //var exclude_list = [];
         //var c = $("#chrome").clone();
@@ -1986,7 +2160,8 @@ Array.prototype.remove = function(from, to) {
 //debug("not excluding:");
 //debug(item);
             included_item_count += 1;
-            $.sgr.filtered_feed_data[filter.id].items.push($.sgr.cleanFilteredFeedItem(item));
+            //$.sgr.filtered_feed_data[filter.id].items.push($.sgr.cleanFilteredFeedItem(item));
+            $.sgr.filtered_feed_data[filter.id].items[item.alternate[0].href] = true;
           } else {
             excluded_item_count += 1;
 //debug("excluding:");
@@ -1999,7 +2174,7 @@ Array.prototype.remove = function(from, to) {
         // Recurse if items are below threshold
         //
         //debug("$.sgr.filtered_feed_data[filter.id].items.length = " + $.sgr.filtered_feed_data[filter.id].items.length + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
-        if ($.sgr.filtered_feed_data[filter.id].items.length < filtered_feed_item_threshold) {
+        if ($.sgr.filtered_feed_data[filter.id].items.size() < filtered_feed_item_threshold) {
           $.sgr.fetchFilteredContent(filter, filtered_feed_item_threshold);
         }
       }

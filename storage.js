@@ -80,6 +80,25 @@
     return value;
   }
 
+  // Remove the item from storage
+  //
+  $.stor.remove = function(key, store_type) {
+    if ($.stor.DISABLED) {
+      return null;
+    }
+    var storage = $.stor.getStorage(store_type);
+    if (storage == false) {
+      return null;
+    }
+
+    try {
+      storage.removeItem(key);
+    } catch(e) {
+      debug("Error inside removeItem() for key:" + key);
+      debug(e);
+    }
+  }
+
   // Clears all the key value pairs in storage
   //
   $.stor.clear = function(store_type) {
