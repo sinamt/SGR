@@ -149,7 +149,7 @@ Object.prototype.size = function() {
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} #filtered-entries {display: none;}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} .sgr-filtered {display: none;}';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -792,6 +792,10 @@ Object.prototype.size = function() {
       //
       if (ev_target.hasClass("entry")) {
         var entry = ev_target;
+
+        // Check if this entry is meant to be filtered
+        //
+        $.sgr.runFilterEntry(entry);
 
         // If this is the first entry being inserted, then it must be an initial load of entries.
         // Setup our filters nav (if filters exist).
@@ -1853,6 +1857,7 @@ Object.prototype.size = function() {
   $.sgr.filtered_feed_item_threshold = 40;
   $.sgr.filter_name_max_display = 30;
   $.sgr.filters_enabled = {};
+  $.sgr.filters_by_feed = {};
 
   $.sgr.initFilters = function() {
     // Fetch the filtered feed or label contents
@@ -1885,13 +1890,68 @@ Object.prototype.size = function() {
 
   $.sgr.getCurrentFeedFilters = function() {
     var curr_feed = $.sgr.getCurrentFeedName();
-    var matched_filters = [];
+    if (typeof $.sgr.filters_by_feed[curr_feed] != 'undefined') {
+      return $.sgr.filters_by_feed[curr_feed];
+    }
+
+    $.sgr.filters_by_feed[curr_feed] = [];
+    
     $($.sgr.filters).each(function(idx,filter) {
       if (filter.base == curr_feed) {
-        matched_filters.push(filter);
+        $.sgr.filters_by_feed[curr_feed].push(filter);
       }
     });
-    return matched_filters;
+    return $.sgr.filters_by_feed[curr_feed];
+  }
+
+  $.sgr.getCurrentFeedActiveFilters = function() {
+    var active_filters_by_feed = [];
+    $($.sgr.getCurrentFeedFilters()).each(function(idx,filter) {
+      if ($.sgr.getFilterSetting(filter.id)) {
+        active_filters_by_feed.push(filter);
+      }
+    });
+    return active_filters_by_feed;
+  }
+
+  $.sgr.runFilterEntries = function() {
+    $(".entry:not(.sgr-filtered)").each(function(idx,entry) {
+      $.sgr.runFilterEntry(entry);
+    });
+  }
+
+  $.sgr.runFilterEntriesForFilter = function(filter_id) {
+    $(".entry:not(." + $.sgr.getFilteredClass(filter_id) + ")").each(function(idx,entry) {
+      if ($.sgr.isEntryFilteredByFilter(filter_id, entry)) {
+        //debug("Filter: removed entry:");
+        //debug($(entry));
+        $.sgr.filterEntry($(entry), filter_id);
+      }
+    });
+    $.sgr.triggerGoogleReaderFetchMoreEntries();
+  }
+
+  $.sgr.runFilterEntry = function(entry) {
+    var active_filters = $($.sgr.getCurrentFeedActiveFilters());
+    active_filters.each(function(idx,filter) {
+      if ($.sgr.isEntryFilteredByFilter(filter.id, entry)) {
+        $.sgr.filterEntry(entry, filter.id);
+        return false;
+      }
+    });
+  }
+
+  $.sgr.filterEntry = function(entry, filter_id) {
+    //$("#filtered-entries").append($(entry).addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id)).remove());
+    entry.addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id));
+    //$(entry).remove();
+  }
+
+  $.sgr.isEntryFilteredByFilter = function(filter_id, entry) {
+    if (typeof $.sgr.filtered_feed_data[filter_id] == 'undefined') {
+      return false;
+    }
+    return typeof $.sgr.filtered_feed_data[filter_id].items[$.sgr.getEntryUrl($(entry))] == 'undefined' ? true : false;
   }
 
   $.sgr.getFilterSetting = function(filter_id) {
@@ -1937,45 +1997,19 @@ Object.prototype.size = function() {
   }
 
   $.sgr.enableFilter = function(filter_id) {
+
     $.sgr.setFilterSetting(filter_id, true);
-
-    var first_entry = $(".entry:first");
-    var entry_height = first_entry.outerHeight();
-    var entry_url = $.sgr.getEntryUrl(first_entry);
-
-    var remaining_entries_count = 0;
 
     //$.sgr.scrollTo($(".entry:last"));
     //$.sgr.scrollTo($(".entry:first"));
     // Loop all displayed entries to filter as necessary
     //
-    $(".entry").each(function(idx,entry) {
-      if (idx <= 1) {
-        remaining_entries_count += 1;
-      } else {
-      if (typeof $.sgr.filtered_feed_data[filter_id].items[entry_url] == 'undefined') {
-        debug("Filter: removed entry:");
-        debug($(entry));
-        //$("#filtered-entries").append($(entry).addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id)).remove());
-        $(entry).remove();
-      } else {
-        remaining_entries_count += 1;
-      }
-      }
-    });
-    debug(remaining_entries_count);
-    debug(entry_height);
-    debug($("#entries").outerHeight());
-    debug($("#entries").height());
-    debug($("#entries"));
-    if ((($("#entries").outerHeight() / entry_height) + 5) >= remaining_entries_count) {
-      var prev_entries_height = $("#entries").height();
-      $("#entries").height(entry_height / 2);
-      $.sgr.scrollTo($(".entry:last"));
-      $.sgr.scrollTo($(".entry:first"));
-      debug($("#entries").height());
-      $("#entries").height(prev_entries_height);
-    }
+    //debug($.sgr.filtered_feed_data[filter_id]);
+    $.sgr.runFilterEntriesForFilter(filter_id);
+    //debug(remaining_entries_count);
+    //debug($("#entries").outerHeight());
+    //debug($("#entries").height());
+    //debug($("#entries"));
   }
 
   $.sgr.disableFilter = function(filter_id) {
@@ -2003,6 +2037,50 @@ Object.prototype.size = function() {
         }
       }
     });
+  }
+
+  $.sgr.triggerGoogleReaderFetchMoreEntries = function() {
+    var entry_count = $(".entry:not(.sgr-filtered)").length;
+    var entry_height = $(".entry:first").outerHeight();
+
+
+    if (typeof entry_count == 'undefined' || entry_count == null) {
+      entry_count = 0;
+    }
+    if (typeof entry_height == 'undefined' || entry_height == null || entry_height <= 0) {
+      entry_height = 26;
+    }
+
+    //debug(entry_height);
+    //debug(entry_count);
+    //debug($("#entries").outerHeight());
+    //debug($("#entries").height());
+    // If we have no active entries, briefly enable an entry to fake it so the scroll
+    // can be triggered.
+    //
+    var entry_fake = false;
+    if (entry_count == 0) { // || entry_count == 1) {
+      entry_fake = true;
+      entry_count = 1;
+      $(".sgr-filtered:lt(1)").removeClass("sgr-filtered");
+      debug("fake");
+    }
+    if ((($("#entries").outerHeight() / entry_height) + 5) >= entry_count) {
+      //debug("here");
+      var prev_entries_height = $("#entries").height();
+      $("#entries").height(entry_height / 2);
+      //$.sgr.scrollTo($(".entry:last"));
+      //debug($(".entry:last").attr("offsetTop"));
+      //debug(entry_height);
+      $("#entries").scrollTop($(".entry:last").attr("offsetTop") + entry_height);
+      //debug( $("#entries").scrollTop());
+      $.sgr.scrollTo($(".entry:first"));
+      //debug($("#entries").height());
+      $("#entries").height(prev_entries_height);
+    }
+    if (entry_fake) {
+      $(".entry:not(.sgr-filtered):first").addClass("sgr-filtered");
+    }
   }
 
   $.sgr.getFilteredClass = function(filter_id) {
@@ -2179,6 +2257,7 @@ Object.prototype.size = function() {
         }
       }
     });
+    $.sgr.runFilterEntriesForFilter(filter.id);
   }
     
   $.sgr.cleanFilteredFeedItem = function(item) {
