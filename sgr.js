@@ -149,7 +149,7 @@ Object.prototype.size = function() {
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} .sgr-filtered {display: none;}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} .sgr-filtered {display: none;} .sgr-filter-nav-active {background-color: white;}';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -796,16 +796,17 @@ Object.prototype.size = function() {
         // Check if this entry is meant to be filtered
         //
         $.sgr.runFilterEntry(entry);
+        $.sgr.fetchMoreFilteredEntriesForCurrentFeed();
 
         // If this is the first entry being inserted, then it must be an initial load of entries.
         // Setup our filters nav (if filters exist).
         //
         if (entries.find(".entry").length == 1) {
-          $(".filter-nav").remove();
+          $(".sgr-filter-nav").remove();
           var filters = $.sgr.getCurrentFeedFilters();
           $(filters).each(function(idx,filter) {
             if ($("#filter-nav-" + filter.id).length <= 0) {
-              $("#chrome-title").css('display', 'inline').after('<a href="/reader/view/filter/' + filter.id + '" class="filter-nav" id="filter-nav-' + filter.id + '">' + (filter.name.length > $.sgr.filter_name_max_display ? filter.name.substr(0,$.sgr.filter_name_max_display) + '..' : filter.name) + '</a>');
+              $("#chrome-title").css('display', 'inline').after('<a href="/reader/view/filter/' + filter.id + '" class="sgr-filter-nav' + ($.sgr.isFilterActive(filter.id) ? ' sgr-filter-nav-active' : '' ) + '" id="filter-nav-' + filter.id + '">' + (filter.name.length > $.sgr.filter_name_max_display ? filter.name.substr(0,$.sgr.filter_name_max_display) + '..' : filter.name) + '</a>');
 
             }
           });
@@ -1858,15 +1859,17 @@ Object.prototype.size = function() {
   $.sgr.filter_name_max_display = 30;
   $.sgr.filters_enabled = {};
   $.sgr.filters_by_feed = {};
+  $.sgr.filters_by_id = {};
 
   $.sgr.initFilters = function() {
     // Fetch the filtered feed or label contents
     //
     $($.sgr.filters).each(function(idx, filter){
+      $.sgr.filters_by_id[filter.id] = filter;
       $.sgr.fetchFilteredContent(filter);
     });
 
-    $("body").append('<div id="filtered-entries"></div>');
+    //$("body").append('<div id="filtered-entries"></div>');
 
     // Inject left-hand nav entries for each filter
     //
@@ -1907,20 +1910,31 @@ Object.prototype.size = function() {
   $.sgr.getCurrentFeedActiveFilters = function() {
     var active_filters_by_feed = [];
     $($.sgr.getCurrentFeedFilters()).each(function(idx,filter) {
-      if ($.sgr.getFilterSetting(filter.id)) {
+      if ($.sgr.isFilterActive(filter.id)) {
         active_filters_by_feed.push(filter);
       }
     });
     return active_filters_by_feed;
   }
 
+  $.sgr.isFilterActive = function(filter_id) {
+    return $.sgr.getFilterSetting(filter_id);
+  }
+
+  /*
   $.sgr.runFilterEntries = function() {
     $(".entry:not(.sgr-filtered)").each(function(idx,entry) {
       $.sgr.runFilterEntry(entry);
     });
   }
+  */
 
   $.sgr.runFilterEntriesForFilter = function(filter_id) {
+    if ($.sgr.canFilterRunForCurrentEntries(filter_id) == false) {
+      return false;
+    }
+    debug("$.sgr.runFilterEntriesForFilter running for " + $.sgr.filters_by_id[filter_id].base);
+    var prev_entry_count = $(".entry:not(." + $.sgr.getFilteredClass(filter_id) + ")").length;
     $(".entry:not(." + $.sgr.getFilteredClass(filter_id) + ")").each(function(idx,entry) {
       if ($.sgr.isEntryFilteredByFilter(filter_id, entry)) {
         //debug("Filter: removed entry:");
@@ -1928,7 +1942,39 @@ Object.prototype.size = function() {
         $.sgr.filterEntry($(entry), filter_id);
       }
     });
+    var after_entry_count = $(".entry:not(." + $.sgr.getFilteredClass(filter_id) + ")").length;
+    debug("Filtered " + (prev_entry_count - after_entry_count) + " entries from current list");
     $.sgr.triggerGoogleReaderFetchMoreEntries();
+  }
+
+  $.sgr.canFilterRunForCurrentEntries = function(filter_id) {
+    return $.sgr.filters_by_id[filter_id].base == $.sgr.getCurrentFeedName() && $.sgr.isFilterActive(filter_id) && typeof $.sgr.filtered_feed_data[filter_id] != 'undefined';
+  }
+
+  // Check if we need to fetch more filtered entries for the current feed. We
+  // need to keep more filtered entries stored so any new entries fetched from
+  // scrolling in Google Reader are able to be parsed through any active filters.
+  //
+  $.sgr.fetchMoreFilteredEntriesForCurrentFeed = function() {
+    var filters = $.sgr.getCurrentFeedFilters();
+
+    $(filters).each(function(idx,filter) {
+      $.sgr.fetchMoreFilteredEntriesForCurrentFeedFromFilter(filter);
+    });
+  }
+
+  $.sgr.fetchMoreFilteredEntriesForCurrentFeedFromFilter = function(filter) {
+    if ($.sgr.canFilterRunForCurrentEntries(filter.id) == false) {
+      return false;
+    }
+    var active_entry_count = $(".entry:not(." + $.sgr.getFilteredClass(filter.id) + ")").length;
+
+    // If we have 75% or more current entries compared to stored filtered entries, get more
+    //
+    debug("fetchMoreFilteredEntriesForCurrentFeedFromFilter: active_entry_count * 1.75 = " + (active_entry_count * 1.75) + " vs feed data = " + $.sgr.getFilteredFeedDataItemCount(filter.id));
+    if( (active_entry_count * 1.75) >= $.sgr.getFilteredFeedDataItemCount(filter.id)) {
+      $.sgr.fetchFilteredContent(filter);
+    }
   }
 
   $.sgr.runFilterEntry = function(entry) {
@@ -1944,6 +1990,7 @@ Object.prototype.size = function() {
   $.sgr.filterEntry = function(entry, filter_id) {
     //$("#filtered-entries").append($(entry).addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id)).remove());
     entry.addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id));
+    debug("Entry filtered: " + $.sgr.getEntryUrl(entry));
     //$(entry).remove();
   }
 
@@ -1952,6 +1999,14 @@ Object.prototype.size = function() {
       return false;
     }
     return typeof $.sgr.filtered_feed_data[filter_id].items[$.sgr.getEntryUrl($(entry))] == 'undefined' ? true : false;
+  }
+
+  $.sgr.getFilteredFeedDataItemCount = function(filter_id) {
+    try {
+      return $.sgr.filtered_feed_data[filter_id].items.size();
+    } catch(e) {
+      return 0;
+    }
   }
 
   $.sgr.getFilterSetting = function(filter_id) {
@@ -1989,7 +2044,7 @@ Object.prototype.size = function() {
   }
 
   $.sgr.toggleFilter = function(filter_id) {
-    if ($.sgr.getFilterSetting(filter_id)) {
+    if ($.sgr.isFilterActive(filter_id)) {
       $.sgr.disableFilter(filter_id);
     } else {
       $.sgr.enableFilter(filter_id);
@@ -2120,12 +2175,19 @@ Object.prototype.size = function() {
 
   */
 
+  // FIXME need to fetch the feed only once per filter.base and cache it so all filters
+  // for that filter.base can re-use it.
+  //
   $.sgr.fetchFilteredContent = function(filter, filtered_feed_item_threshold) {
+
+    debug("fetchFilteredConten() start");
 
     if ($.sgr.filtered_feed_data[filter.id]) {
       filter.continuation = $.sgr.filtered_feed_data[filter.id].continuation;
       if (typeof filtered_feed_item_threshold == 'undefined') {
-        filtered_feed_item_threshold += $.sgr.filtered_feed_data[filter.id].items.length;
+        //filtered_feed_item_threshold += $.sgr.filtered_feed_data[filter.id].items.length;
+        //filtered_feed_item_threshold = $.sgr.getFilteredFeedDataItemCount(filter.id);
+        filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold + $.sgr.getFilteredFeedDataItemCount(filter.id);
       }
     }
 
@@ -2140,8 +2202,8 @@ Object.prototype.size = function() {
       url: api_contents_url,
       dataType: 'json',
       success: function(feed_data) {
-        //debug("Success : " + api_contents_url);
-        //debug(feed_data);
+        debug("Success : " + api_contents_url);
+        debug(feed_data);
         if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
           $.sgr.filtered_feed_data[filter.id] = {};
           $.sgr.filtered_feed_data[filter.id].items = {};
@@ -2251,13 +2313,14 @@ Object.prototype.size = function() {
 
         // Recurse if items are below threshold
         //
-        //debug("$.sgr.filtered_feed_data[filter.id].items.length = " + $.sgr.filtered_feed_data[filter.id].items.length + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
-        if ($.sgr.filtered_feed_data[filter.id].items.size() < filtered_feed_item_threshold) {
+        debug("$.sgr.getFilteredFeedDataItemCount(filter.id) = " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
+        if ($.sgr.getFilteredFeedDataItemCount(filter.id) < filtered_feed_item_threshold) {
           $.sgr.fetchFilteredContent(filter, filtered_feed_item_threshold);
         }
+
+        $.sgr.runFilterEntriesForFilter(filter.id);
       }
     });
-    $.sgr.runFilterEntriesForFilter(filter.id);
   }
     
   $.sgr.cleanFilteredFeedItem = function(item) {
