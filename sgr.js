@@ -2202,7 +2202,7 @@ Object.prototype.size = function() {
       url: api_contents_url,
       dataType: 'json',
       success: function(feed_data) {
-        debug("Success : " + api_contents_url);
+        debug("Success : " + api_contents_url + ", time=" + (new Date()).getTime());
         debug(feed_data);
         if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
           $.sgr.filtered_feed_data[filter.id] = {};
@@ -2315,6 +2315,7 @@ Object.prototype.size = function() {
         //
         debug("$.sgr.getFilteredFeedDataItemCount(filter.id) = " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
         if ($.sgr.getFilteredFeedDataItemCount(filter.id) < filtered_feed_item_threshold) {
+          debug("about to recurse to $.sgr.fetchFilteredContent()");
           $.sgr.fetchFilteredContent(filter, filtered_feed_item_threshold);
         }
 

@@ -1,5 +1,5 @@
 var dbg = (typeof console !== 'undefined') ? function(s) {
-    //console.log("Readability: " + s);
+    console.log("Readability: " + s);
 } : function() {};
 
 /*
@@ -603,6 +603,7 @@ var readability = {
         /* Do these last as the previous stuff may have removed junk that will affect these */
         readability.cleanConditionally(articleContent, "table");
         readability.cleanConditionally(articleContent, "ul");
+        // FIXME
         readability.cleanConditionally(articleContent, "div");
 
         /* Remove extra paragraphs */
@@ -1601,7 +1602,32 @@ var readability = {
 
             if(weight+contentScore < 0)
             {
+              // SGR : If this is a div, try not to remove images relevant to the article that
+              // happen to be wrapped in a div. Loop all images and keep those not in an "a" tag.
+              //
+              var remove_node = true;
+              if (tag == 'div') {
+                var imgList = tagsList[i].getElementsByTagName("img");
+                var imgListLength = imgList.length;
+                dbg("cleanConditionally: imgListLength=" + imgListLength);
+                for (var j=imgListLength-1; j >= 0; j--) {
+                  if (imgList[j].parentNode.tagName == "A") {
+                    dbg("Img tag parent is a href, remove it (" + tagsList[i].parentNode.className + ":" + tagsList[i].parentNode.id + ")");
+                    imgList[j].parentNode.parentNode.removeChild(imgList[j].parentNode);
+                  }
+                }
+                // Get a new list of remaining images. If any exist, save this node.
+                //
+                var imgList = tagsList[i].getElementsByTagName("img");
+                var imgListLength = imgList.length;
+                if (imgListLength > 0) {
+                  dbg("Saving DIV with images: (" + tagsList[i].className + ":" + tagsList[i].id + ")");
+                  remove_node = false;
+                }
+              }
+              if (remove_node) {
                 tagsList[i].parentNode.removeChild(tagsList[i]);
+              }
             }
             else if ( readability.getCharCount(tagsList[i],',') < 10) {
                 /**
