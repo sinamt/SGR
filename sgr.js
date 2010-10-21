@@ -149,7 +149,7 @@ Object.prototype.size = function() {
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} .sgr-filtered {display: none;} .sgr-filter-nav-active {background-color: white;}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #chrome-orig {position: absolute; left: -9999px;} .sgr-filtered {display: none;} .sgr-filter-nav {margin-left: 5px;} .sgr-filter-nav-active {background-color: white;}';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -799,15 +799,24 @@ Object.prototype.size = function() {
         $.sgr.fetchMoreFilteredEntriesForCurrentFeed();
 
         // If this is the first entry being inserted, then it must be an initial load of entries.
-        // Setup our filters nav (if filters exist).
+        // We will:
+        //  1. Setup our filters nav (if filters exist).
+        //  2. Clear any cached data for the filters, so new entries can be captured properly.
         //
         if (entries.find(".entry").length == 1) {
-          $(".sgr-filter-nav").remove();
+
+          $.sgr.removeFilterNav();
+
           var filters = $.sgr.getCurrentFeedFilters();
           $(filters).each(function(idx,filter) {
+            // Setup filter nav
+            //
             if ($("#filter-nav-" + filter.id).length <= 0) {
-              $("#chrome-title").css('display', 'inline').after('<a href="/reader/view/filter/' + filter.id + '" class="sgr-filter-nav' + ($.sgr.isFilterActive(filter.id) ? ' sgr-filter-nav-active' : '' ) + '" id="filter-nav-' + filter.id + '">' + (filter.name.length > $.sgr.filter_name_max_display ? filter.name.substr(0,$.sgr.filter_name_max_display) + '..' : filter.name) + '</a>');
+              $("#chrome-title").css('display', 'inline').after('<a href="/reader/view/filter/' + filter.id + '" class="sgr-filter-nav' + ($.sgr.isFilterActive(filter.id) ? ' sgr-filter-nav-active' : '' ) + '" id="sgr-filter-nav-' + filter.id + '">' + (filter.name.length > $.sgr.filter_name_max_display ? filter.name.substr(0,$.sgr.filter_name_max_display) + '..' : filter.name) + '</a>');
 
+              // Clear cached filter feed data
+              //
+              //$.sgr.clearCachedFilterFeedData(filter.id);
             }
           });
         }
@@ -976,8 +985,8 @@ Object.prototype.size = function() {
 
     // Filter nav
     //
-    $('.filter-nav').live('click', function(ev) {
-      debug('filter-nav click');
+    $('.sgr-filter-nav').live('click', function(ev) {
+      debug('sgr-filter-nav click');
       try {
         $.sgr.toggleFilter($.sgr.getFilterIdFromLink(this));
       } catch(e) {
@@ -1022,6 +1031,12 @@ Object.prototype.size = function() {
       }
     });
 */
+
+    // Any #nav click event
+    //
+    $("#nav").live('click',function(ev) {
+      $.sgr.removeFilterNav();
+    });
 
     // Keyboard shortcut help - DOMNodeInserted live event 
     //
@@ -1081,6 +1096,10 @@ Object.prototype.size = function() {
     }
 
     $.sgr.sendRequest({action: 'ga_track_pageview', track_url: self.location.pathname});
+  }
+
+  $.sgr.removeFilterNav = function() {
+    $(".sgr-filter-nav").remove();
   }
 
   $.sgr.closeSgrEntryBody = function() {
@@ -1847,11 +1866,17 @@ Object.prototype.size = function() {
   //$.sgr.gr_lhn_tree_html = '<li class="sub unselectable expanded unread" id="sub-tree-item-[__id__]-main"><a class="" href="javascript:" id="">test</a></li>';
 
   $.sgr.filters = [
-    {name: 'inc "coach|ablett"', id: 100001, base: '/reader/view/feed/http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'geelong'}, {type: 'include', item: 'post', content: 'ablett'}] }
+    {name: 'inc "geelong|ablett"', id: 100001, base: '/reader/view/feed/http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: 'geelong'}, {type: 'include', item: 'post', content: 'ablett'}] }
 ,
     {name: 'Exc "ask hn|tell hn|show hn|facebook"', id: 100002, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
 ,
+    {name: 'Exc "an"', id: 100004, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'an'}] }
+,
     {name: 'Exc "apple|microsoft|facebook"', id: 100003, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple'}, {type: 'exclude', item: 'post', content: 'microsoft'}, {type: 'exclude', item: 'post', content: 'funsdjgkdsg'}] }
+,
+    {name: 'Inc "facebook"', id: 100005, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'include', item: 'post', content: 'facebook'}] }
+,
+    {name: 'Inc "twitter"', id: 100006, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'include', item: 'post', content: 'twitter'}] }
   ]
 
   $.sgr.filtered_feed_data = {};
@@ -1860,6 +1885,7 @@ Object.prototype.size = function() {
   $.sgr.filters_enabled = {};
   $.sgr.filters_by_feed = {};
   $.sgr.filters_by_id = {};
+  $.sgr.filters_being_fetched = {};
 
   $.sgr.initFilters = function() {
     // Fetch the filtered feed or label contents
@@ -1868,27 +1894,15 @@ Object.prototype.size = function() {
       $.sgr.filters_by_id[filter.id] = filter;
       $.sgr.fetchFilteredContent(filter);
     });
+  }
 
-    //$("body").append('<div id="filtered-entries"></div>');
-
-    // Inject left-hand nav entries for each filter
-    //
-/*
-    setTimeout(function(){
-      $($.sgr.filters).each(function(idx, filter){
-        var lhn_html = $.sgr.gr_lhn_tree_html;
-        var lhn_jq = $(lhn_html.replace(/\[__id__\]/g, filter.id));
-        //lhn_jq.find(".name").attr('title', this.name);
-        //lhn_jq.find(".name-text").html(this.name);
-        lhn_jq.find(".sgr-lhn-link").attr('href', '/reader/view/filter/' + filter.id);
-        lhn_jq.find(".sgr-lhn-link-text").html(filter.name);
-        //debug($.sgr.gr_lhn_tree_html);
-
-
-        $("#sub-tree-item-0-main ul:first").prepend(lhn_jq);
-      });
-    }, 1000);
-*/
+  // Clear cached filter feed data
+  //
+  $.sgr.clearCachedFilterFeedData = function(filter_id) {
+    debug("Clearing filter feed data for " + filter_id + ", size = " + (typeof $.sgr.filtered_feed_data[filter_id] != 'undefined' ? $.sgr.filtered_feed_data[filter_id].items.size() : 0));
+    if (typeof $.sgr.filtered_feed_data[filter_id] != 'undefined') {
+      delete $.sgr.filtered_feed_data[filter_id];
+    }
   }
 
   $.sgr.getCurrentFeedFilters = function() {
@@ -1933,7 +1947,7 @@ Object.prototype.size = function() {
     if ($.sgr.canFilterRunForCurrentEntries(filter_id) == false) {
       return false;
     }
-    debug("$.sgr.runFilterEntriesForFilter running for " + $.sgr.filters_by_id[filter_id].base);
+    //debug("$.sgr.runFilterEntriesForFilter running for " + $.sgr.filters_by_id[filter_id].base);
     var prev_entry_count = $(".entry:not(." + $.sgr.getFilteredClass(filter_id) + ")").length;
     $(".entry:not(." + $.sgr.getFilteredClass(filter_id) + ")").each(function(idx,entry) {
       if ($.sgr.isEntryFilteredByFilter(filter_id, entry)) {
@@ -1964,14 +1978,14 @@ Object.prototype.size = function() {
   }
 
   $.sgr.fetchMoreFilteredEntriesForCurrentFeedFromFilter = function(filter) {
-    if ($.sgr.canFilterRunForCurrentEntries(filter.id) == false) {
+    if ($.sgr.canFilterRunForCurrentEntries(filter.id) == false || $.sgr.isFilterBeingFetched(filter.id)) {
       return false;
     }
     var active_entry_count = $(".entry:not(." + $.sgr.getFilteredClass(filter.id) + ")").length;
 
     // If we have 75% or more current entries compared to stored filtered entries, get more
     //
-    debug("fetchMoreFilteredEntriesForCurrentFeedFromFilter: active_entry_count * 1.75 = " + (active_entry_count * 1.75) + " vs feed data = " + $.sgr.getFilteredFeedDataItemCount(filter.id));
+    //debug("fetchMoreFilteredEntriesForCurrentFeedFromFilter: active_entry_count * 1.75 = " + (active_entry_count * 1.75) + " vs feed data = " + $.sgr.getFilteredFeedDataItemCount(filter.id));
     if( (active_entry_count * 1.75) >= $.sgr.getFilteredFeedDataItemCount(filter.id)) {
       $.sgr.fetchFilteredContent(filter);
     }
@@ -1990,7 +2004,7 @@ Object.prototype.size = function() {
   $.sgr.filterEntry = function(entry, filter_id) {
     //$("#filtered-entries").append($(entry).addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id)).remove());
     entry.addClass("sgr-filtered").addClass($.sgr.getFilteredClass(filter_id));
-    debug("Entry filtered: " + $.sgr.getEntryUrl(entry));
+    //debug("Entry filtered: " + $.sgr.getEntryUrl(entry));
     //$(entry).remove();
   }
 
@@ -2053,6 +2067,8 @@ Object.prototype.size = function() {
 
   $.sgr.enableFilter = function(filter_id) {
 
+    $("#sgr-filter-nav-" + filter_id).addClass("sgr-filter-nav-active");
+
     $.sgr.setFilterSetting(filter_id, true);
 
     //$.sgr.scrollTo($(".entry:last"));
@@ -2071,7 +2087,12 @@ Object.prototype.size = function() {
     if (typeof filter_id == 'undefined' || filter_id == null) {
       return false;
     }
+
+    $("#sgr-filter-nav-" + filter_id).removeClass("sgr-filter-nav-active");
+
     $.sgr.setFilterSetting(filter_id, false);
+
+    var added_count = 0 ;
 
     // Loop all displayed entries to remove this filter as necessary
     //
@@ -2088,10 +2109,12 @@ Object.prototype.size = function() {
           }
         });
         if (found_another_filter == false) {
+          added_count += 1;
           entry.removeClass('sgr-filtered');
         }
       }
     });
+    debug("Added " + added_count + " entries");
   }
 
   $.sgr.triggerGoogleReaderFetchMoreEntries = function() {
@@ -2180,7 +2203,9 @@ Object.prototype.size = function() {
   //
   $.sgr.fetchFilteredContent = function(filter, filtered_feed_item_threshold) {
 
-    debug("fetchFilteredConten() start");
+    //debug("fetchFilteredConten() start");
+
+    $.sgr.flagFilterBeingFetched(filter.id, true);
 
     if ($.sgr.filtered_feed_data[filter.id]) {
       filter.continuation = $.sgr.filtered_feed_data[filter.id].continuation;
@@ -2196,14 +2221,15 @@ Object.prototype.size = function() {
     }
 
     var api_contents_url = $.sgr.gr_api['contents'] + filter.url + '?r=n&client=sgr&n=100&ck=' + (new Date()).getTime() + (filter.continuation ? '&c=' + filter.continuation : '');
-    debug(api_contents_url);
+    //debug(api_contents_url);
+    debug(filter.id + " " + filter.continuation);
 
     $.ajax({
       url: api_contents_url,
       dataType: 'json',
       success: function(feed_data) {
-        debug("Success : " + api_contents_url + ", time=" + (new Date()).getTime());
-        debug(feed_data);
+        //debug("Success : " + api_contents_url + ", time=" + (new Date()).getTime());
+        //debug(feed_data);
         if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
           $.sgr.filtered_feed_data[filter.id] = {};
           $.sgr.filtered_feed_data[filter.id].items = {};
@@ -2231,9 +2257,6 @@ Object.prototype.size = function() {
 
         //$("#chrome").attr('id','chrome-orig').css({position:'absolute', left:'-9999px'}).find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
 
-    //{name: 'Herald Sun: "coach" inc', id: 100001, feed_type: 'feed', url: 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml', filters: [{type: 'include', item: 'post', content: /coach/i}] },
-    //{name: 'Hacker News: "ask hn|tell hn" exc', id: 100002, feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: /tell hn|ask hn/i}] }
-    //
         var included_item_count = 0;
         var excluded_item_count = 0;
 
@@ -2308,22 +2331,36 @@ Object.prototype.size = function() {
 //debug(item);
           }
         });
-        debug("FILTER: " + feed_data.title + " : Included " + included_item_count + " items, Excluded " +excluded_item_count+" items. new_feed_data=");
+        debug("FILTER: " + feed_data.title + " " + filter.name + " : Included " + included_item_count + " items, Excluded " +excluded_item_count+" items. Total included: " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ". new_feed_data=");
         debug($.sgr.filtered_feed_data[filter.id]);
 
         // Recurse if items are below threshold
         //
         debug("$.sgr.getFilteredFeedDataItemCount(filter.id) = " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
         if ($.sgr.getFilteredFeedDataItemCount(filter.id) < filtered_feed_item_threshold) {
-          debug("about to recurse to $.sgr.fetchFilteredContent()");
+          debug("*RECURSE* to $.sgr.fetchFilteredContent()");
           $.sgr.fetchFilteredContent(filter, filtered_feed_item_threshold);
         }
+
+        $.sgr.flagFilterBeingFetched(filter.id, false);
 
         $.sgr.runFilterEntriesForFilter(filter.id);
       }
     });
   }
     
+  $.sgr.isFilterBeingFetched = function(filter_id) {
+    return typeof $.sgr.filters_being_fetched[filter_id] != 'undefined';
+  }
+
+  $.sgr.flagFilterBeingFetched = function(filter_id, being_fetched) {
+    if (being_fetched) {
+      $.sgr.filters_being_fetched[filter_id] = true;
+    } else {
+      delete $.sgr.filters_being_fetched[filter_id];
+    }
+  }
+
   $.sgr.cleanFilteredFeedItem = function(item) {
     // Add a snippet for display in List view
     //
