@@ -1870,18 +1870,32 @@ Object.prototype.size = function() {
 ,
     {name: 'Exc "ask hn|tell hn|show hn|facebook"', id: 100002, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'tell hn|ask hn|show hn|facebook'}] }
 ,
-    {name: 'Exc "an"', id: 100004, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'an'}] }
+    {name: 'Inc "facebook"', id: 100003, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'include', item: 'post', content: 'facebook'}] }
 ,
-    {name: 'Exc "apple|microsoft|facebook"', id: 100003, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple'}, {type: 'exclude', item: 'post', content: 'microsoft'}, {type: 'exclude', item: 'post', content: 'funsdjgkdsg'}] }
+    {name: 'Exc "facebook"', id: 100004, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'facebook'}] }
 ,
-    {name: 'Inc "facebook"', id: 100005, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'include', item: 'post', content: 'facebook'}] }
+    {name: 'Exc "an"', id: 100005, base: '/reader/view/feed/http://news.ycombinator.com/rss', feed_type: 'feed', url: 'http://news.ycombinator.com/rss', filters: [{type: 'exclude', item: 'post', content: 'an'}] }
 ,
-    {name: 'Inc "twitter"', id: 100006, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'include', item: 'post', content: 'twitter'}] }
+    {name: 'Exc "apple|microsoft|facebook"', id: 100006, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'apple'}, {type: 'exclude', item: 'post', content: 'microsoft'}, {type: 'exclude', item: 'post', content: 'facebook'}] }
+,
+    {name: 'Inc "facebook"', id: 100007, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'include', item: 'post', content: 'facebook'}] }
+,
+    {name: 'Exc "facebook"', id: 100008, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'exclude', item: 'post', content: 'facebook'}] }
+,
+    {name: 'Inc "twitter" title', id: 100009, base: '/reader/view/feed/http://feedproxy.google.com/TechCrunch', feed_type: 'feed', url: 'http://feedproxy.google.com/TechCrunch', filters: [{type: 'include', item: 'title', content: 'twitter'}] }
   ]
 
-  $.sgr.filtered_feed_data = {};
+
   $.sgr.filtered_feed_item_threshold = 40;
   $.sgr.filter_name_max_display = 30;
+  $.sgr.filter_max_fetch_recurse_level = 50;
+
+  // Hash containing filter ID's as the key. filtered_feed_data.items will contain 
+  // entry urls as the key. These entries are to be shown (so they are NOT filtered) 
+  // for this particular filter.
+  //
+  $.sgr.filtered_feed_data = {};
+
   $.sgr.filters_enabled = {};
   $.sgr.filters_by_feed = {};
   $.sgr.filters_by_id = {};
@@ -1892,6 +1906,7 @@ Object.prototype.size = function() {
     //
     $($.sgr.filters).each(function(idx, filter){
       $.sgr.filters_by_id[filter.id] = filter;
+      $.sgr.preFetchFilteredContent(filter.id);
       $.sgr.fetchFilteredContent(filter);
     });
   }
@@ -1987,6 +2002,7 @@ Object.prototype.size = function() {
     //
     //debug("fetchMoreFilteredEntriesForCurrentFeedFromFilter: active_entry_count * 1.75 = " + (active_entry_count * 1.75) + " vs feed data = " + $.sgr.getFilteredFeedDataItemCount(filter.id));
     if( (active_entry_count * 1.75) >= $.sgr.getFilteredFeedDataItemCount(filter.id)) {
+      $.sgr.preFetchFilteredContent(filter.id);
       $.sgr.fetchFilteredContent(filter);
     }
   }
@@ -2012,6 +2028,8 @@ Object.prototype.size = function() {
     if (typeof $.sgr.filtered_feed_data[filter_id] == 'undefined') {
       return false;
     }
+    // If entry is not in the filter data array, it will not be shown. It is being filtered.
+    //
     return typeof $.sgr.filtered_feed_data[filter_id].items[$.sgr.getEntryUrl($(entry))] == 'undefined' ? true : false;
   }
 
@@ -2207,6 +2225,11 @@ Object.prototype.size = function() {
 
     $.sgr.flagFilterBeingFetched(filter.id, true);
 
+    if ($.sgr.isFilterfetchRecusiveCountAboveMax(filter.id)) {
+      debug(filter.id + " filter_max_fetch_recurse_level hit, no more fetching allowed");
+      return false;
+    }
+
     if ($.sgr.filtered_feed_data[filter.id]) {
       filter.continuation = $.sgr.filtered_feed_data[filter.id].continuation;
       if (typeof filtered_feed_item_threshold == 'undefined') {
@@ -2233,29 +2256,13 @@ Object.prototype.size = function() {
         if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
           $.sgr.filtered_feed_data[filter.id] = {};
           $.sgr.filtered_feed_data[filter.id].items = {};
+          $.sgr.filtered_feed_data[filter.id].recurse_count = 0;
           //$.sgr.filtered_feed_data[filter.id] = jQuery.extend(true, {}, feed_data);
           //$.sgr.filtered_feed_data[filter.id].items = [];
           //$.sgr.filtered_feed_data[filter.id]._sgr_filter = filter;
         }
         $.sgr.filtered_feed_data[filter.id].continuation = feed_data.continuation;
         //$.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
-/*
-        try {
-          $.sgr.filtered_feed_data[filter.id]._sgr_site = feed_data.alternate[0].href;
-        } catch(e) {
-          $.sgr.filtered_feed_data[filter.id]._sgr_site = '';
-        }
-*/
-
-        //var exclude_list = [];
-        //var c = $("#chrome").clone();
-        ////entries.empty().css({position: 'relative', 'z-index': '100'}).find('.same-dir').css('position','absolute');
-        ////$("#chrome-viewer-container").remove();
-        //c.find('#entries').empty();
-        //debug(c);
-        //$("#chrome").after(c);
-
-        //$("#chrome").attr('id','chrome-orig').css({position:'absolute', left:'-9999px'}).find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
 
         var included_item_count = 0;
         var excluded_item_count = 0;
@@ -2314,10 +2321,6 @@ Object.prototype.size = function() {
 //debug("excluding:");
 //debug(item);
             }
-          //if(this.summary.content && this.summary.content.match(/coach/)) {
-            //debug(idx + " " + this.summary.content);
-            //this.sgr_match = true;
-            //$.sgr.insertNewEntry(this);
           });
           if (add_feed_item_count >= filter.filters.length) {
 //debug("not excluding:");
@@ -2331,24 +2334,49 @@ Object.prototype.size = function() {
 //debug(item);
           }
         });
-        debug("FILTER: " + feed_data.title + " " + filter.name + " : Included " + included_item_count + " items, Excluded " +excluded_item_count+" items. Total included: " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ". new_feed_data=");
+        debug("FILTER: " + filter.id + " " + feed_data.title + " " + filter.name + " : Included " + included_item_count + " items, Excluded " +excluded_item_count+" items. Total included: " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ". new_feed_data=");
         debug($.sgr.filtered_feed_data[filter.id]);
 
         // Recurse if items are below threshold
         //
-        debug("$.sgr.getFilteredFeedDataItemCount(filter.id) = " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
+        debug(filter.id + " $.sgr.getFilteredFeedDataItemCount() = " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
+
         if ($.sgr.getFilteredFeedDataItemCount(filter.id) < filtered_feed_item_threshold) {
-          debug("*RECURSE* to $.sgr.fetchFilteredContent()");
+          $.sgr.setFilteredFetchRecurseCounter(filter.id, $.sgr.getFilteredFetchRecurseCounter(filter.id) + 1);
+          debug(filter.id + " *RECURSE* to $.sgr.fetchFilteredContent(). Recurse count = " + $.sgr.getFilteredFetchRecurseCounter(filter.id));
           $.sgr.fetchFilteredContent(filter, filtered_feed_item_threshold);
         }
 
-        $.sgr.flagFilterBeingFetched(filter.id, false);
-
         $.sgr.runFilterEntriesForFilter(filter.id);
+      },
+
+      complete: function() {
+        $.sgr.flagFilterBeingFetched(filter.id, false);
       }
     });
   }
     
+  $.sgr.preFetchFilteredContent = function(filter_id) {
+    if ($.sgr.isFilterfetchRecusiveCountAboveMax(filter_id) == false) {
+      $.sgr.setFilteredFetchRecurseCounter(filter_id, 0);
+    }
+  }
+
+  $.sgr.isFilterfetchRecusiveCountAboveMax = function(filter_id) {
+    return $.sgr.getFilteredFetchRecurseCounter(filter_id) >= $.sgr.filter_max_fetch_recurse_level;
+  }
+
+  $.sgr.setFilteredFetchRecurseCounter = function(filter_id, value) {
+    if (typeof  $.sgr.filtered_feed_data[filter_id] == 'undefined') {
+      return;
+    }
+    $.sgr.filtered_feed_data[filter_id].recurse_count = value;
+  }
+
+  $.sgr.getFilteredFetchRecurseCounter = function(filter_id) {
+    return typeof $.sgr.filtered_feed_data[filter_id] == 'undefined' ? 0 : $.sgr.filtered_feed_data[filter_id].recurse_count;
+  }
+
   $.sgr.isFilterBeingFetched = function(filter_id) {
     return typeof $.sgr.filters_being_fetched[filter_id] != 'undefined';
   }
