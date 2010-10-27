@@ -1,5 +1,5 @@
 var dbg = (typeof console !== 'undefined') ? function(s) {
-    //console.log("Readability: " + s);
+    console.log("Readability: " + s);
 } : function() {};
 
 /*
@@ -1601,7 +1601,9 @@ var readability = {
 
             if(weight+contentScore < 0)
             {
+              if (readability.sgr_saveElement(tagsList[i]) == false) {
                 tagsList[i].parentNode.removeChild(tagsList[i]);
+              }
             }
             else if ( readability.getCharCount(tagsList[i],',') < 10) {
                 /**
@@ -1641,11 +1643,71 @@ var readability = {
                     toRemove = true;
                 }
 
-                if(toRemove) {
+                if(toRemove && readability.sgr_saveElement(tagsList[i]) == false) {
                     tagsList[i].parentNode.removeChild(tagsList[i]);
                 }
             }
         }
+    },
+
+    
+    /**
+     * If an element is about to be deleted, perform a last final check to see if it
+     * should be saved. Look specifically for images without "a" tags as parents.
+     *
+     * @param Element
+     * @return boolean
+    **/
+    sgr_saveElement: function(e) {
+      // SGR : If this is a div, try not to remove images relevant to the article that
+      // happen to be wrapped in a div. Loop all images and keep those not in an "a" tag.
+      //
+      var save = false;
+
+      if (e.tagName == 'DIV' && typeof jQuery != 'undefined') {
+
+        var jq_el = $(e);
+
+        // Save if any image present
+        //
+        if (jq_el.find("img").length > 0) {
+          dbg("*** Saving element: " + e.className + ":" + e.id);
+          save = true;
+        }
+
+        // Save if any image NOT in an "a" tag is present
+        //
+        /*
+        jq_el.find("img").each(function(idx,image) {
+          if ($(image).parent("a").length <= 0) {
+            save = true;
+            dbg("*** Saving element: " + e.className + ":" + e.id);
+            return false;
+          }
+        });
+        */
+
+        /*
+        var imgList = tagsList[i].getElementsByTagName("img");
+        var imgListLength = imgList.length;
+        dbg("cleanConditionally: imgListLength=" + imgListLength);
+        for (var j=imgListLength-1; j >= 0; j--) {
+          if (imgList[j].parentNode.tagName == "A") {
+            dbg("*** Img tag parent is a href, remove it (" + tagsList[i].parentNode.className + ":" + tagsList[i].parentNode.id + ")");
+            imgList[j].parentNode.parentNode.removeChild(imgList[j].parentNode);
+          }
+        }
+        // Get a new list of remaining images. If any exist, save this node.
+        //
+        var imgList = tagsList[i].getElementsByTagName("img");
+        var imgListLength = imgList.length;
+        if (imgListLength > 0) {
+          dbg("############ Saving DIV with images: (" + tagsList[i].className + ":" + tagsList[i].id + ")");
+          remove_node = false;
+        }
+        */
+      }
+      return save;
     },
 
     /**
