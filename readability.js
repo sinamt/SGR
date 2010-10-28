@@ -59,6 +59,16 @@ var readability = {
         prevLink:              /(prev|earl|old|new|<|«)/i
     },
 
+    sgr_anchorFilters: [
+        /^http(?:s|)\:\/\/(?:www\.|)del\.icio\.us\/post/,
+        /^http(?:s|)\:\/\/(?:www\.|)digg\.com\/submit/,
+        /^http(?:s|)\:\/\/(?:www\.|)facebook\.com\/sharer\.php/,
+        /^http(?:s|)\:\/\/(?:www\.|)twitter\.com\/home\?status=/,
+        /^http(?:s|)\:\/\/(?:www\.|)reddit\.com\/submit/,
+        /^http(?:s|)\:\/\/(?:www\.|)stumbleupon\.com\/submit/,
+        /^http(?:s|)\:\/\/(?:www\.|)google\.com\/buzz\/post/,
+        ],
+
     /**
      * Runs readability.
      * 
@@ -1655,6 +1665,8 @@ var readability = {
      * If an element is about to be deleted, perform a last final check to see if it
      * should be saved. Look specifically for images without "a" tags as parents.
      *
+     * @package SGR
+     *
      * @param Element
      * @return boolean
     **/
@@ -1668,13 +1680,22 @@ var readability = {
 
         var jq_el = $(e);
 
-        // Save if any image present
+        // Find and remove any anchor tags with images that are deemed unworthy;
+        // these are mostly social media site submission links.
+        //
+        jq_el.find("img").each(function(idx,image) {
+          readability.sgr_filterAnchor($(image).parent("a"));
+        });
+
+        // Save if any remaining images present
         //
         if (jq_el.find("img").length > 0) {
           dbg("*** Saving element: " + e.className + ":" + e.id);
           save = true;
         }
 
+        /*
+          */
         // Save if any image NOT in an "a" tag is present
         //
         /*
@@ -1708,6 +1729,30 @@ var readability = {
         */
       }
       return save;
+    },
+
+    /**
+     * Filter anchor tags based on a whitelist of href values. Remove anchor tags
+     * that match this whitelist.
+     *
+     * @package SGR
+     *
+     * @param Element
+     * @return void
+    **/
+    sgr_filterAnchor: function(anchor) {
+      if (anchor.length <= 0) {
+        return;
+      }
+
+      // Loop our anchor tag filter regexp's and remove anchor tags that match
+      //
+      $(readability.sgr_anchorFilters).each(function(idx, filter) {
+        if (anchor.attr('href').match(filter) != null) {
+          anchor.remove();
+          return;
+        }
+      });
     },
 
     /**
