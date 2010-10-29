@@ -17,7 +17,18 @@ readability.sgr_keep_attributes = {
           'area'       : ['alt', 'shape', 'coords', 'href']
 }
 
+readability.sgr_anchor_filters = [
+        /^http(?:s|)\:\/\/(?:www\.|)del\.icio\.us\/post/,
+        /^http(?:s|)\:\/\/(?:www\.|)(digg|reddit|stumbleupon)\.com\/submit/,
+        /^http(?:s|)\:\/\/(?:www\.|)facebook\.com\/sharer\.php/,
+        /^http(?:s|)\:\/\/(?:www\.|)twitter\.com\/home\?status=/,
+        /^http(?:s|)\:\/\/(?:www\.|)google\.com\/buzz\/post/,
+];
+
+
 readability.sgr_article_title = null;
+
+readability.sgr_filtered_elements = [];
 
 
 readability['sgrGetArticleTitle'] = function(content) {
@@ -108,6 +119,7 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     debug("readability_sgr : html unable to be parsed by jquery. " + e.name + ": " +e.message);
     return;
   }
+
 
   // Process HTML attributes
   //
@@ -216,5 +228,98 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     jq_content.prepend('<h2 class="sgr-entry-heading">' + readability.sgr_article_title + '</h2>');
   }
   return jq_content.html();
+}
+
+
+readability['sgrAddFilteredElement'] = function(el) {
+  readability.sgr_filtered_elements.push(el);
+}
+
+
+readability['sgrRemoveFilteredElements'] = function(content) {
+  readability.sgr_filtered_elements.reverse();
+
+  debug("sgrRemoveFilteredElements:");
+  debug($(readability.sgr_filtered_elements));
+
+  $(readability.sgr_filtered_elements).each(function(idx,el){
+    content.innerHTML = content.innerHTML.replace($('<div>').append(el.clone()).html(),'');
+  });
+}
+
+/**
+ * Filter anchor tags based on a whitelist of href values. Remove anchor tags
+ * that match this whitelist.
+ *
+ * @package SGR
+ *
+ * @param Element
+ * @return void
+**/
+readability['sgrFilterAnchor'] = function(anchor) {
+  if (anchor.length <= 0) {
+    return;
+  }
+  var filtered = false;
+
+  // Loop our anchor tag filter regexp's and remove anchor tags that match
+  //
+  $(readability.sgr_anchor_filters).each(function(idx, filter) {
+    if (anchor.attr('href').match(filter) != null) {
+      //anchor.remove();
+      filtered = true;
+      return false;
+    }
+  });
+  return filtered;
+}
+
+
+/**
+ * If an element is about to be deleted, perform a last final check to see if it
+ * should be saved. Look specifically for images without "a" tags as parents.
+ *
+ * @package SGR
+ *
+ * @param Element
+ * @return boolean
+**/
+readability['sgrSaveElement'] = function(e) {
+  // SGR : If this is a div, try not to remove images relevant to the article that
+  // happen to be wrapped in a div. Loop all images and keep those not in an "a" tag.
+  //
+  var save = false;
+
+  if (e.tagName == 'DIV' && typeof jQuery != 'undefined') {
+
+    var jq_el = $(e);
+    debug($("<div>").append(jq_el.clone()).html());
+
+    var filtered = false;
+
+    // Find and remove any anchor tags with images that are deemed unworthy;
+    // these are mostly social media site submission links.
+    //
+    jq_el.find("img").each(function(idx,image) {
+      if (readability.sgrFilterAnchor($(image).parent("a"))) {
+        filtered = true;
+        readability.sgrAddFilteredElement(jq_el);
+        return false;
+      }
+    });
+
+    // Save if not flagged as needing to be filtered, and it has remaining images present
+    //
+    if (filtered == false && jq_el.find("img").length > 0) {
+      dbg("*** Saving element: " + e.className + ":" + e.id);
+      save = true;
+    }
+    if (filtered) {
+      dbg("### Filtering (removing) : " + e.className + ":" + e.id);
+      save = true;
+    }
+
+  }
+  return save;
 }
 

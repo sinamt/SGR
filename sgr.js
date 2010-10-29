@@ -1412,18 +1412,25 @@
       $.ajax({
         url: url,
         data: {},
+
+        // Success accessing URL
+        //
         success: function(responseHtml) {
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
-          var page = document.createElement("DIV");
-          page.innerHTML = readability.sgrInit(responseHtml);
-          //debug("page.innerHTML=");
-          //debug(page.innerHTML);
-
-          readability.flags = 0x1 | 0x2 | 0x4;
-
           try {
+            var page = document.createElement("DIV");
+            page.innerHTML = readability.sgrInit(responseHtml);
+            debug("page.innerHTML=");
+            debug(page.innerHTML);
+
+            readability.flags = 0x1 | 0x2 | 0x4;
+
             var content = readability.grabArticle(page);
+
+            // Remove any elements previously flagged to be filtered
+            //
+            readability.sgrRemoveFilteredElements(content);
 
             if (content == null) {
               throw new Error("Readability found no valid content.");
@@ -1433,17 +1440,25 @@
             readability.removeScripts(content);
             readability.fixImageFloats(content);
 
+            //debug("content.innerHTML before sgrPostProcess:");
+            //debug(content.innerHTML);
+            content = readability.sgrPostProcess(content, url);
           } catch(e) {
             debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
             $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
             $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
             return false;
           }
-          //debug("content.innerHTML before sgrPostProcess:");
-          //debug(content.innerHTML);
-          content = readability.sgrPostProcess(content, url);
 
           $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+        },
+
+        // Error accessing URL
+        //
+        error: function() {
+          debug("Error fetching readability url. Using original article content. " + e.name + ": " + e.message);
+          $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
+          $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
         }
       });
     }
