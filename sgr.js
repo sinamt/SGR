@@ -1421,8 +1421,8 @@
           try {
             var page = document.createElement("DIV");
             page.innerHTML = readability.sgrInit(responseHtml);
-            debug("page.innerHTML=");
-            debug(page.innerHTML);
+            //debug("page.innerHTML=");
+            //debug(page.innerHTML);
 
             readability.flags = 0x1 | 0x2 | 0x4;
 
@@ -1445,20 +1445,18 @@
             content = readability.sgrPostProcess(content, url);
           } catch(e) {
             debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
-            $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
-            $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
-            return false;
+            content = "<p>Sorry, no readable content was able to be generated.</p>";
           }
 
-          $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+          $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
         },
 
         // Error accessing URL
         //
         error: function() {
-          debug("Error fetching readability url. Using original article content. " + e.name + ": " + e.message);
-          $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
-          $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
+          debug("Error fetching readability url. Using original article content.");
+          // FIXME
+          $.sgr.completedReadableContent('<p>Sorry, the entry link was unable to be successfully reached. <a href="">Try again</a>.</p>', url, failure_callback, extra_return_data);
         }
       });
     }
@@ -1466,7 +1464,7 @@
 
   // Handle a successful generation of readable content. We store the content and execute the provided calback.
   //
-  $.sgr.successfulReadableContent = function(content, url, success_callback, extra_return_data) {
+  $.sgr.completedReadableContent = function(content, url, success_callback, extra_return_data) {
     //debug(content);
     $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content, 'session');
 
@@ -1512,7 +1510,7 @@
         var uploaded = new Date(video.data.uploaded);
         //var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><object style="height: 390px; width: 640px"><param name="movie" value="http://www.youtube.com/v/' + video_id + '?version=3"><param name="allowFullScreen" value="true"><param name="allowScriptAccess" value="always"><embed src="http://www.youtube.com/v/' + video_id +'?version=3" type="application/x-shockwave-flash" allowfullscreen="true" allowScriptAccess="always" width="640" height="390"></object><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
         var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' + video_id +'" frameborder="0"></iframe><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
-        $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+        $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
       },
       error: function() {
         $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
@@ -1540,7 +1538,7 @@
         var uploaded = new Date(video.upload_date);
 
         var content = '<h2 class="sgr-entry-heading">' + video.title + '</h2><iframe type="text/html" width="' + video.width + '" height="' + video.height + '" src="http://player.vimeo.com/video/' + video_id +'" frameborder="0"></iframe><p>' + video.description + '</p><p><strong>Uploader: </strong><a href="' + video.user_url + '">' + video.user_name + '</a></p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
-        $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+        $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
       },
       error: function() {
         $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
@@ -1572,7 +1570,7 @@
           html = '<div class="sgr-wikipedia-content">' + html + '</div>';
         }
 
-        $.sgr.successfulReadableContent(html, url, success_callback, extra_return_data);
+        $.sgr.completedReadableContent(html, url, success_callback, extra_return_data);
       },
       error: function() {
         $.sgr.failedReadableContent(url, failure_callback, extra_return_data);

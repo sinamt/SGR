@@ -21,8 +21,8 @@ readability.sgr_anchor_filters = [
         /^http(?:s|)\:\/\/(?:www\.|)del\.icio\.us\/post/,
         /^http(?:s|)\:\/\/(?:www\.|)(digg|reddit|stumbleupon)\.com\/submit/,
         /^http(?:s|)\:\/\/(?:www\.|)facebook\.com\/sharer\.php/,
-        /^http(?:s|)\:\/\/(?:www\.|)twitter\.com\/home\?status=/,
-        /^http(?:s|)\:\/\/(?:www\.|)google\.com\/buzz\/post/,
+        /^http(?:s|)\:\/\/(?:www\.|)twitter\.com\/(home\?status=|share)/,
+        /^http(?:s|)\:\/\/(?:www\.|)google\.com\/(buzz\/post|reader\/link)/,
 ];
 
 
@@ -235,6 +235,9 @@ readability['sgrAddFilteredElement'] = function(el) {
   readability.sgr_filtered_elements.push(el);
 }
 
+readability['sgrClearFilteredElements'] = function() {
+  readability.sgr_filtered_elements = [];
+}
 
 readability['sgrRemoveFilteredElements'] = function(content) {
   readability.sgr_filtered_elements.reverse();
@@ -243,8 +246,14 @@ readability['sgrRemoveFilteredElements'] = function(content) {
   debug($(readability.sgr_filtered_elements));
 
   $(readability.sgr_filtered_elements).each(function(idx,el){
-    content.innerHTML = content.innerHTML.replace($('<div>').append(el.clone()).html(),'');
+    try {
+      content.innerHTML = content.innerHTML.replace($('<div>').append(el.clone()).html(),'');
+    } catch(e) {
+      debug("Error sgrRemoveFilteredElements: unable to remove filtered element. " + e.name + ": " + e.message);
+    }
   });
+
+  readability.sgrClearFilteredElements();
 }
 
 /**
@@ -257,10 +266,11 @@ readability['sgrRemoveFilteredElements'] = function(content) {
  * @return void
 **/
 readability['sgrFilterAnchor'] = function(anchor) {
-  if (anchor.length <= 0) {
-    return;
-  }
   var filtered = false;
+
+  if (anchor.length <= 0) {
+    return filtered;
+  }
 
   // Loop our anchor tag filter regexp's and remove anchor tags that match
   //
@@ -293,7 +303,7 @@ readability['sgrSaveElement'] = function(e) {
   if (e.tagName == 'DIV' && typeof jQuery != 'undefined') {
 
     var jq_el = $(e);
-    debug($("<div>").append(jq_el.clone()).html());
+    //debug($("<div>").append(jq_el.clone()).html());
 
     var filtered = false;
 
@@ -301,8 +311,9 @@ readability['sgrSaveElement'] = function(e) {
     // these are mostly social media site submission links.
     //
     jq_el.find("img").each(function(idx,image) {
-      if (readability.sgrFilterAnchor($(image).parent("a"))) {
+      if (readability.sgrFilterAnchor($(image).parents("a[href]:first"))) {
         filtered = true;
+        save = true;
         readability.sgrAddFilteredElement(jq_el);
         return false;
       }
@@ -311,11 +322,7 @@ readability['sgrSaveElement'] = function(e) {
     // Save if not flagged as needing to be filtered, and it has remaining images present
     //
     if (filtered == false && jq_el.find("img").length > 0) {
-      dbg("*** Saving element: " + e.className + ":" + e.id);
-      save = true;
-    }
-    if (filtered) {
-      dbg("### Filtering (removing) : " + e.className + ":" + e.id);
+      //dbg("*** Saving element: " + e.className + ":" + e.id);
       save = true;
     }
 
