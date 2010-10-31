@@ -300,10 +300,12 @@ readability['sgrSaveElement'] = function(e) {
   //
   var save = false;
 
-  if (e.tagName == 'DIV' && typeof jQuery != 'undefined') {
+  //if (e.tagName == 'DIV' && typeof jQuery != 'undefined') {
+  if (typeof jQuery != 'undefined') {
 
     var jq_el = $(e);
-    //debug($("<div>").append(jq_el.clone()).html());
+    debug("sgrSaveElement");
+    debug($("<div>").append(jq_el.clone()).html());
 
     var filtered = false;
 
@@ -322,7 +324,7 @@ readability['sgrSaveElement'] = function(e) {
     // Save if not flagged as needing to be filtered, and it has remaining images present
     //
     if (filtered == false && jq_el.find("img").length > 0) {
-      //dbg("*** Saving element: " + e.className + ":" + e.id);
+      dbg("*** Saving element: " + e.className + ":" + e.id);
       save = true;
     }
 
@@ -330,3 +332,10 @@ readability['sgrSaveElement'] = function(e) {
   return save;
 }
 
+readability['sgrSaveSiblingNode'] = function(node) {
+  var save = false;
+  if (typeof jQuery != 'undefined') {
+  }
+//siblingNode.nodeName == "
+  return save;
+}

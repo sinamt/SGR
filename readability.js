@@ -1,5 +1,5 @@
 var dbg = (typeof console !== 'undefined') ? function(s) {
-    //console.log("Readability: " + s);
+    console.log("Readability: " + s);
 } : function() {};
 
 /*
@@ -851,6 +851,8 @@ var readability = {
         var siblingNodes          = topCandidate.parentNode ? topCandidate.parentNode.childNodes : [];
 
 
+        debug("page.innerHTML=");
+        debug(page.innerHTML);
         for(var s=0, sl=siblingNodes.length; s < sl; s++) {
             var siblingNode = siblingNodes[s];
             var append      = false;
@@ -863,7 +865,7 @@ var readability = {
                 continue;
             }
 
-            dbg("Looking at sibling node: " + siblingNode + " (" + siblingNode.className + ":" + siblingNode.id + ")" + ((typeof siblingNode.readability != 'undefined') ? (" with score " + siblingNode.readability.contentScore) : ''));
+            dbg("Looking at sibling node: " + siblingNode + " " + siblingNode.tagName + " (" + siblingNode.className + ":" + siblingNode.id + ")" + ((typeof siblingNode.readability != 'undefined') ? (" with score " + siblingNode.readability.contentScore) : ''));
             dbg("Sibling has score " + (siblingNode.readability ? siblingNode.readability.contentScore : 'Unknown'));
 
             if(siblingNode === topCandidate)
@@ -895,6 +897,11 @@ var readability = {
                 {
                     append = true;
                 }
+            }
+
+            debug("before sgrSaveElement, in sibling check");
+            if (readability.sgrSaveElement(siblingNode)) {
+              append = true;
             }
 
             if(append) {
@@ -930,6 +937,7 @@ var readability = {
             }
         }
 
+
         /**
          * So we have all of the content that we need. Now we clean it up for presentation.
         **/
@@ -949,14 +957,17 @@ var readability = {
         page.innerHTML = pageCacheHtml;
 
             if (readability.flagIsActive(readability.FLAG_STRIP_UNLIKELYS)) {
+                dbg("** Re-running grabArticle(), removed FLAG_STRIP_UNLIKELYS");
                 readability.removeFlag(readability.FLAG_STRIP_UNLIKELYS);
                 return readability.grabArticle(page);
             }
             else if (readability.flagIsActive(readability.FLAG_WEIGHT_CLASSES)) {
+                dbg("** Re-running grabArticle(), removed FLAG_WEIGHT_CLASSES");
                 readability.removeFlag(readability.FLAG_WEIGHT_CLASSES);
                 return readability.grabArticle(page);
             }
             else if (readability.flagIsActive(readability.FLAG_CLEAN_CONDITIONALLY)) {
+                dbg("** Re-running grabArticle(), removed FLAG_CLEAN_CONDITIONALLY");
                 readability.removeFlag(readability.FLAG_CLEAN_CONDITIONALLY);
                 return readability.grabArticle(page);
             } else {
