@@ -40,6 +40,13 @@
   //
   $.sgr.USER_ID = null;
 
+  // Regexp setup for detecting Google Reader URLs. Needs to allow country tlds.
+  //
+  $.sgr.start_url_str = '^http(?:s|)\:\/\/(?:www\.|)';
+  $.sgr.gr_url_base = $.sgr.start_url_str + 'google(\.co(m|)|)(\.[A-Za-z]{2}|)\/reader\/';
+  $.sgr.gr_main_window_re = new RegExp($.sgr.gr_url_base);
+  $.sgr.gr_settings_window_re = new RegExp($.sgr.gr_url_base + 'settings');
+
   // Youtube API URLs
   //
   $.sgr.youtube_api = {
@@ -609,7 +616,7 @@
 
     // Do not execute this for the settings iframe
     //
-    if (window.location.href.match(/\/\/(www\.|)google\.co(m|)(\.[A-Za-z]{2}|)\/reader\/settings/)) {
+    if (window.location.href.match($.sgr.gr_settings_window_re)) {
       //debug("returning, reader settings");
       return;
     }
@@ -1253,7 +1260,7 @@
 
     // Only execute this for the settings iframe
     //
-    if (!window.location.href.match(/\/\/(www\.|)google\.co(m|)(\.[A-Za-z]{2}|)\/reader\/settings/)) {
+    if (!window.location.href.match($.sgr.gr_settings_window_re)) {
       return;
     }
 
@@ -1321,13 +1328,13 @@
     return url.match(/(.*?\/\/[^\/]*?)(?:\/|$)/)[1];
   }
 
-  // Find the base domain url and path (exlcuding filename if present) for a given url
+  // Find the base domain url and path (excluding filename if present) for a given url
   //
   $.sgr.getBaseUrlWithPath = function(url) {
     try {
-      var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
+      var url_match = url.match(/(.*?:\/\/.*?(\/.*\/|\/$|$))/)[1];
     } catch(e) {
-      debug("Error running getBaseUrlWidth() for url " + url + ".");
+      debug("Error running getBaseUrlWithPath() for url " + url + ".");
       return null;
     }
     //debug("url match: url=" + url + ", url_match=" + url_match);
@@ -1428,15 +1435,17 @@
 
             var content = readability.grabArticle(page);
 
+            if (content == null) {
+              throw new Error("Readability found no valid content.");
+            }
+
+            //debug("content.innerHTML after grabArticle:");
+            //debug(content.innerHTML);
+
             // Remove any elements previously flagged to be filtered
             //
             readability.sgrRemoveFilteredElements(content);
 
-            if (content == null) {
-              throw new Error("Readability found no valid content.");
-            }
-            //debug("content.innerHTML after grabArticle:");
-            //debug(content.innerHTML);
             readability.removeScripts(content);
             readability.fixImageFloats(content);
 
@@ -1508,7 +1517,6 @@
       dataType: 'json',
       success: function(video){
         var uploaded = new Date(video.data.uploaded);
-        //var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><object style="height: 390px; width: 640px"><param name="movie" value="http://www.youtube.com/v/' + video_id + '?version=3"><param name="allowFullScreen" value="true"><param name="allowScriptAccess" value="always"><embed src="http://www.youtube.com/v/' + video_id +'?version=3" type="application/x-shockwave-flash" allowfullscreen="true" allowScriptAccess="always" width="640" height="390"></object><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
         var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' + video_id +'" frameborder="0"></iframe><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
         $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
       },
@@ -1585,8 +1593,8 @@
   // can be listed in this settings object.
   //
   $.sgr.readable_entry_content_replace = [
-    {name: 'youtube', regex: /^http(?:s|)\:\/\/(?:www\.|)youtube\.com\/(?:watch|)\?v\=(.*?)(?:&.*|)$/, callback: $.sgr.replaceContentYoutube}
-    ,{name: 'vimeo', regex: /^http(?:s|)\:\/\/(?:www\.|)vimeo\.com\/([0-9]*)/, callback: $.sgr.replaceContentVimeo}
+    {name: 'youtube', regex: new RegExp($.sgr.start_url_str + 'youtube\.com\/(?:watch|)\\?v\=(.*?)(?:&.*|)$'), callback: $.sgr.replaceContentYoutube}
+    ,{name: 'vimeo', regex: new RegExp($.sgr.start_url_str + 'vimeo\.com\/([0-9]*)'), callback: $.sgr.replaceContentVimeo}
     ,{name: 'wikipedia', regex: /^http(?:s|)\:\/\/.*?\.wikipedia\.org\/(?:wiki\/(.*)|w\/index\.php.*?title=(.*?)(?:&.*|)$)/, callback: $.sgr.replaceContentWikipedia}
     ];
 
@@ -1655,9 +1663,9 @@
 
   $.sgr.canRun = function() {
 
-    // Check we are running on the Google Reader domain. Needs to allow country tlds.
+    // Check we are running on the Google Reader domain.
     //
-    if (self.location.host.match(/\.google\.co(m|)(\.[A-Za-z]{2}|)$/) == null) {
+    if (self.location.href.match($.sgr.gr_main_window_re) == null) {
       return false;
     }
 
