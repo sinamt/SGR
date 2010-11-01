@@ -488,7 +488,7 @@
   // settings tab content into the DOM.
   //
   $.sgr.initSettingsNavigation = function() {
-    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\'). </label> <br /> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry. </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes). </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject. </label> </div> <div class="enhanced"> <div class="enhanced-header">Readable content</div> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.</label> <br /> <input type="checkbox" name="global_readability_more_images" id="setting-global-readability-more-images"> Try to fetch more images along with readable content. Sometimes this may result in too much clutter. This functionality is experimental. <label> </label> </div> </div> </li>');
+    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\'). </label> <br /> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry. </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes). </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject. </label> </div> <div class="enhanced"> <div class="enhanced-header">Readable content</div> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.</label> <br /> <label><input type="checkbox" name="global_readability_more_images" id="setting-global-readability-more-images"> Try to fetch more images along with readable content. Sometimes this may result in too much clutter. This functionality is experimental. </label> </div> </div> </li>');
 
     // Inject the Enhanced tab heading html
     //
@@ -583,6 +583,10 @@
       $.sgr.toggleEntryLikers();
     } else if (data.setting_name == 'entry_tabs') {
       $.sgr.toggleEntryTabs();
+    } else if (data.setting_name == 'readability_more_images') {
+      // Tell the background page to clear it's sessionStore of readable content
+      //
+      $.sgr.sendRequest({action: 'clear_store', store_type: 'session'});
     }
   }
 
@@ -890,13 +894,6 @@
       //
       } else if (setting_name == 'readability_pre_fetch' && setting_value && $.sgr.getSetting("use_readability")) {
         $.sgr.preFetchAllUnreadEntries();
-      
-      // Readability - try to fetch more images
-      //
-      } else if (setting_name == 'readability_more_images') {
-        // Tell the background page to clear it's sessionStore of readable content
-        //
-        $.sgr.sendRequest({action: 'clear_store', store_type: 'session'});
       }
 
     });
@@ -1340,7 +1337,9 @@
   //
   $.sgr.getBaseUrlWithPath = function(url) {
     try {
-      var url_match = url.match(/(.*?:\/\/.*?(\/.*\/|\/$|$))/)[1];
+      // FIXME "Hacker Monthly #6 + Free Special Issue" fails http://hackermonthly.com/issue-6.html
+      //var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
+      var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
     } catch(e) {
       debug("Error running getBaseUrlWithPath() for url " + url + ".");
       return null;

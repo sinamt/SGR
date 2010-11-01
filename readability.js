@@ -1,5 +1,5 @@
 var dbg = (typeof console !== 'undefined') ? function(s) {
-    console.log("Readability: " + s);
+    //console.log("Readability: " + s);
 } : function() {};
 
 /*
@@ -851,8 +851,6 @@ var readability = {
         var siblingNodes          = topCandidate.parentNode ? topCandidate.parentNode.childNodes : [];
 
 
-        debug("page.innerHTML=");
-        debug(page.innerHTML);
         for(var s=0, sl=siblingNodes.length; s < sl; s++) {
             var siblingNode = siblingNodes[s];
             var append      = false;
@@ -899,8 +897,11 @@ var readability = {
                 }
             }
 
-            //debug("before sgrSaveElement, in sibling check");
-            if ($.sgr.getSetting('readability_more_images') && readability.sgrSaveElement(siblingNode)) {
+            //debug('readability_more_images:');
+            //debug($.sgr.getSetting('readability_more_images'));
+            if (/*$.sgr.getSetting('readability_more_images') &&*/ readability.sgrSaveElement(siblingNode)) {
+              debug("sgrSaveElement ran in sibling check, saving node:");
+              debug($('<div>').append($(siblingNode).clone()).html());
               append = true;
             }
 
