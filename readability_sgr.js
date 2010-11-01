@@ -23,6 +23,7 @@ readability.sgr_anchor_filters = [
         /^http(?:s|)\:\/\/(?:www\.|)facebook\.com\/sharer\.php/,
         /^http(?:s|)\:\/\/(?:www\.|)twitter\.com\/(home\?status=|share)/,
         /^http(?:s|)\:\/\/(?:www\.|)google\.com\/(buzz\/post|reader\/link)/,
+        /^http(?:s|)\:\/\/(?:www\.|)addthis\.com/,
 ];
 
 
@@ -304,8 +305,8 @@ readability['sgrSaveElement'] = function(e) {
   if (typeof jQuery != 'undefined') {
 
     var jq_el = $(e);
-    debug("sgrSaveElement");
-    debug($("<div>").append(jq_el.clone()).html());
+    //debug("sgrSaveElement");
+    //debug($("<div>").append(jq_el.clone()).html());
 
     var filtered = false;
 

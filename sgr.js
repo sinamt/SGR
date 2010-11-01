@@ -71,7 +71,8 @@
     entry_tabs: {'true': "Display 'Content Type' tabs for each entry ('Readable', 'Link', 'Feed').", 'false': "<em>Do not</em> display 'Content Type' tabs for each entry ('Readable', 'Link', 'Feed')."},
     use_iframes: {'true': 'Default to open all entries as previews (iframes).', 'false': 'Default to <em>not</em> open all entries as previews (iframes).'},
     use_readability: {'true': 'Default to open all entries as readable content.', 'false': 'Default to <em>not</em> open all entries as readable content.'},
-    readability_pre_fetch: {'true': 'If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.', 'false': 'If readability enabled for feed/folder, <em>do not</em> default to pre-fetch all non-read entries as readable content.'}
+    readability_pre_fetch: {'true': 'If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.', 'false': 'If readability enabled for feed/folder, <em>do not</em> default to pre-fetch all non-read entries as readable content.'},
+    readability_more_images: {'true': 'For readable content, try to include more images in the content.', 'false': 'Use normal settings for fetching readable content.'}
   }
 
   // Load default global settings.
@@ -82,7 +83,7 @@
 
     // Set the defaults for global settings
     //
-    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: false, entry_tabs: true};
+    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: false, entry_tabs: true, readability_more_images: false};
 
     $.each(default_settings, function(key,value) {
       var stored_setting = $.sgr.getGlobalSetting(key);
@@ -487,7 +488,7 @@
   // settings tab content into the DOM.
   //
   $.sgr.initSettingsNavigation = function() {
-    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\'). </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes). </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry. </label> <br /> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.</label> </div> </div> </li>');
+    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\'). </label> <br /> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry. </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes). </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject. </label> </div> <div class="enhanced"> <div class="enhanced-header">Readable content</div> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.</label> <br /> <input type="checkbox" name="global_readability_more_images" id="setting-global-readability-more-images"> Try to fetch more images along with readable content. Sometimes this may result in too much clutter. This functionality is experimental. <label> </label> </div> </div> </li>');
 
     // Inject the Enhanced tab heading html
     //
@@ -506,7 +507,7 @@
       $("#setting-header-enhanced, #setting-enhanced").removeClass("selected");
     });
 
-    var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers', 'readability_pre_fetch', 'entry_tabs'];
+    var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers', 'readability_pre_fetch', 'entry_tabs', 'readability_more_images'];
 
     // Loop the possible global settings and set the checkboxs to appropriate initial values
     // based on the user's current global setting values. Also initialise a click event
@@ -889,6 +890,13 @@
       //
       } else if (setting_name == 'readability_pre_fetch' && setting_value && $.sgr.getSetting("use_readability")) {
         $.sgr.preFetchAllUnreadEntries();
+      
+      // Readability - try to fetch more images
+      //
+      } else if (setting_name == 'readability_more_images') {
+        // Tell the background page to clear it's sessionStore of readable content
+        //
+        $.sgr.sendRequest({action: 'clear_store', store_type: 'session'});
       }
 
     });

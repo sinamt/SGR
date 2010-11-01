@@ -899,8 +899,8 @@ var readability = {
                 }
             }
 
-            debug("before sgrSaveElement, in sibling check");
-            if (readability.sgrSaveElement(siblingNode)) {
+            //debug("before sgrSaveElement, in sibling check");
+            if ($.sgr.getSetting('readability_more_images') && readability.sgrSaveElement(siblingNode)) {
               append = true;
             }
 
