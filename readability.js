@@ -897,13 +897,12 @@ var readability = {
                 }
             }
 
-            //debug('readability_more_images:');
-            //debug($.sgr.getSetting('readability_more_images'));
-            if (/*$.sgr.getSetting('readability_more_images') &&*/ readability.sgrSaveElement(siblingNode)) {
-              debug("sgrSaveElement ran in sibling check, saving node:");
-              debug($('<div>').append($(siblingNode).clone()).html());
-              append = true;
-            }
+            // TODO SGR: investigate saving images in sibling nodes
+            //if (/*$.sgr.getSetting('readability_more_images') &&*/ append == false && readability.sgrSaveElement(siblingNode)) {
+              //debug("sgrSaveElement ran in sibling check, saving node:");
+              //debug($('<div>').append($(siblingNode).clone()).html());
+              //append = true;
+            //}
 
             if(append) {
                 dbg("Appending node: " + siblingNode);
@@ -1656,6 +1655,7 @@ var readability = {
                 }
 
                 if(toRemove && readability.sgrSaveElement(tagsList[i]) == false) {
+                //if(toRemove) {
                     tagsList[i].parentNode.removeChild(tagsList[i]);
                 }
             }

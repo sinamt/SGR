@@ -110,6 +110,7 @@ readability['sgrInit'] = function(content) {
         replace(/\uffff/g,'\n').
         replace(/<(\/?)noscript/gi, '<$1div').
         replace(readability.regexps.replaceBrs, '</p><p>').
+        replace(/<(\/?)center>/gi, '<$1div>').
         replace(readability.regexps.replaceFonts, '<$1span>');
 }
 
@@ -243,8 +244,8 @@ readability['sgrClearFilteredElements'] = function() {
 readability['sgrRemoveFilteredElements'] = function(content) {
   readability.sgr_filtered_elements.reverse();
 
-  debug("sgrRemoveFilteredElements:");
-  debug($(readability.sgr_filtered_elements));
+  //debug("sgrRemoveFilteredElements:");
+  //debug($(readability.sgr_filtered_elements));
 
   $(readability.sgr_filtered_elements).each(function(idx,el){
     try {
@@ -302,7 +303,7 @@ readability['sgrSaveElement'] = function(e) {
   var save = false;
 
   //if (e.tagName == 'DIV' && typeof jQuery != 'undefined') {
-  if (typeof jQuery != 'undefined') {
+  if ($.sgr.getSetting('readability_more_images') && typeof jQuery != 'undefined') {
 
     var jq_el = $(e);
     //debug("sgrSaveElement");
@@ -325,7 +326,7 @@ readability['sgrSaveElement'] = function(e) {
     // Save if not flagged as needing to be filtered, and it has remaining images present
     //
     if (filtered == false && jq_el.find("img").length > 0) {
-      dbg("*** Saving element: " + e.className + ":" + e.id);
+      //debug("*** Saving element: " + e.className + ":" + e.id);
       save = true;
     }
 
@@ -333,10 +334,3 @@ readability['sgrSaveElement'] = function(e) {
   return save;
 }
 
-readability['sgrSaveSiblingNode'] = function(node) {
-  var save = false;
-  if (typeof jQuery != 'undefined') {
-  }
-//siblingNode.nodeName == "
-  return save;
-}

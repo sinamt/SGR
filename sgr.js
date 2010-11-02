@@ -99,6 +99,10 @@
       $.sgr.setGlobalSetting('use_readability',false);
       $.sgr.togglePreFetchReadableContentMenuOption();
     }
+    
+    // Register the setting 'readability_more_images' with the background window
+    //
+    $.sgr.sendRequest({action: 'global_setting_background', setting_name: 'readability_more_images', setting_value: $.sgr.getSetting('readability_more_images')});
   }
 
   // Initialise the USER_ID. This is found within the javascript itself on the google reader page.
@@ -108,6 +112,11 @@
       var user_id_matches = this.innerHTML.match(/_USER_ID = "(.*?)"/);
       if (user_id_matches != null) {
         $.sgr.USER_ID = user_id_matches[1];
+
+        // Register the USER_ID with the background window
+        //
+        $.sgr.sendRequest({action: 'regsiter_user_id', user_id: $.sgr.USER_ID});
+
         return;
       }
     });
@@ -564,7 +573,7 @@
       }
     }
 
-    $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value});
+    $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value, set_in_background: (gs_name == 'readability_more_images' ? true : false)});
   }
 
   // Act on a global setting change in the main Google Reader window
@@ -1217,6 +1226,22 @@
       } else if (request.action == 'global_setting_change') {
         $.sgr.sendToTab(sender.tab.id, {action: 'global_setting_change', setting_name: request.setting_name, setting_value: request.setting_value});
 
+        // Set this global setting in the background window itself if we are told to
+        //
+        if (typeof request.set_in_background != 'undefined' && request.set_in_background) {
+          $.sgr.setGlobalSetting(request.setting_name, request.setting_value);
+        }
+
+      // Global setting for background
+      //
+      } else if (request.action == 'global_setting_background') {
+        $.sgr.setGlobalSetting(request.setting_name, request.setting_value);
+
+      // Register USER_ID
+      //
+      } else if (request.action == 'regsiter_user_id') {
+        $.sgr.USER_ID = request.user_id;
+
       // Clear storage
       //
       } else if (request.action == 'clear_store') {
@@ -1337,9 +1362,7 @@
   //
   $.sgr.getBaseUrlWithPath = function(url) {
     try {
-      // FIXME "Hacker Monthly #6 + Free Special Issue" fails http://hackermonthly.com/issue-6.html
-      //var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
-      var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
+      var url_match = url.match(/(.*?:\/\/.*?(.*\/|$))/)[1];
     } catch(e) {
       debug("Error running getBaseUrlWithPath() for url " + url + ".");
       return null;
@@ -1471,8 +1494,7 @@
         //
         error: function() {
           debug("Error fetching readability url. Using original article content.");
-          // FIXME
-          $.sgr.completedReadableContent('<p>Sorry, the entry link was unable to be successfully reached. <a href="">Try again</a>.</p>', url, failure_callback, extra_return_data);
+          $.sgr.completedReadableContent('<p>Sorry, the entry link was unable to be successfully reached.</p>', url, failure_callback, extra_return_data);
         }
       });
     }
