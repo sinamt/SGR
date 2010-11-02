@@ -426,6 +426,8 @@
     $.sgr.populateIframeHeading(entry);
   }
 
+  // Generate a random alphanumeric string of a given length
+  //
   $.sgr.generateRandomString = function(str_len) {
  var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -1002,6 +1004,8 @@
     } catch(e) {}
   }
 
+  // Handler for an entry being opened
+  //
   $.sgr.handleEntryOpen = function(entry) {
 
     // If this entry doesn't have the class 'expanded', and we are using an iframe or readability to view the entry,
@@ -1492,9 +1496,9 @@
 
         // Error accessing URL
         //
-        error: function() {
+        error: function(xhr) {
           debug("Error fetching readability url. Using original article content.");
-          $.sgr.completedReadableContent('<p>Sorry, the entry link was unable to be successfully reached.</p>', url, failure_callback, extra_return_data);
+          $.sgr.completedReadableContent('<p>Sorry, the entry link was unable to be reached successfully.</p>', url, failure_callback, extra_return_data);
         }
       });
     }

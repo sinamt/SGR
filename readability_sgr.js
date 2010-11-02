@@ -1,9 +1,17 @@
 
+// Tags to be completely stripped from the content. This is done before the main readability
+// code runs.
+//
 readability.sgr_strip_tags_with_closing = ['head', 'script', 'style', 'button', 'select', 'iframe'];
 readability.sgr_strip_tags_no_closing = ['meta', 'input', 'hr', 'link'];
 
+// Only include these tags in the final output
+//
 readability.sgr_attribute_whitelist = ['table', 'div', 'td', 'tr', 'tbody', 'thead', 'tfoot', 'th', 'col', 'colgroup', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'dl', 'dd', 'a', 'img', 'object', 'embed', 'video', 'audio', 'pre', 'center', 'form', 'em', 'strong', 'abbr', 'sup', 'br', 'cite', 'code', 'param', 'i', 'b', 'blockquote', 'canvas', 'svg', 'header', 'hgroup', 'nav', 'section', 'article', 'aside', 'footer', 'source', 'font'];
 
+// Whitelist of specific attributes for specific tags that will be kept. All other attributes
+// will be dropped.
+//
 readability.sgr_keep_attributes = {
           'a'          : ['href', 'title'],
           'img'        : ['alt', 'src', 'title', 'sgr-src'],
@@ -17,6 +25,8 @@ readability.sgr_keep_attributes = {
           'area'       : ['alt', 'shape', 'coords', 'href']
 }
 
+// Filter anchor tags to remove these specific links
+//
 readability.sgr_anchor_filters = [
         /^http(?:s|)\:\/\/(?:www\.|)del\.icio\.us\/post/,
         /^http(?:s|)\:\/\/(?:www\.|)(digg|reddit|stumbleupon)\.com\/submit/,
@@ -27,11 +37,17 @@ readability.sgr_anchor_filters = [
 ];
 
 
+// Store the discovered article title
+//
 readability.sgr_article_title = null;
 
+// Store any elements we would like to filter out later on
+//
 readability.sgr_filtered_elements = [];
 
 
+// Find, parse and store the article title
+//
 readability['sgrGetArticleTitle'] = function(content) {
 
   var curTitle = null;
@@ -86,6 +102,9 @@ readability['sgrGetArticleTitle'] = function(content) {
   return curTitle.replace(/\uffff/g,'');
 }
 
+// Initialise an article's content before passing to the main readability grabArticle() code.
+// This will strip tags we definitely don't want, cleanup some tags, and get the article title.
+//
 readability['sgrInit'] = function(content) {
 
 //(/<script.*?>.*?<\/script>/gi
@@ -114,6 +133,10 @@ readability['sgrInit'] = function(content) {
         replace(readability.regexps.replaceFonts, '<$1span>');
 }
 
+// Processing the article content after readability.grabArticle() has run.
+// This will perform extra cleansing of the content, limiting it to our tag/attribute
+// whitelists.
+//
 readability['sgrPostProcess'] = function(content, entry_url) {
   try {
     var jq_content = $(content);
@@ -233,15 +256,24 @@ readability['sgrPostProcess'] = function(content, entry_url) {
 }
 
 
+// Add an element to our filter list, to be removed later on.
+//
 readability['sgrAddFilteredElement'] = function(el) {
   readability.sgr_filtered_elements.push(el);
 }
 
+// Clear the stored filtered element list
+//
 readability['sgrClearFilteredElements'] = function() {
   readability.sgr_filtered_elements = [];
 }
 
+// Loop our stored filtered elements and remove them from the article content.
+//
 readability['sgrRemoveFilteredElements'] = function(content) {
+
+  // Reverse the stored elements so the 'outer' elements are removed before the 'inner' ones.
+  //
   readability.sgr_filtered_elements.reverse();
 
   //debug("sgrRemoveFilteredElements:");
