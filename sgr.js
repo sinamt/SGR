@@ -60,6 +60,13 @@ Object.prototype.size = function() {
   //
   $.sgr.USER_ID = null;
 
+  // Regexp setup for detecting Google Reader URLs. Needs to allow country tlds.
+  //
+  $.sgr.start_url_str = '^http(?:s|)\:\/\/(?:www\.|)';
+  $.sgr.gr_url_base = $.sgr.start_url_str + 'google(\.co(m|)|)(\.[A-Za-z]{2}|)\/reader\/';
+  $.sgr.gr_main_window_re = new RegExp($.sgr.gr_url_base);
+  $.sgr.gr_settings_window_re = new RegExp($.sgr.gr_url_base + 'settings');
+
   // Youtube API URLs
   //
   $.sgr.youtube_api = {
@@ -91,7 +98,8 @@ Object.prototype.size = function() {
     entry_tabs: {'true': "Display 'Content Type' tabs for each entry ('Readable', 'Link', 'Feed').", 'false': "<em>Do not</em> display 'Content Type' tabs for each entry ('Readable', 'Link', 'Feed')."},
     use_iframes: {'true': 'Default to open all entries as previews (iframes).', 'false': 'Default to <em>not</em> open all entries as previews (iframes).'},
     use_readability: {'true': 'Default to open all entries as readable content.', 'false': 'Default to <em>not</em> open all entries as readable content.'},
-    readability_pre_fetch: {'true': 'If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.', 'false': 'If readability enabled for feed/folder, <em>do not</em> default to pre-fetch all non-read entries as readable content.'}
+    readability_pre_fetch: {'true': 'If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.', 'false': 'If readability enabled for feed/folder, <em>do not</em> default to pre-fetch all non-read entries as readable content.'},
+    readability_more_images: {'true': 'For readable content, try to include more images in the content.', 'false': 'Use normal settings for fetching readable content.'}
   }
 
   // Load default global settings.
@@ -102,7 +110,7 @@ Object.prototype.size = function() {
 
     // Set the defaults for global settings
     //
-    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: false, entry_tabs: true};
+    var default_settings = {use_iframes: false, use_readability: false, readability_pre_fetch: false, url_in_subject: false, hide_likers: false, entry_tabs: true, readability_more_images: false};
 
     $.each(default_settings, function(key,value) {
       var stored_setting = $.sgr.getGlobalSetting(key);
@@ -118,6 +126,10 @@ Object.prototype.size = function() {
       $.sgr.setGlobalSetting('use_readability',false);
       $.sgr.togglePreFetchReadableContentMenuOption();
     }
+    
+    // Register the setting 'readability_more_images' with the background window
+    //
+    $.sgr.sendRequest({action: 'global_setting_background', setting_name: 'readability_more_images', setting_value: $.sgr.getSetting('readability_more_images')});
   }
 
   // Initialise the USER_ID. This is found within the javascript itself on the google reader page.
@@ -127,6 +139,11 @@ Object.prototype.size = function() {
       var user_id_matches = this.innerHTML.match(/_USER_ID = "(.*?)"/);
       if (user_id_matches != null) {
         $.sgr.USER_ID = user_id_matches[1];
+
+        // Register the USER_ID with the background window
+        //
+        $.sgr.sendRequest({action: 'regsiter_user_id', user_id: $.sgr.USER_ID});
+
         return;
       }
     });
@@ -441,6 +458,8 @@ Object.prototype.size = function() {
     $.sgr.populateIframeHeading(entry);
   }
 
+  // Generate a random alphanumeric string of a given length
+  //
   $.sgr.generateRandomString = function(str_len) {
  var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -512,7 +531,7 @@ Object.prototype.size = function() {
   // settings tab content into the DOM.
   //
   $.sgr.initSettingsNavigation = function() {
-    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\'). </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes). </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry content</div> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry. </label> <br /> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.</label> </div> </div> </li>');
+    $('#settings .settings-list').append(' <li id="setting-enhanced" class="setting-group"> <div id="setting-enhanced-body" class="setting-body"><div class="enhanced"> <div class="enhanced-header">Entry</div> <label> <input type="checkbox" id="setting-global-entry-tabs"> Display \'Content Type\' tabs for each entry (\'Readable\', \'Link\', \'Feed\'). </label> <br /> <label> <input type="checkbox" id="setting-global-hide-likers"> Hide \'Liked by users\' for each entry. </label> </div> <div class="enhanced"> <div class="enhanced-header">Opening entries</div> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-iframes"> Default to open all entries as previews (iframes). </label> <br /> <label> <input type="radio" name="global_open_entry_default" id="setting-global-use-readability"> Default to open all entries as readable content. </label> </div> <div class="enhanced"> <div class="enhanced-header">Entry subject</div> <label> <input type="checkbox" id="setting-global-url-in-subject"> Default to include entry hostname in subject. </label> </div> <div class="enhanced"> <div class="enhanced-header">Readable content</div> <label><input type="checkbox" name="global_readability_pre_fetch" id="setting-global-readability-pre-fetch"> If readability enabled for feed/folder, default to pre-fetch all non-read entries as readable content.</label> <br /> <label><input type="checkbox" name="global_readability_more_images" id="setting-global-readability-more-images"> Try to fetch more images along with readable content. Sometimes this may result in too much clutter. This functionality is experimental. </label> </div> </div> </li>');
 
     // Inject the Enhanced tab heading html
     //
@@ -531,7 +550,7 @@ Object.prototype.size = function() {
       $("#setting-header-enhanced, #setting-enhanced").removeClass("selected");
     });
 
-    var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers', 'readability_pre_fetch', 'entry_tabs'];
+    var global_settings = ['use_iframes', 'use_readability', 'url_in_subject', 'hide_likers', 'readability_pre_fetch', 'entry_tabs', 'readability_more_images'];
 
     // Loop the possible global settings and set the checkboxs to appropriate initial values
     // based on the user's current global setting values. Also initialise a click event
@@ -588,7 +607,7 @@ Object.prototype.size = function() {
       }
     }
 
-    $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value});
+    $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value, set_in_background: (gs_name == 'readability_more_images' ? true : false)});
   }
 
   // Act on a global setting change in the main Google Reader window
@@ -607,6 +626,10 @@ Object.prototype.size = function() {
       $.sgr.toggleEntryLikers();
     } else if (data.setting_name == 'entry_tabs') {
       $.sgr.toggleEntryTabs();
+    } else if (data.setting_name == 'readability_more_images') {
+      // Tell the background page to clear it's sessionStore of readable content
+      //
+      $.sgr.sendRequest({action: 'clear_store', store_type: 'session'});
     }
   }
 
@@ -641,7 +664,7 @@ Object.prototype.size = function() {
 
     // Do not execute this for the settings iframe
     //
-    if (window.location.href.match(/\/\/(www\.|)google\.co(m|)(\.[A-Za-z]{2}|)\/reader\/settings/)) {
+    if (window.location.href.match($.sgr.gr_settings_window_re)) {
       //debug("returning, reader settings");
       return;
     }
@@ -1152,6 +1175,8 @@ Object.prototype.size = function() {
     } catch(e) {}
   }
 
+  // Handler for an entry being opened
+  //
   $.sgr.handleEntryOpen = function(entry) {
 
     // If this entry doesn't have the class 'expanded', and we are using an iframe or readability to view the entry,
@@ -1376,6 +1401,22 @@ Object.prototype.size = function() {
       } else if (request.action == 'global_setting_change') {
         $.sgr.sendToTab(sender.tab.id, {action: 'global_setting_change', setting_name: request.setting_name, setting_value: request.setting_value});
 
+        // Set this global setting in the background window itself if we are told to
+        //
+        if (typeof request.set_in_background != 'undefined' && request.set_in_background) {
+          $.sgr.setGlobalSetting(request.setting_name, request.setting_value);
+        }
+
+      // Global setting for background
+      //
+      } else if (request.action == 'global_setting_background') {
+        $.sgr.setGlobalSetting(request.setting_name, request.setting_value);
+
+      // Register USER_ID
+      //
+      } else if (request.action == 'regsiter_user_id') {
+        $.sgr.USER_ID = request.user_id;
+
       // Clear storage
       //
       } else if (request.action == 'clear_store') {
@@ -1424,7 +1465,7 @@ Object.prototype.size = function() {
 
     // Only execute this for the settings iframe
     //
-    if (!window.location.href.match(/\/\/(www\.|)google\.co(m|)(\.[A-Za-z]{2}|)\/reader\/settings/)) {
+    if (!window.location.href.match($.sgr.gr_settings_window_re)) {
       return;
     }
 
@@ -1492,13 +1533,13 @@ Object.prototype.size = function() {
     return url.match(/(.*?\/\/[^\/]*?)(?:\/|$)/)[1];
   }
 
-  // Find the base domain url and path (exlcuding filename if present) for a given url
+  // Find the base domain url and path (excluding filename if present) for a given url
   //
   $.sgr.getBaseUrlWithPath = function(url) {
     try {
-      var url_match = url.match(/(.*?:\/\/*?(\/.*\/|\/$|$))/)[1];
+      var url_match = url.match(/(.*?:\/\/.*?(.*\/|$))/)[1];
     } catch(e) {
-      debug("Error running getBaseUrlWidth() for url " + url + ".");
+      debug("Error running getBaseUrlWithPath() for url " + url + ".");
       return null;
     }
     //debug("url match: url=" + url + ", url_match=" + url_match);
@@ -1583,38 +1624,52 @@ Object.prototype.size = function() {
       $.ajax({
         url: url,
         data: {},
+
+        // Success accessing URL
+        //
         success: function(responseHtml) {
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
-          var page = document.createElement("DIV");
-          page.innerHTML = readability.sgrInit(responseHtml);
-          //debug("page.innerHTML=");
-          //debug(page.innerHTML);
-
-          readability.flags = 0x1 | 0x2 | 0x4;
-
           try {
+            var page = document.createElement("DIV");
+            page.innerHTML = readability.sgrInit(responseHtml);
+            //debug("page.innerHTML=");
+            //debug(page.innerHTML);
+
+            readability.flags = 0x1 | 0x2 | 0x4;
+
             var content = readability.grabArticle(page);
 
             if (content == null) {
               throw new Error("Readability found no valid content.");
             }
+
             //debug("content.innerHTML after grabArticle:");
             //debug(content.innerHTML);
+
+            // Remove any elements previously flagged to be filtered
+            //
+            readability.sgrRemoveFilteredElements(content);
+
             readability.removeScripts(content);
             readability.fixImageFloats(content);
 
+            //debug("content.innerHTML before sgrPostProcess:");
+            //debug(content.innerHTML);
+            content = readability.sgrPostProcess(content, url);
           } catch(e) {
             debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
-            $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), "none", 'session');
-            $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
-            return false;
+            content = "<p>Sorry, no readable content was able to be generated.</p>";
           }
-          //debug("content.innerHTML before sgrPostProcess:");
-          //debug(content.innerHTML);
-          content = readability.sgrPostProcess(content, url);
 
-          $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+          $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
+        },
+
+        // Error accessing URL
+        //
+        error: function(xhr) {
+          debug("Error fetching readability url. Using original article content.");
+          $.sgr.completedReadableContent('<p>Sorry, the entry link was unable to be reached successfully.</p>', url, failure_callback, extra_return_data);
         }
       });
     }
@@ -1622,7 +1677,7 @@ Object.prototype.size = function() {
 
   // Handle a successful generation of readable content. We store the content and execute the provided calback.
   //
-  $.sgr.successfulReadableContent = function(content, url, success_callback, extra_return_data) {
+  $.sgr.completedReadableContent = function(content, url, success_callback, extra_return_data) {
     //debug(content);
     $.stor.set($.sgr.getReadabilityContentStorageKey(url, extra_return_data.user_id), content, 'session');
 
@@ -1666,9 +1721,8 @@ Object.prototype.size = function() {
       dataType: 'json',
       success: function(video){
         var uploaded = new Date(video.data.uploaded);
-        //var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><object style="height: 390px; width: 640px"><param name="movie" value="http://www.youtube.com/v/' + video_id + '?version=3"><param name="allowFullScreen" value="true"><param name="allowScriptAccess" value="always"><embed src="http://www.youtube.com/v/' + video_id +'?version=3" type="application/x-shockwave-flash" allowfullscreen="true" allowScriptAccess="always" width="640" height="390"></object><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
         var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' + video_id +'" frameborder="0"></iframe><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
-        $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+        $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
       },
       error: function() {
         $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
@@ -1696,7 +1750,7 @@ Object.prototype.size = function() {
         var uploaded = new Date(video.upload_date);
 
         var content = '<h2 class="sgr-entry-heading">' + video.title + '</h2><iframe type="text/html" width="' + video.width + '" height="' + video.height + '" src="http://player.vimeo.com/video/' + video_id +'" frameborder="0"></iframe><p>' + video.description + '</p><p><strong>Uploader: </strong><a href="' + video.user_url + '">' + video.user_name + '</a></p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
-        $.sgr.successfulReadableContent(content, url, success_callback, extra_return_data);
+        $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
       },
       error: function() {
         $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
@@ -1728,7 +1782,7 @@ Object.prototype.size = function() {
           html = '<div class="sgr-wikipedia-content">' + html + '</div>';
         }
 
-        $.sgr.successfulReadableContent(html, url, success_callback, extra_return_data);
+        $.sgr.completedReadableContent(html, url, success_callback, extra_return_data);
       },
       error: function() {
         $.sgr.failedReadableContent(url, failure_callback, extra_return_data);
@@ -1743,8 +1797,8 @@ Object.prototype.size = function() {
   // can be listed in this settings object.
   //
   $.sgr.readable_entry_content_replace = [
-    {name: 'youtube', regex: /^http(?:s|)\:\/\/(?:www\.|)youtube\.com\/(?:watch|)\?v\=(.*?)(?:&.*|)$/, callback: $.sgr.replaceContentYoutube}
-    ,{name: 'vimeo', regex: /^http(?:s|)\:\/\/(?:www\.|)vimeo\.com\/([0-9]*)/, callback: $.sgr.replaceContentVimeo}
+    {name: 'youtube', regex: new RegExp($.sgr.start_url_str + 'youtube\.com\/(?:watch|)\\?v\=(.*?)(?:&.*|)$'), callback: $.sgr.replaceContentYoutube}
+    ,{name: 'vimeo', regex: new RegExp($.sgr.start_url_str + 'vimeo\.com\/([0-9]*)'), callback: $.sgr.replaceContentVimeo}
     ,{name: 'wikipedia', regex: /^http(?:s|)\:\/\/.*?\.wikipedia\.org\/(?:wiki\/(.*)|w\/index\.php.*?title=(.*?)(?:&.*|)$)/, callback: $.sgr.replaceContentWikipedia}
     ];
 
@@ -1813,9 +1867,9 @@ Object.prototype.size = function() {
 
   $.sgr.canRun = function() {
 
-    // Check we are running on the Google Reader domain. Needs to allow country tlds.
+    // Check we are running on the Google Reader domain.
     //
-    if (self.location.host.match(/\.google\.co(m|)(\.[A-Za-z]{2}|)$/) == null) {
+    if (self.location.href.match($.sgr.gr_main_window_re) == null) {
       return false;
     }
 

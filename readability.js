@@ -864,7 +864,7 @@ var readability = {
                 continue;
             }
 
-            dbg("Looking at sibling node: " + siblingNode + " (" + siblingNode.className + ":" + siblingNode.id + ")" + ((typeof siblingNode.readability != 'undefined') ? (" with score " + siblingNode.readability.contentScore) : ''));
+            dbg("Looking at sibling node: " + siblingNode + " " + siblingNode.tagName + " (" + siblingNode.className + ":" + siblingNode.id + ")" + ((typeof siblingNode.readability != 'undefined') ? (" with score " + siblingNode.readability.contentScore) : ''));
             dbg("Sibling has score " + (siblingNode.readability ? siblingNode.readability.contentScore : 'Unknown'));
 
             if(siblingNode === topCandidate)
@@ -897,6 +897,13 @@ var readability = {
                     append = true;
                 }
             }
+
+            // TODO SGR: investigate saving images in sibling nodes
+            //if (/*$.sgr.getSetting('readability_more_images') &&*/ append == false && readability.sgrSaveElement(siblingNode)) {
+              //debug("sgrSaveElement ran in sibling check, saving node:");
+              //debug($('<div>').append($(siblingNode).clone()).html());
+              //append = true;
+            //}
 
             if(append) {
                 dbg("Appending node: " + siblingNode);
@@ -931,6 +938,7 @@ var readability = {
             }
         }
 
+
         /**
          * So we have all of the content that we need. Now we clean it up for presentation.
         **/
@@ -950,14 +958,17 @@ var readability = {
         page.innerHTML = pageCacheHtml;
 
             if (readability.flagIsActive(readability.FLAG_STRIP_UNLIKELYS)) {
+                dbg("** Re-running grabArticle(), removed FLAG_STRIP_UNLIKELYS");
                 readability.removeFlag(readability.FLAG_STRIP_UNLIKELYS);
                 return readability.grabArticle(page);
             }
             else if (readability.flagIsActive(readability.FLAG_WEIGHT_CLASSES)) {
+                dbg("** Re-running grabArticle(), removed FLAG_WEIGHT_CLASSES");
                 readability.removeFlag(readability.FLAG_WEIGHT_CLASSES);
                 return readability.grabArticle(page);
             }
             else if (readability.flagIsActive(readability.FLAG_CLEAN_CONDITIONALLY)) {
+                dbg("** Re-running grabArticle(), removed FLAG_CLEAN_CONDITIONALLY");
                 readability.removeFlag(readability.FLAG_CLEAN_CONDITIONALLY);
                 return readability.grabArticle(page);
             } else {
@@ -1667,12 +1678,14 @@ var readability = {
                     toRemove = true;
                 }
 
-                if(toRemove) {
+                if(toRemove && readability.sgrSaveElement(tagsList[i]) == false) {
+                //if(toRemove) {
                     tagsList[i].parentNode.removeChild(tagsList[i]);
                 }
             }
         }
     },
+
 
     /**
      * Clean out spurious headers from an Element. Checks things like classnames and link density.
