@@ -1954,14 +1954,25 @@ Object.prototype.size = function() {
   $.sgr.filters_by_feed = {};
   $.sgr.filters_by_id = {};
   $.sgr.filters_being_fetched = {};
+  $.sgr.feeds_being_fetched = {};
 
   $.sgr.initFilters = function() {
-    // Fetch the filtered feed or label contents
+    // Setup storage structures for our filter info
     //
     $($.sgr.filters).each(function(idx, filter){
       $.sgr.filters_by_id[filter.id] = filter;
+      if (typeof $.sgr.filters_by_feed[filter.base] == 'undefined') {
+        $.sgr.filters_by_feed[filter.base] = {feed_base: filter.base, feed_url: filter.url, filters: []};
+      }
+      $.sgr.filters_by_feed[filter.base].filters.push(filter);
       $.sgr.preFetchFilteredContent(filter.id);
-      $.sgr.fetchFilteredContent(filter);
+    });
+
+    // Fetch the filtered feed/s or label/s content
+    //
+    $($.sgr.filters_by_feed).each(function(feed_base, feed_info) {
+      //$.sgr.fetchFilteredContent({feed_base: feed_base, feed_url: filters_for_feed[0].url}, filters_for_feed);
+      $.sgr.fetchFilteredContent(feed_info);
     });
   }
 
@@ -1980,6 +1991,8 @@ Object.prototype.size = function() {
       return $.sgr.filters_by_feed[curr_feed];
     }
 
+    return [];
+    /*
     $.sgr.filters_by_feed[curr_feed] = [];
     
     $($.sgr.filters).each(function(idx,filter) {
@@ -1988,6 +2001,7 @@ Object.prototype.size = function() {
       }
     });
     return $.sgr.filters_by_feed[curr_feed];
+    */
   }
 
   $.sgr.getCurrentFeedActiveFilters = function() {
@@ -2273,33 +2287,45 @@ Object.prototype.size = function() {
   // FIXME need to fetch the feed only once per filter.base and cache it so all filters
   // for that filter.base can re-use it.
   //
-  $.sgr.fetchFilteredContent = function(filter, filtered_feed_item_threshold) {
+  $.sgr.fetchFilteredContent = function(feed_info, filtered_feed_item_thresholds) {
 
+    if (typeof filtered_feed_item_thresholds == 'undefined') {
+      filtered_feed_item_thresholds = [];
+    }
     //debug("fetchFilteredConten() start");
 
-    $.sgr.flagFilterBeingFetched(filter.id, true);
+    //$.sgr.flagFilterBeingFetched(filter.id, true);
+    $.sgr.flagFeedBeingFetched(feed_info.feed_base, true);
 
-    if ($.sgr.isFilterfetchRecusiveCountAboveMax(filter.id)) {
-      debug(filter.id + " filter_max_fetch_recurse_level hit, no more fetching allowed");
-      return false;
-    }
+    var filters = [];
 
-    if ($.sgr.filtered_feed_data[filter.id]) {
-      filter.continuation = $.sgr.filtered_feed_data[filter.id].continuation;
-      if (typeof filtered_feed_item_threshold == 'undefined') {
-        //filtered_feed_item_threshold += $.sgr.filtered_feed_data[filter.id].items.length;
-        //filtered_feed_item_threshold = $.sgr.getFilteredFeedDataItemCount(filter.id);
-        filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold + $.sgr.getFilteredFeedDataItemCount(filter.id);
+    $(feed_info.filters).each(function(index,filter) {
+      if ($.sgr.isFilterfetchRecusiveCountAboveMax(filter.id)) {
+        debug(filter.id + " filter_max_fetch_recurse_level hit, no more fetching allowed");
+        return false;
       }
+      if (typeof filter.filtered_feed_item_threshold == 'undefined') {
+        filter.filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold + $.sgr.getFilteredFeedDataItemCount(filter.id);
+      }
+      filters.push(filter);
     }
 
-    if (typeof filtered_feed_item_threshold == 'undefined') {
-      filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold;
+    debug("Allowed filters=");
+    debug(filters);
+
+    //if ($.sgr.filtered_feed_data[filter.id]) {
+      //filter.continuation = $.sgr.filtered_feed_data[filter.id].continuation;
+    //}
+    if (typeof $.sgr.filtered_feed_info[feed_info.feed_base].continuation != 'undefined') {
     }
 
-    var api_contents_url = $.sgr.gr_api['contents'] + filter.url + '?r=n&client=sgr&n=100&ck=' + (new Date()).getTime() + (filter.continuation ? '&c=' + filter.continuation : '');
-    //debug(api_contents_url);
-    debug(filter.id + " " + filter.continuation);
+    //if (typeof filtered_feed_item_threshold == 'undefined') {
+      //filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold;
+    //}
+
+    var api_contents_url = $.sgr.gr_api['contents'] + feed_info.feed_url + '?r=n&client=sgr&n=100&ck=' + (new Date()).getTime() + (feed_info.continuation ? '&c=' + feed_info.continuation : '');
+    debug(api_contents_url);
+    debug(feed_base + " " + feed_info.continuation);
 
     $.ajax({
       url: api_contents_url,
@@ -2315,7 +2341,7 @@ Object.prototype.size = function() {
           //$.sgr.filtered_feed_data[filter.id].items = [];
           //$.sgr.filtered_feed_data[filter.id]._sgr_filter = filter;
         }
-        $.sgr.filtered_feed_data[filter.id].continuation = feed_data.continuation;
+        feed_info.continuation = feed_data.continuation;
         //$.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
 
         var included_item_count = 0;
@@ -2440,6 +2466,18 @@ Object.prototype.size = function() {
       $.sgr.filters_being_fetched[filter_id] = true;
     } else {
       delete $.sgr.filters_being_fetched[filter_id];
+    }
+  }
+
+  $.sgr.isFeedBeingFetched = function(feed_base) {
+    return typeof $.sgr.feeds_being_fetched[feed_base] != 'undefined';
+  }
+
+  $.sgr.flagFeedBeingFetched = function(feed_base, being_fetched) {
+    if (being_fetched) {
+      $.sgr.feeds_being_fetched[feed_base] = true;
+    } else {
+      delete $.sgr.feeds_being_fetched[feed_base];
     }
   }
 
