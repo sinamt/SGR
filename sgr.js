@@ -1940,7 +1940,7 @@ Object.prototype.size = function() {
   ]
 
 
-  $.sgr.filtered_feed_item_threshold = 40;
+  $.sgr.filtered_feed_item_recurse_threshold = 40;
   $.sgr.filter_name_max_display = 30;
   $.sgr.filter_max_fetch_recurse_level = 50;
 
@@ -1959,21 +1959,32 @@ Object.prototype.size = function() {
   $.sgr.initFilters = function() {
     // Setup storage structures for our filter info
     //
-    $($.sgr.filters).each(function(idx, filter){
+    $.each($.sgr.filters, function(idx, filter){
       $.sgr.filters_by_id[filter.id] = filter;
       if (typeof $.sgr.filters_by_feed[filter.base] == 'undefined') {
-        $.sgr.filters_by_feed[filter.base] = {feed_base: filter.base, feed_url: filter.url, filters: []};
+        $.sgr.filters_by_feed[filter.base] = {base: filter.base, url: filter.url, filters: []};
       }
+      filter.recurse_level = $.sgr.filtered_feed_item_recurse_threshold;
+
       $.sgr.filters_by_feed[filter.base].filters.push(filter);
-      $.sgr.preFetchFilteredContent(filter.id);
+      $.sgr.initFilteredFeedDataStorage(filter.id);
     });
 
     // Fetch the filtered feed/s or label/s content
     //
-    $($.sgr.filters_by_feed).each(function(feed_base, feed_info) {
-      //$.sgr.fetchFilteredContent({feed_base: feed_base, feed_url: filters_for_feed[0].url}, filters_for_feed);
-      $.sgr.fetchFilteredContent(feed_info);
+    $.each($.sgr.filters_by_feed, function(feed_base, feed) {
+      $.sgr.fetchFilteredContent(feed_base);
     });
+  }
+
+  // Setup the filtered feed data storage if it doesn't exist for this filter
+  //
+  $.sgr.initFilteredFeedDataStorage = function(filter_id) {
+    if (typeof $.sgr.filtered_feed_data[filter_id] == 'undefined') {
+      $.sgr.filtered_feed_data[filter_id] = {};
+      $.sgr.filtered_feed_data[filter_id].items = {};
+      $.sgr.filtered_feed_data[filter_id].recurse_count = 0;
+    }
   }
 
   // Clear cached filter feed data
@@ -1988,7 +1999,7 @@ Object.prototype.size = function() {
   $.sgr.getCurrentFeedFilters = function() {
     var curr_feed = $.sgr.getCurrentFeedName();
     if (typeof $.sgr.filters_by_feed[curr_feed] != 'undefined') {
-      return $.sgr.filters_by_feed[curr_feed];
+      return $.sgr.filters_by_feed[curr_feed].filters;
     }
 
     return [];
@@ -2053,25 +2064,34 @@ Object.prototype.size = function() {
   // scrolling in Google Reader are able to be parsed through any active filters.
   //
   $.sgr.fetchMoreFilteredEntriesForCurrentFeed = function() {
+
+    var feed_base = $.sgr.getCurrentFeedName();
     var filters = $.sgr.getCurrentFeedFilters();
 
+    var filter_fetch_required = false;
+
     $(filters).each(function(idx,filter) {
-      $.sgr.fetchMoreFilteredEntriesForCurrentFeedFromFilter(filter);
+      //$.sgr.fetchMoreFilteredEntriesForCurrentFeedFromFilter(filter);
+    //if ($.sgr.canFilterRunForCurrentEntries(filter.id) == false || $.sgr.isFilterBeingFetched(filter.id)) {
+      //return false;
+    //}
+      var active_entry_count = $(".entry:not(." + $.sgr.getFilteredClass(filter.id) + ")").length;
+
+      // If we have 75% or more current entries compared to stored filtered entries, get more
+      //
+      //debug("fetchMoreFilteredEntriesForCurrentFeedFromFilter: active_entry_count * 1.75 = " + (active_entry_count * 1.75) + " vs feed data = " + $.sgr.getFilteredFeedDataItemCount(filter.id));
+      if( (active_entry_count * 1.75) >= $.sgr.getFilteredFeedDataItemCount(filter.id)) {
+        filter_fetch_required = true;
+        return false;
+      }
     });
-  }
 
-  $.sgr.fetchMoreFilteredEntriesForCurrentFeedFromFilter = function(filter) {
-    if ($.sgr.canFilterRunForCurrentEntries(filter.id) == false || $.sgr.isFilterBeingFetched(filter.id)) {
-      return false;
-    }
-    var active_entry_count = $(".entry:not(." + $.sgr.getFilteredClass(filter.id) + ")").length;
-
-    // If we have 75% or more current entries compared to stored filtered entries, get more
+    // If we need to fetch more entries for filtering, and this feed isn't already being fetched,
+    // execute the fetch.
     //
-    //debug("fetchMoreFilteredEntriesForCurrentFeedFromFilter: active_entry_count * 1.75 = " + (active_entry_count * 1.75) + " vs feed data = " + $.sgr.getFilteredFeedDataItemCount(filter.id));
-    if( (active_entry_count * 1.75) >= $.sgr.getFilteredFeedDataItemCount(filter.id)) {
-      $.sgr.preFetchFilteredContent(filter.id);
-      $.sgr.fetchFilteredContent(filter);
+    if (filter_fetch_required && $.sgr.isFeedBeingFetched(feed_base) == false) {
+      debug("fetchMoreFilteredEntriesForCurrentFeed() is running fetchFilteredContent() for " + feed_base);
+      $.sgr.fetchFilteredContent(feed_base);
     }
   }
 
@@ -2287,7 +2307,17 @@ Object.prototype.size = function() {
   // FIXME need to fetch the feed only once per filter.base and cache it so all filters
   // for that filter.base can re-use it.
   //
-  $.sgr.fetchFilteredContent = function(feed_info, filtered_feed_item_thresholds) {
+  $.sgr.fetchFilteredContent = function(feed_base, recurse) {
+
+    if (typeof recurse == 'undefined') {
+      recurse = false;
+    }
+
+    var feed = $.sgr.filters_by_feed[feed_base];
+
+    if (typeof feed == 'undefined') {
+      return;
+    }
 
     if (typeof filtered_feed_item_thresholds == 'undefined') {
       filtered_feed_item_thresholds = [];
@@ -2295,154 +2325,189 @@ Object.prototype.size = function() {
     //debug("fetchFilteredConten() start");
 
     //$.sgr.flagFilterBeingFetched(filter.id, true);
-    $.sgr.flagFeedBeingFetched(feed_info.feed_base, true);
+    $.sgr.flagFeedBeingFetched(feed.base, true);
 
     var filters = [];
 
-    $(feed_info.filters).each(function(index,filter) {
-      if ($.sgr.isFilterfetchRecusiveCountAboveMax(filter.id)) {
+    $(feed.filters).each(function(index,filter) {
+      // If we are not recursing $.sgr.fetchFilteredContent() in order to find more entries for a feed/s,
+      // then set the recurse level (the amount of entries we need to cache) to :
+      //  (global threshold recurse item level) + (amount of feed entries currently stored for this filter)
+      //
+      // Also set the amount of recurses that have occurred to zero if we haven't exceeded the max already.
+      //
+      if (recurse == false) {
+        filter.recurse_level = $.sgr.filtered_feed_item_recurse_threshold + $.sgr.getFilteredFeedDataItemCount(filter.id);
+
+        if ($.sgr.isFilterFetchRecusiveCountAboveMax(filter.id) == false) {
+          $.sgr.setFilteredFetchRecurseCounter(filter.id, 0);
+        }
+      }
+
+      if ($.sgr.isFilterFetchRecusiveCountAboveMax(filter.id)) {
         debug(filter.id + " filter_max_fetch_recurse_level hit, no more fetching allowed");
         return false;
       }
-      if (typeof filter.filtered_feed_item_threshold == 'undefined') {
-        filter.filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold + $.sgr.getFilteredFeedDataItemCount(filter.id);
-      }
-      filters.push(filter);
-    }
 
+      // This is a valid filter, store it for later
+      //
+      filters.push(filter);
+    });
+
+    debug(feed.base + " " + (feed.continuation ? feed.continuation : '') + " feed=");
+    debug(feed);
     debug("Allowed filters=");
     debug(filters);
 
     //if ($.sgr.filtered_feed_data[filter.id]) {
       //filter.continuation = $.sgr.filtered_feed_data[filter.id].continuation;
     //}
-    if (typeof $.sgr.filtered_feed_info[feed_info.feed_base].continuation != 'undefined') {
-    }
-
-    //if (typeof filtered_feed_item_threshold == 'undefined') {
-      //filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold;
+    //if (typeof feed.continuation != 'undefined') {
     //}
 
-    var api_contents_url = $.sgr.gr_api['contents'] + feed_info.feed_url + '?r=n&client=sgr&n=100&ck=' + (new Date()).getTime() + (feed_info.continuation ? '&c=' + feed_info.continuation : '');
+    //if (typeof filter.filtered_feed_item_threshold == 'undefined') {
+      //filter.filtered_feed_item_threshold = $.sgr.filtered_feed_item_threshold;
+    //}
+
+    var api_contents_url = $.sgr.gr_api['contents'] + feed.url + '?r=n&client=sgr&n=100&ck=' + (new Date()).getTime() + (feed.continuation ? '&c=' + feed.continuation : '');
     debug(api_contents_url);
-    debug(feed_base + " " + feed_info.continuation);
 
-    $.ajax({
-      url: api_contents_url,
-      dataType: 'json',
-      success: function(feed_data) {
-        //debug("Success : " + api_contents_url + ", time=" + (new Date()).getTime());
-        //debug(feed_data);
-        if (typeof $.sgr.filtered_feed_data[filter.id] == 'undefined') {
-          $.sgr.filtered_feed_data[filter.id] = {};
-          $.sgr.filtered_feed_data[filter.id].items = {};
-          $.sgr.filtered_feed_data[filter.id].recurse_count = 0;
-          //$.sgr.filtered_feed_data[filter.id] = jQuery.extend(true, {}, feed_data);
-          //$.sgr.filtered_feed_data[filter.id].items = [];
-          //$.sgr.filtered_feed_data[filter.id]._sgr_filter = filter;
-        }
-        feed_info.continuation = feed_data.continuation;
-        //$.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
+    setTimeout(function() {
+      $.ajax({
+        url: api_contents_url,
+        dataType: 'json',
+        success: function(feed_data) {
+          debug("Success : " + api_contents_url + ", time=" + (new Date()).getTime());
+          //debug(feed_data);
+          
+          feed.continuation = feed_data.continuation;
+          //$.sgr.filtered_feed_data[filter.id].updated = feed_data.updated;
 
-        var included_item_count = 0;
-        var excluded_item_count = 0;
-
-        $(feed_data.items).each(function(idx, item){
+          var feed_recurse_required = false;
+          var included_item_count = {};
+          var excluded_item_count = {};
           var add_feed_item_count = 0;
-          $(filter.filters).each(function(idx2, _filter){
-//debug("_filter=");
-//debug(_filter);
-            var check_fields = [];
-            if ((_filter.item == 'post' || _filter.item == 'author') && typeof item.author != 'undefined' ) {
-              check_fields.push(item.author);
-            }
-            if ((_filter.item == 'post' || _filter.item == 'summary') && typeof item.summary != 'undefined' && typeof item.summary.content != 'undefined' ) {
-              check_fields.push($.sgr.stripHtml(item.summary.content));
-            }
-            if ((_filter.item == 'post' || _filter.item == 'categories') && typeof item.categories != 'undefined' ) {
-              $(item.categories).each(function(idx4, category){
-                if (category.match(/^(?!user\/)/) != null) {
-                  check_fields.push(category);
+
+          // Loop each received feed entry
+          //
+          $(feed_data.items).each(function(feed_item_index, item){
+
+            // Loop each filter for this feed.url
+            //
+            $(filters).each(function(filters_index, filter) {
+              if (feed_item_index == 0) {
+                included_item_count[filter.id] = 0;
+                excluded_item_count[filter.id] = 0;
+              }
+
+              add_feed_item_count = 0;
+
+              // Loop each component of this filter
+              //
+              $(filter.filters).each(function(idx2, _filter){
+    //debug("_filter=");
+    //debug(_filter);
+                var check_fields = [];
+                if ((_filter.item == 'post' || _filter.item == 'author') && typeof item.author != 'undefined' ) {
+                  check_fields.push(item.author);
+                }
+                if ((_filter.item == 'post' || _filter.item == 'summary') && typeof item.summary != 'undefined' && typeof item.summary.content != 'undefined' ) {
+                  check_fields.push($.sgr.stripHtml(item.summary.content));
+                }
+                if ((_filter.item == 'post' || _filter.item == 'categories') && typeof item.categories != 'undefined' ) {
+                  $(item.categories).each(function(idx4, category){
+                    if (category.match(/^(?!user\/)/) != null) {
+                      check_fields.push(category);
+                    }
+                  });
+                }
+                if ((_filter.item == 'post' || _filter.item == 'content') && typeof item.content != 'undefined' && typeof item.content.content != 'undefined' ) {
+                  check_fields.push($.sgr.stripHtml(item.content.content));
+                }
+                if ((_filter.item == 'post' || _filter.item == 'title') && typeof item.title != 'undefined' ) {
+                  check_fields.push(item.title);
+                }
+    //debug("check_fields=");
+    //debug(check_fields);
+                var num_matches_found = 0;
+                $(check_fields).each(function(idx3,check_field){
+                  //type_filter = _filter.type == 'include' ? '' : '?!';
+                  var re = new RegExp('(' + _filter.content +')', 'i');
+    //debug("re=");
+    //debug(re);
+                  if (check_field.match(re) != null) {
+                    //debug("check_field match : " + item.id + " : " + re + " : " + check_field);
+                    if (_filter.type == 'include') {
+                      add_feed_item_count += 1;
+                      return false;
+                    } else {
+                      //debug("check_field match : " + re + " : " + check_field);
+                      return false;
+                    }
+                  } else if (_filter.type == 'exclude') {
+                    //debug("check_field no match : " + re + " : " + check_field);
+                    num_matches_found += 1;
+                  }
+                });
+
+                //debug("num_matches_found=" + num_matches_found + ", check_fields.length=" + check_fields.length);
+                if (_filter.type == 'exclude' && num_matches_found == check_fields.length) {
+                  add_feed_item_count += 1;
+                } else {
+    //debug("excluding:");
+    //debug(item);
                 }
               });
-            }
-            if ((_filter.item == 'post' || _filter.item == 'content') && typeof item.content != 'undefined' && typeof item.content.content != 'undefined' ) {
-              check_fields.push($.sgr.stripHtml(item.content.content));
-            }
-            if ((_filter.item == 'post' || _filter.item == 'title') && typeof item.title != 'undefined' ) {
-              check_fields.push(item.title);
-            }
-//debug("check_fields=");
-//debug(check_fields);
-            var num_matches_found = 0;
-            $(check_fields).each(function(idx3,check_field){
-              //type_filter = _filter.type == 'include' ? '' : '?!';
-              var re = new RegExp('(' + _filter.content +')', 'i');
-//debug("re=");
-//debug(re);
-              if (check_field.match(re) != null) {
-                //debug("check_field match : " + item.id + " : " + re + " : " + check_field);
-                if (_filter.type == 'include') {
-                  add_feed_item_count += 1;
-                  return false;
-                } else {
-                  //debug("check_field match : " + re + " : " + check_field);
-                  return false;
-                }
-              } else if (_filter.type == 'exclude') {
-                //debug("check_field no match : " + re + " : " + check_field);
-                num_matches_found += 1;
+
+              if (add_feed_item_count >= filter.filters.length) {
+    //debug("not excluding:");
+    //debug(item);
+                included_item_count[filter.id] += 1;
+                //$.sgr.filtered_feed_data[filter.id].items.push($.sgr.cleanFilteredFeedItem(item));
+                $.sgr.filtered_feed_data[filter.id].items[item.alternate[0].href] = true;
+              } else {
+                excluded_item_count[filter.id] += 1;
+    //debug("excluding:");
+    //debug(item);
               }
             });
-            //debug("num_matches_found=" + num_matches_found + ", check_fields.length=" + check_fields.length);
-            if (_filter.type == 'exclude' && num_matches_found == check_fields.length) {
-              add_feed_item_count += 1;
-            } else {
-//debug("excluding:");
-//debug(item);
-            }
           });
-          if (add_feed_item_count >= filter.filters.length) {
-//debug("not excluding:");
-//debug(item);
-            included_item_count += 1;
-            //$.sgr.filtered_feed_data[filter.id].items.push($.sgr.cleanFilteredFeedItem(item));
-            $.sgr.filtered_feed_data[filter.id].items[item.alternate[0].href] = true;
-          } else {
-            excluded_item_count += 1;
-//debug("excluding:");
-//debug(item);
+
+          // Loop each filter for this feed.url
+          //
+          $(filters).each(function(filters_index, filter) {
+            debug("FILTER: " + filter.id + " " + feed_data.title + " " + filter.name + " : Included " + included_item_count[filter.id] + " items, Excluded " +excluded_item_count[filter.id]+" items. Total included: " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ". new_feed_data=");
+            debug($.sgr.filtered_feed_data[filter.id]);
+
+            // Recurse if items are below threshold
+            //
+            debug(filter.id + " $.sgr.getFilteredFeedDataItemCount() = " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ", filter.recurse_level = " + filter.recurse_level);
+
+            if ($.sgr.getFilteredFeedDataItemCount(filter.id) < filter.recurse_level) {
+              $.sgr.setFilteredFetchRecurseCounter(filter.id, $.sgr.getFilteredFetchRecurseCounter(filter.id) + 1);
+              debug(filter.id + " *RECURSE* to $.sgr.fetchFilteredContent(). Recurse count = " + $.sgr.getFilteredFetchRecurseCounter(filter.id));
+              feed_recurse_required = true;
+            }
+
+            // Run our filter against the currently displayed feed to update the display to the user
+            //
+            $.sgr.runFilterEntriesForFilter(filter.id);
+          });
+
+          if (feed_recurse_required) {
+            $.sgr.fetchFilteredContent(feed.base, true);
           }
-        });
-        debug("FILTER: " + filter.id + " " + feed_data.title + " " + filter.name + " : Included " + included_item_count + " items, Excluded " +excluded_item_count+" items. Total included: " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ". new_feed_data=");
-        debug($.sgr.filtered_feed_data[filter.id]);
+        },
 
-        // Recurse if items are below threshold
-        //
-        debug(filter.id + " $.sgr.getFilteredFeedDataItemCount() = " + $.sgr.getFilteredFeedDataItemCount(filter.id) + ", filtered_feed_item_threshold = " + filtered_feed_item_threshold);
-
-        if ($.sgr.getFilteredFeedDataItemCount(filter.id) < filtered_feed_item_threshold) {
-          $.sgr.setFilteredFetchRecurseCounter(filter.id, $.sgr.getFilteredFetchRecurseCounter(filter.id) + 1);
-          debug(filter.id + " *RECURSE* to $.sgr.fetchFilteredContent(). Recurse count = " + $.sgr.getFilteredFetchRecurseCounter(filter.id));
-          $.sgr.fetchFilteredContent(filter, filtered_feed_item_threshold);
+        complete: function() {
+          //$.sgr.flagFilterBeingFetched(filter.id, false);
+          $.sgr.flagFeedBeingFetched(feed.base, false);
         }
-
-        $.sgr.runFilterEntriesForFilter(filter.id);
-      },
-
-      complete: function() {
-        $.sgr.flagFilterBeingFetched(filter.id, false);
-      }
-    });
+      });
+    }, 0);
   }
     
-  $.sgr.preFetchFilteredContent = function(filter_id) {
-    if ($.sgr.isFilterfetchRecusiveCountAboveMax(filter_id) == false) {
-      $.sgr.setFilteredFetchRecurseCounter(filter_id, 0);
-    }
-  }
-
-  $.sgr.isFilterfetchRecusiveCountAboveMax = function(filter_id) {
+  $.sgr.isFilterFetchRecusiveCountAboveMax = function(filter_id) {
     return $.sgr.getFilteredFetchRecurseCounter(filter_id) >= $.sgr.filter_max_fetch_recurse_level;
   }
 
@@ -2538,44 +2603,6 @@ Object.prototype.size = function() {
 
     $.sgr.initFilters();
 
-    /*
-    var d = new Date();
-    //var feed = $.sgr.getCurrentFeedName(true);
-    var feed = 'http://feeds.news.com.au/public/rss/2.0/heraldsun_afl_geelong_559.xml';
-    //var feed = 'http://feedproxy.google.com/TechCrunch';
-    var api_contents_url = $.sgr.gr_api['contents'] + feed + '?r=n&client=sgr&n=50&ck=' + d.getTime();
-    debug(api_contents_url);
-    $.ajax({
-      url: api_contents_url,
-      dataType: 'json',
-      success: function(feed_data) {
-        debug(feed_data);
-        var exclude_list = [];
-        var c = $("#chrome").clone();
-        //entries.empty().css({position: 'relative', 'z-index': '100'}).find('.same-dir').css('position','absolute');
-        //$("#chrome-viewer-container").remove();
-        c.find('#entries').empty();
-        debug(c);
-        $("#chrome").after(c);
-
-        $("#chrome").attr('id','chrome-orig').css({position:'absolute', left:'-9999px'}).find("#viewer-container").attr('id','viewer-container-orig').find('#entries').attr('id','entries-orig');
-
-        $(feed_data.items).each(function(idx){
-          if(this.summary.content && this.summary.content.match(/coach/)) {
-            //debug(idx + " " + this.summary.content);
-            this.sgr_match = true;
-            $.sgr.insertNewEntry(this);
-          } else {
-            //exclude_list.push(idx);
-          }
-        });
-        //debug(exclude_list);
-        //$(exclude_list).each(function(){
-          //feed_data.items.remove(this);
-        //});
-      }
-    });
-    */
   }
 
 })(jQuery);
