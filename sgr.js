@@ -1551,6 +1551,7 @@
       success: function(video){
         var uploaded = new Date(video.data.uploaded);
         var content = '<h2 class="sgr-entry-heading">' + video.data.title + '</h2><iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' + video_id +'" frameborder="0"></iframe><p>' + video.data.description + '</p><p><strong>Uploader: </strong>' + video.data.uploader + '</p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
+        content = readability.sgrPostProcessCustomReadability(content);
         $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
       },
       error: function() {
@@ -1579,6 +1580,7 @@
         var uploaded = new Date(video.upload_date);
 
         var content = '<h2 class="sgr-entry-heading">' + video.title + '</h2><iframe type="text/html" width="' + video.width + '" height="' + video.height + '" src="http://player.vimeo.com/video/' + video_id +'" frameborder="0"></iframe><p>' + video.description + '</p><p><strong>Uploader: </strong><a href="' + video.user_url + '">' + video.user_name + '</a></p><p><strong>Uploaded: </strong>' + uploaded.toString() + '</p>';
+        content = readability.sgrPostProcessCustomReadability(content);
         $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
       },
       error: function() {
@@ -1607,6 +1609,7 @@
           html = '<h2 class="sgr-entry-heading">' + topic.replace(/_/g,' ') + '</h2>' + html;
           var jq_html = $('<div>' + html + '</div>')
           jq_html.find(".editsection, script, link, style").remove();
+          readability.sgrPostProcessCustomReadability(jq_html);
           html = jq_html.html();
           html = '<div class="sgr-wikipedia-content">' + html + '</div>';
         }

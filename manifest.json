@@ -1,6 +1,6 @@
 {
   "name": "Super Google Reader",
-  "version": "1.2",
+  "version": "1.2.1",
   "description": "Enables full content feeds for Google Reader. Provides readable content or iframing of feed entries.",
   "permissions": [
     "http://*/*", 

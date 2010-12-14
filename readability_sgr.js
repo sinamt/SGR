@@ -231,6 +231,10 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     //debug(el_name + " : main loop finished");
   });
 
+  // Add target=_blank for links
+  //
+  readability.sgrMakeLinksTargetBlank(jq_content);
+
   // Rewrite any relative img src paths to be absolute
   //
 /*
@@ -252,9 +256,42 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     //debug("readability_sgr : adding title: " + readability.sgr_article_title);
     jq_content.prepend('<h2 class="sgr-entry-heading">' + readability.sgr_article_title + '</h2>');
   }
+
   return jq_content.html();
 }
 
+
+// Run post processing for any arbitrary custom readable content we have generated ourselves.
+// Used for the wikipedia/youtube etc custom content.
+//
+readability['sgrPostProcessCustomReadability'] = function(jq_content) {
+  var content_str = false;
+
+  if (typeof jq_content == 'string') {
+    try {
+      var ret = $('<div>' + jq_content + '</div>');
+    } catch(e) {
+      debug("readability_sgr : html unable to be parsed by jquery. " + e.name + ": " +e.message);
+      return jq_content;
+    }
+    jq_content = ret;
+    content_str = true;
+  }
+
+  readability.sgrMakeLinksTargetBlank(jq_content);
+
+  if (content_str) {
+    return jq_content.html();
+  }
+}
+
+// Add a target=_blank to each link, as google reader does for standard entry content
+//
+readability['sgrMakeLinksTargetBlank'] = function(jq_content) {
+  jq_content.find("a").each(function(i, el){
+    $(el).attr('target', '_blank');
+  });
+}
 
 // Add an element to our filter list, to be removed later on.
 //
