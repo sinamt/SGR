@@ -133,18 +133,26 @@ readability['sgrInit'] = function(content) {
         replace(readability.regexps.replaceFonts, '<$1span>');
 }
 
-// Processing the article content after readability.grabArticle() has run.
+readability['sgrFixBuggyHtml'] = function(content) {
+  return content.
+        replace(/\n/g,'\uffff').
+        replace(/(<a.*?)\/(>.*?<\/a>)/g,'$1$2').  // <a href="" />hello</a> -> <a href="">hello</a>
+        replace(/\uffff/g,'\n');
+}
+
+// Clean the article content after readability.grabArticle() or custom readability
+// selectors have run.
 // This will perform extra cleansing of the content, limiting it to our tag/attribute
 // whitelists.
 //
-readability['sgrPostProcess'] = function(content, entry_url) {
+readability['sgrCleanContent'] = function(url, content) {
+
   try {
     var jq_content = $(content);
   } catch(e) {
     debug("readability_sgr : html unable to be parsed by jquery. " + e.name + ": " +e.message);
     return;
   }
-
 
   // Process HTML attributes
   //
@@ -155,7 +163,7 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     try {
       var _el = $(this);
     } catch(e) {
-      debug("sgrPostProcess: jQuery unable to parse " + el.tagName +". Skipping it.");
+      debug("sgrCleanContent: jQuery unable to parse " + el.tagName +". Skipping it.");
       return;
     }
     var remove_attrs = [];
@@ -163,8 +171,8 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     var el_name = el.tagName.toLowerCase();
 
     if (jQuery.inArray(el_name, readability.sgr_attribute_whitelist) <= -1) {
-      //debug("sgrPostProcess: replacing non-whitelist element " + el.tagName );
-      _el.replaceWith("<span>" + _el.text() + "</span>");
+      //debug("sgrCleanContent: replacing non-whitelist element " + el.tagName );
+      _el.replaceWith("<span>" + _el.html() + "</span>");
       //remove_els.push(el);
       return;
     }
@@ -195,7 +203,7 @@ readability['sgrPostProcess'] = function(content, entry_url) {
         try {
           _el.attr(attrib.name);
         } catch(e) {
-          debug("sgrPostProcess: jQuery unable to parse " + el.tagName +".attr(" + attrib.name + "). Skipping it.");
+          debug("sgrCleanContent: jQuery unable to parse " + el.tagName +".attr(" + attrib.name + "). Skipping it.");
           return;
         }
         // If href or src is a javascript call, remove it
@@ -204,12 +212,12 @@ readability['sgrPostProcess'] = function(content, entry_url) {
           _el.attr(attrib.name, "");
 
         } else if (attrib.value[0] == "/") {
-          //debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrl(entry_url) + attrib.value);
-          _el.attr(attrib.name, $.sgr.getBaseUrl(entry_url) + attrib.value);
+          //debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrl(url) + attrib.value);
+          _el.attr(attrib.name, $.sgr.getBaseUrl(url) + attrib.value);
 
         } else if (attrib.value.length > 0 && attrib.value.substr(0,4) != "http") {
-          //debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
-          _el.attr(attrib.name, $.sgr.getBaseUrlWithPath(entry_url) + attrib.value);
+          //debug("ATTR : changing " + attrib.name + " for " + el_name + " from " + attrib.value + " to " + $.sgr.getBaseUrlWithPath(url) + attrib.value);
+          _el.attr(attrib.name, $.sgr.getBaseUrlWithPath(url) + attrib.value);
         }
 
         //debug(attrib.value);
@@ -225,7 +233,7 @@ readability['sgrPostProcess'] = function(content, entry_url) {
       try {
         _el.removeAttr(remove_attrs[k]);
       } catch(e) {
-        debug("sgrPostProcess: ATTR (" + remove_attrs[k] + ") unable to be removed for " + el_name +". Skipping it. Error was " + e.name + " : " + e.message);
+        debug("sgrCleanContent: ATTR (" + remove_attrs[k] + ") unable to be removed for " + el_name +". Skipping it. Error was " + e.name + " : " + e.message);
       }
     }
     //debug(el_name + " : main loop finished");
@@ -242,11 +250,11 @@ readability['sgrPostProcess'] = function(content, entry_url) {
     var el_name = this.tagName.toLowerCase();
     if (el_name == "img" && $(this).attr('src')[0] == '/') {
       //debug($(this).attr('src'));
-       $(this).attr('src',$.sgr.getBaseUrl(entry_url) + $(this).attr('src'));
+       $(this).attr('src',$.sgr.getBaseUrl(url) + $(this).attr('src'));
       //debug($(this).attr('src'));
     } else if (el_name == "a" && $(this).attr('href')[0] == '/') {
       debug($(this).attr('href'));
-       $(this).attr('href',$.sgr.getBaseUrl(entry_url) + $(this).attr('href'));
+       $(this).attr('href',$.sgr.getBaseUrl(url) + $(this).attr('href'));
       debug($(this).attr('href'));
     }
   });

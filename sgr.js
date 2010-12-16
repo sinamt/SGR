@@ -139,7 +139,7 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; }';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #custom-readability-interface { background-color: #F7F7F7; border: 1px solid #D0D0D0; color: black; position: absolute; width: 400px; z-index: 101; border-radius: 3px;} #custom-readability-form {margin: 8px;} .cr-label {float: left; width: 60px}';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -152,8 +152,10 @@
 
   // Set a setting value per feed or folder. Store it in localStorage.
   //
-  $.sgr.setLocalSetting = function(setting_name,value) {
-    var key = $.sgr.getSettingName(setting_name, 'local');
+  $.sgr.setLocalSetting = function(setting_name,value,key) {
+    if (typeof key == 'undefined') {
+      var key = $.sgr.getSettingName(setting_name, 'local');
+    }
     if (key == false) {
       return false;
     }
@@ -429,11 +431,12 @@
   // Generate a random alphanumeric string of a given length
   //
   $.sgr.generateRandomString = function(str_len) {
- var text = "";
+    var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    for( var i=0; i < parseInt(str_len); i++ )
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    for( var i=0; i < parseInt(str_len); i++ ) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
 
     return text;
 
@@ -721,6 +724,7 @@
             $.sgr.getGoogMenuitemHtml('menu_use_readability', 'Readable content', $.sgr.getSetting('use_readability')) + 
             $.sgr.getGoogMenuseparatorHtml() + 
             $.sgr.getGoogMenuitemHtml('menu_readability_pre_fetch', 'Pre-fetch readable content', $.sgr.getSetting('readability_pre_fetch')) + 
+            $.sgr.getGoogMenuitemHtml('menu_pick_custom_readability', 'Set custom readable filters...', $.sgr.getSetting('custom_readability') != null) + 
             $.sgr.getGoogMenuitemHtml('menu_url_in_subject', 'Show host in subject', $.sgr.getSetting('url_in_subject')) +
             '</div>'
           );
@@ -854,6 +858,11 @@
         return false;
       }
 
+      if (setting_name == 'pick_custom_readability') {
+        $.sgr.openCustomReadabilityAdmin();
+        return;
+      }
+
       // If this feed/folder doesn't already have a setting for this, use
       // the global setting to determine what to set the feed/folder setting to
       //
@@ -946,6 +955,17 @@
       }
     });
 
+    // Custom readability admin form submit live event
+    //
+    $("#custom-readability-form").live('submit',function(ev){
+      $.sgr.handleCustomReadabilityAdminFormSubmit(ev);
+      return false;
+    });
+    $("#cr-submit-button").live('click',function(ev){
+      $.sgr.handleCustomReadabilityAdminFormSubmit(ev);
+      return false;
+    });
+
     // Keyboard shortcut help - DOMNodeInserted live event 
     //
     $(".keyboard-help-banner .secondary-message").live('DOMNodeInserted',function(ev){
@@ -984,6 +1004,43 @@
   //
   $.sgr.initSgrSettingsButton = function() {
     $("#stream-prefs-menu").after($.sgr.getSgrSettingsButtonHtml());
+  }
+
+  $.sgr.custom_readability_admin_interface = '<div id="custom-readability-interface" class=""><form id="custom-readability-form" action=""><span id="custom-readbaility-instructions">Enter CSS selector to match HTML to include and/or exclude for each feed entry..</span> <div id="quick-add-close"></div> <div id="quick-add-input-div"><label><div class="cr-label">Include:</div><input type="text" name="cr_include" id="cr_include" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div id="quick-add-input-div"><label><div class="cr-label">Exclude:</div><input type="text" name="cr_exclude" id="cr_exclude" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div role="wairole:button" tabindex="0" id="cr-submit-button" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-button-tight"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div> <div class="goog-button-base-content"><div class="goog-button-body">Add</div> </div></div></div></div></div> <div id="quick-add-helptext">e.g., googleblog.blogspot.com or cnn</div></form></div>';
+
+  // Display the custom readability admin interface
+  //
+  $.sgr.openCustomReadabilityAdmin = function() {
+    var cr_settings = $.sgr.getSetting('custom_readability');
+
+    var cr_interface = $($.sgr.custom_readability_admin_interface);
+
+    if (cr_settings != null) {
+      if (typeof cr_settings['include'] != 'undefined') {
+        cr_interface.find("#cr_include").val(cr_settings['include']);
+      }
+      if (typeof cr_settings['exclude'] != 'undefined') {
+        cr_interface.find("#cr_exclude").val(cr_settings['exclude']);
+      }
+    }
+
+    $("body").append(cr_interface);
+  }
+
+  $.sgr.handleCustomReadabilityAdminFormSubmit = function(ev) {
+    var cr_settings = {};
+    if ($("#cr_include").val().length > 0) {
+      cr_settings['include'] = $("#cr_include").val();
+    }
+    if ($("#cr_exclude").val().length > 0) {
+      cr_settings['exclude'] = $("#cr_exclude").val();
+    }
+    debug(cr_settings);
+    $.sgr.setLocalSetting('custom_readability', cr_settings);
+
+    // Register the setting with the background window
+    //
+    $.sgr.sendRequest({action: 'local_setting_background', key: $.sgr.getSettingName('custom_readability', 'local'), setting_value: cr_settings, setting_name: 'custom_readability'});
   }
 
   // Update the selected Entry Tab based on the entry content being shown
@@ -1236,6 +1293,11 @@
           $.sgr.setGlobalSetting(request.setting_name, request.setting_value);
         }
 
+      // Local setting for background
+      //
+      } else if (request.action == 'local_setting_background') {
+        $.sgr.setLocalSetting(request.setting_name, request.setting_value, request.key);
+
       // Global setting for background
       //
       } else if (request.action == 'global_setting_background') {
@@ -1442,7 +1504,7 @@
 
   // Fetch readable content for an entry. First we check if the entry is a known type (e.g. youtube video) and
   // handle it appropriately if it is. If not, we perform an ajax request to grab the content and then parse
-  // it through readability.
+  // it through either readability or any custom readable selectors.
   //
   $.sgr.fetchReadableContent = function(url, success_callback, failure_callback, extra_return_data) {
     debug("fetchReadableContent() FETCH : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
@@ -1459,36 +1521,10 @@
         success: function(responseHtml) {
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
-          try {
-            var page = document.createElement("DIV");
-            page.innerHTML = readability.sgrInit(responseHtml);
-            //debug("page.innerHTML=");
-            //debug(page.innerHTML);
-
-            readability.flags = 0x1 | 0x2 | 0x4;
-
-            var content = readability.grabArticle(page);
-
-            if (content == null) {
-              throw new Error("Readability found no valid content.");
-            }
-
-            //debug("content.innerHTML after grabArticle:");
-            //debug(content.innerHTML);
-
-            // Remove any elements previously flagged to be filtered
-            //
-            readability.sgrRemoveFilteredElements(content);
-
-            readability.removeScripts(content);
-            readability.fixImageFloats(content);
-
-            //debug("content.innerHTML before sgrPostProcess:");
-            //debug(content.innerHTML);
-            content = readability.sgrPostProcess(content, url);
-          } catch(e) {
-            debug("Error running readability. Using original article content. " + e.name + ": " + e.message);
-            content = "<p>Sorry, no readable content was able to be generated.</p>";
+          if ($.sgr.getSetting('custom_readability') != null) {
+            var content = $.sgr.getCustomReadabilityContent(url, responseHtml);
+          } else {
+            var content = $.sgr.getReadabilityContent(url, responseHtml);
           }
 
           $.sgr.completedReadableContent(content, url, success_callback, extra_return_data);
@@ -1502,6 +1538,94 @@
         }
       });
     }
+  }
+
+  // Parse provided HTML content through the readability module and return the resulting HTML
+  //
+  $.sgr.getReadabilityContent = function(url, html) {
+    try {
+      var page = document.createElement("DIV");
+      page.innerHTML = readability.sgrInit(html);
+      //debug("page.innerHTML=");
+      //debug(page.innerHTML);
+
+      readability.flags = 0x1 | 0x2 | 0x4;
+
+      var content = readability.grabArticle(page);
+
+      if (content == null) {
+        throw new Error("Readability found no valid content.");
+      }
+
+      //debug("content.innerHTML after grabArticle:");
+      //debug(content.innerHTML);
+
+      // Remove any elements previously flagged to be filtered
+      //
+      readability.sgrRemoveFilteredElements(content);
+
+      readability.removeScripts(content);
+      readability.fixImageFloats(content);
+
+      //debug("content.innerHTML before sgrCleanContent:");
+      //debug(content.innerHTML);
+      content = readability.sgrCleanContent(url, content);
+    } catch(e) {
+      debug("Error running readability. " + e.name + ": " + e.message);
+      content = "<p>Sorry, no readable content was able to be generated.</p>";
+    }
+
+    return content;
+  }
+
+  // Parse the provided HTML content through custom CSS filters specified by the user
+  //
+  $.sgr.getCustomReadabilityContent = function(url, html) {
+     var err_msg = "<p>Sorry, no readable content was able to be generated. You may need to adjust your custom readability selectors and try again.</p>";
+
+    var cr_settings = $.sgr.getSetting('custom_readability');
+    /*
+    var cr_settings = {
+      include: '.article_preview .title, .article_preview .article, .article_promoted_text_container'
+      //, exclude: '.message'
+    };
+    */
+
+    if (typeof cr_settings == 'undefined' || cr_settings == null || (typeof cr_settings['include'] == 'undefined' && typeof cr_settings['exclude'] == 'undefined')) {
+      return err_msg;
+    }
+
+    var content = '';
+
+    debug(cr_settings['include']);
+    debug(cr_settings['exclude']);
+
+    content = readability.sgrFixBuggyHtml(html);
+
+    try {
+      var jq_content = $(content);
+      //debug("full:");
+      //debug(jq_content);
+      jq_content.find(cr_settings['exclude']).remove();
+      //debug("remove:");
+      //debug(jq_content);
+      var _jq_content = jq_content.find(cr_settings['include']);
+      //debug("find:");
+      //debug(_jq_content);
+      jq_content = $('<div>').append(_jq_content);
+      //debug(jq_content.html());
+      content = readability.sgrCleanContent(url, jq_content);
+      debug(content);
+    } catch(e) {
+      debug("Error running custom readability selectors. " + e.name + ": " + e.message);
+      return err_msg;
+    }
+
+    if (typeof content == 'undefined' || content == null || content == '') {
+      return err_msg;
+    }
+
+    return content;
   }
 
   // Handle a successful generation of readable content. We store the content and execute the provided calback.
