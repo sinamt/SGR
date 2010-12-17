@@ -263,6 +263,7 @@ readability['sgrCleanContent'] = function(url, content) {
   if (readability.sgr_article_title != null && jq_content.html().length > 0) {
     //debug("readability_sgr : adding title: " + readability.sgr_article_title);
     jq_content.prepend('<h2 class="sgr-entry-heading">' + readability.sgr_article_title + '</h2>');
+    readability.sgr_article_title = null;
   }
 
   return jq_content.html();

@@ -115,7 +115,7 @@
 
         // Register the USER_ID with the background window
         //
-        $.sgr.sendRequest({action: 'regsiter_user_id', user_id: $.sgr.USER_ID});
+        $.sgr.sendRequest({action: 'register_user_id', user_id: $.sgr.USER_ID});
 
         return;
       }
@@ -152,7 +152,7 @@
 
   // Set a setting value per feed or folder. Store it in localStorage.
   //
-  $.sgr.setLocalSetting = function(setting_name,value,key) {
+  $.sgr.setLocalSetting = function(setting_name, value, key) {
     if (typeof key == 'undefined') {
       var key = $.sgr.getSettingName(setting_name, 'local');
     }
@@ -176,8 +176,10 @@
 
   // Fetch a per feed or folder setting value from localStorage.
   //
-  $.sgr.getLocalSetting = function(setting_name) {
-    var key = $.sgr.getSettingName(setting_name, 'local');
+  $.sgr.getLocalSetting = function(setting_name, key) {
+    if (typeof key == 'undefined') {
+      var key = $.sgr.getSettingName(setting_name, 'local');
+    }
     if (key == null) {
       return null;
     }
@@ -215,8 +217,10 @@
 
   // Get a setting name, namespaced to the currently selected feed or folder
   //
-  $.sgr.getLocalSettingName = function(setting_name) {
-    var feed = $.sgr.getCurrentFeedName();
+  $.sgr.getLocalSettingName = function(setting_name,feed) {
+    if (typeof feed == 'undefined') {
+      var feed = $.sgr.getCurrentFeedName();
+    }
     if (typeof feed == 'undefined') {
       return false;
     }
@@ -1043,6 +1047,18 @@
     $.sgr.sendRequest({action: 'local_setting_background', key: $.sgr.getSettingName('custom_readability', 'local'), setting_value: cr_settings, setting_name: 'custom_readability'});
   }
 
+  $.sgr.getCustomReadabilitySettings = function(feed_name) {
+    if (typeof feed_name == 'undefined') {
+      return $.sgr.getSetting('custom_readability');
+    } else {
+      return $.sgr.getLocalSetting('custom_readability', $.sgr.getCustomReadabilitySettingName(feed_name));
+    }
+  }
+
+  $.sgr.getCustomReadabilitySettingName = function(feed_name) {
+    return $.sgr.USER_ID + '_' + $.sgr.getLocalSettingName('custom_readability',feed_name);
+  }
+
   // Update the selected Entry Tab based on the entry content being shown
   //
   $.sgr.updateSelectedEntryTab = function(entry) {
@@ -1196,7 +1212,7 @@
   // Ask the background window to fetch us readable content for the specified entry
   //
   $.sgr.sendReadabilityFetchRequest = function(entry, extra_data) {
-    extra_data = $.extend(extra_data, {user_id: $.sgr.USER_ID});
+    extra_data = $.extend(extra_data, {user_id: $.sgr.USER_ID, feed_name: $.sgr.getCurrentFeedName()});
     $.sgr.sendRequest({action: 'readability_fetch', readability_url: $.sgr.getEntryUrl(entry), extra_data: extra_data});
   }
 
@@ -1305,7 +1321,7 @@
 
       // Register USER_ID
       //
-      } else if (request.action == 'regsiter_user_id') {
+      } else if (request.action == 'register_user_id') {
         $.sgr.USER_ID = request.user_id;
 
       // Clear storage
@@ -1521,8 +1537,8 @@
         success: function(responseHtml) {
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
-          if ($.sgr.getSetting('custom_readability') != null) {
-            var content = $.sgr.getCustomReadabilityContent(url, responseHtml);
+          if ($.sgr.getCustomReadabilitySettings(extra_return_data.feed_name) != null) {
+            var content = $.sgr.getCustomReadabilityContent(url, extra_return_data.feed_name, responseHtml);
           } else {
             var content = $.sgr.getReadabilityContent(url, responseHtml);
           }
@@ -1580,10 +1596,12 @@
 
   // Parse the provided HTML content through custom CSS filters specified by the user
   //
-  $.sgr.getCustomReadabilityContent = function(url, html) {
+  $.sgr.getCustomReadabilityContent = function(url, feed_name, html) {
      var err_msg = "<p>Sorry, no readable content was able to be generated. You may need to adjust your custom readability selectors and try again.</p>";
 
-    var cr_settings = $.sgr.getSetting('custom_readability');
+    var cr_settings = $.sgr.getCustomReadabilitySettings(feed_name);
+    //debug("cr_settings for " + feed_name);
+    //debug(cr_settings);
     /*
     var cr_settings = {
       include: '.article_preview .title, .article_preview .article, .article_promoted_text_container'
