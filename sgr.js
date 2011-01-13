@@ -47,6 +47,8 @@
   $.sgr.gr_main_window_re = new RegExp($.sgr.gr_url_base);
   $.sgr.gr_settings_window_re = new RegExp($.sgr.gr_url_base + 'settings');
 
+  $.sgr.cr_url_default = '[feed.url]';
+
   // Youtube API URLs
   //
   $.sgr.youtube_api = {
@@ -791,8 +793,6 @@
       if (ev_target.hasClass("entry")) {
         var entry = ev_target;
 
-        $.sgr.setEntryOriginalContent(entry);
-
         // If we are in expanded view
         //
         if ($.sgr.isExpandedView()) {
@@ -1010,7 +1010,7 @@
     $("#stream-prefs-menu").after($.sgr.getSgrSettingsButtonHtml());
   }
 
-  $.sgr.custom_readability_admin_interface = '<div id="custom-readability-interface" class=""><form id="custom-readability-form" action=""><span id="custom-readbaility-instructions">Enter CSS selector to match HTML to include and/or exclude for each feed entry..</span> <div id="quick-add-close"></div> <div id="quick-add-input-div"><label><div class="cr-label">Include:</div><input type="text" name="cr_include" id="cr_include" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div id="quick-add-input-div"><label><div class="cr-label">Exclude:</div><input type="text" name="cr_exclude" id="cr_exclude" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div role="wairole:button" tabindex="0" id="cr-submit-button" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-button-tight"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div> <div class="goog-button-base-content"><div class="goog-button-body">Add</div> </div></div></div></div></div> <div id="quick-add-helptext">e.g., googleblog.blogspot.com or cnn</div></form></div>';
+  $.sgr.custom_readability_admin_interface = '<div id="custom-readability-interface" class=""><form id="custom-readability-form" action=""><span id="custom-readbaility-instructions">Enter CSS selector to match HTML to include and/or exclude for each feed entry..</span> <div id="quick-add-close" class="cr-close"></div> <div id="quick-add-input-div"><label><div class="cr-label">URL:</div><input type="text" name="cr_url" id="cr_url" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div> <div id="quick-add-input-div"><label><div class="cr-label">Include:</div><input type="text" name="cr_include" id="cr_include" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div id="quick-add-input-div"><label><div class="cr-label">Exclude:</div><input type="text" name="cr_exclude" id="cr_exclude" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div role="wairole:button" tabindex="0" id="cr-submit-button" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-button-tight"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div> <div class="goog-button-base-content"><div class="goog-button-body">Add</div> </div></div></div></div></div> <div id="quick-add-helptext">e.g., googleblog.blogspot.com or cnn</div></form></div>';
 
   // Display the custom readability admin interface
   //
@@ -1020,6 +1020,9 @@
     var cr_interface = $($.sgr.custom_readability_admin_interface);
 
     if (cr_settings != null) {
+      if (typeof cr_settings['url'] != 'undefined') {
+        cr_interface.find("#cr_url").val(cr_settings['url']);
+      }
       if (typeof cr_settings['include'] != 'undefined') {
         cr_interface.find("#cr_include").val(cr_settings['include']);
       }
@@ -1027,12 +1030,18 @@
         cr_interface.find("#cr_exclude").val(cr_settings['exclude']);
       }
     }
+    if (cr_interface.find("#cr_url").val().length <= 0) {
+      cr_interface.find("#cr_url").val($.sgr.cr_url_default);
+    }
 
     $("body").append(cr_interface);
   }
 
   $.sgr.handleCustomReadabilityAdminFormSubmit = function(ev) {
     var cr_settings = {};
+    if ($("#cr_url").val().length > 0) {
+      cr_settings['url'] = $("#cr_url").val();
+    }
     if ($("#cr_include").val().length > 0) {
       cr_settings['include'] = $("#cr_include").val();
     }
@@ -1175,7 +1184,7 @@
           // the readable chunk matches the currently open entry, keep going
           //
           if (typeof response.pre_fetch == 'undefined' || response.pre_fetch == false) {
-            var entry = $('.' + $.sgr.generateReadableEntryClass(data.readability_url));
+            var entry = $.sgr.getEntryFromUrl(data.readability_url);
 
             if (entry.length > 0) {
               // If we have received readable content for an entry, check if we need to display this content
@@ -1212,8 +1221,12 @@
   // Ask the background window to fetch us readable content for the specified entry
   //
   $.sgr.sendReadabilityFetchRequest = function(entry, extra_data) {
-    extra_data = $.extend(extra_data, {user_id: $.sgr.USER_ID, feed_name: $.sgr.getCurrentFeedName()});
-    $.sgr.sendRequest({action: 'readability_fetch', readability_url: $.sgr.getEntryUrl(entry), extra_data: extra_data});
+    var feed_name = $.sgr.getCurrentFeedName();
+    var entry_url = $.sgr.getEntryUrl(entry);
+
+    extra_data = $.extend(extra_data, {user_id: $.sgr.USER_ID, feed_name: feed_name});
+
+    $.sgr.sendRequest({action: 'readability_fetch', readability_url: entry_url, extra_data: extra_data});
   }
 
   // Store the original feed content for an entry. We use this if we can't find any readable content for the entry.
@@ -1226,6 +1239,18 @@
   //
   $.sgr.getEntryOriginalContent = function(entry) {
     return $.sgr.entry_original_content[$.sgr.generateReadableEntryClass($.sgr.getEntryUrl(entry))];
+  }
+
+  // Retrieve the stored original feed content for an entry URL
+  //
+  $.sgr.getEntryOriginalContentFromUrl = function(url) {
+    return $.sgr.entry_original_content[$.sgr.generateReadableEntryClass(url)];
+  }
+
+  // Find and return a DOM entry from a given readable content URL
+  //
+  $.sgr.getEntryFromUrl = function(url) {
+    return $('.' + $.sgr.generateReadableEntryClass(url));
   }
 
   // Revert to using the entry's original feed content.
@@ -1285,6 +1310,11 @@
         //
         } else if ($.sgr.matchUrlExtension(request.readability_url, ['pdf', 'ppt'])) {
           sendResponse($.extend({action: 'readability_content', readability_content: $.sgr.getGoogleDocHtml(request.readability_url), _msg: "Google docs content found for " + request.readability_url},request.extra_data));
+
+        // Image
+        //
+        } else if ($.sgr.matchUrlExtension(request.readability_url, ['png', 'jpg', 'gif', 'jpeg'])) {
+          sendResponse($.extend({action: 'readability_content', readability_content: $.sgr.getImageHtml(request.readability_url), _msg: "Image found for " + request.readability_url},request.extra_data));
 
         // If stored content exists but has been set to 'none', meaning previously no readable content could be found,
         // report a readability error and use the original feed content.
@@ -1389,7 +1419,19 @@
   // Find and return the external/outgoing link for a specific entry
   //
   $.sgr.getEntryUrl = function(entry) {
-    return entry.find('.entry-original, .entry-title-link').first().attr('href');
+
+    var feed_name = $.sgr.getCurrentFeedName();
+    var cr_settings = $.sgr.getCustomReadabilitySettings(feed_name);
+    var entry_url = entry.find('.entry-original, .entry-title-link').first().attr('href');
+
+    // Set a custom entry URL if a regex has been provided to do so via Custom readability settings
+    //
+    if (cr_settings != null) {
+      entry_url = $.sgr.getCustomReadabilityUrl(entry_url, feed_name);
+      entry.addClass($.sgr.generateReadableEntryClass(entry_url));
+    }
+
+    return entry_url;
   }
 
   // Append an entry's hostname to it's subject (or any specified selector).
@@ -1528,6 +1570,7 @@
     var content_replaced = $.sgr.handleReadableEntryContentReplace(url, success_callback, failure_callback, extra_return_data);
 
     if (content_replaced == false) {
+
       $.ajax({
         url: url,
         data: {},
@@ -1537,7 +1580,9 @@
         success: function(responseHtml) {
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
-          if ($.sgr.getCustomReadabilitySettings(extra_return_data.feed_name) != null) {
+          var cr_settings = $.sgr.getCustomReadabilitySettings(extra_return_data.feed_name);
+
+          if (cr_settings != null && (typeof cr_settings['include'] != 'undefined' || typeof cr_settings['exclude'] != 'undefined')) {
             var content = $.sgr.getCustomReadabilityContent(url, extra_return_data.feed_name, responseHtml);
           } else {
             var content = $.sgr.getReadabilityContent(url, responseHtml);
@@ -1645,6 +1690,44 @@
 
     return content;
   }
+
+  // Parse the provided HTML content through custom CSS filters specified by the user
+  //
+  $.sgr.getCustomReadabilityUrl = function(url, feed_name) {
+
+    var cr_settings = $.sgr.getCustomReadabilitySettings(feed_name);
+    /*
+    var cr_settings = {
+      include: '.article_preview .title, .article_preview .article, .article_promoted_text_container'
+      //, exclude: '.message'
+    };
+    */
+
+    if (typeof cr_settings == 'undefined' || cr_settings == null || typeof cr_settings['url'] == 'undefined' || cr_settings['url'] == $.sgr.cr_url_default) {
+      return url;
+    }
+
+    //debug(url);
+    //debug($.sgr.getEntryFromUrl(url));
+    var content = $.sgr.getEntryOriginalContentFromUrl(url);
+    //debug(content);
+
+    var found_url = url;
+
+    try {
+      found_url = content.match(new RegExp(cr_settings['url']))[1];
+    } catch(e) {
+      debug("Error running custom readability URL regex. " + e.name + ": " + e.message);
+    }
+
+    if (typeof found_url == 'undefined' || found_url == null || found_url == '') {
+      found_url = url;
+    }
+
+    //debug("found_url = " + found_url);
+    return found_url;
+  }
+
 
   // Handle a successful generation of readable content. We store the content and execute the provided calback.
   //
@@ -1779,6 +1862,9 @@
   // Generate a class name for an entry based on it's URL
   //
   $.sgr.generateReadableEntryClass = function(url) {
+    if (typeof url == 'undefined') {
+      return;
+    }
     return "sgr-entry-" + url.replace(/[^a-zA-Z0-9]+/g,'_');
   }
 
@@ -1812,10 +1898,16 @@
     return '<iframe id="google_doc_iframe" scrolling="no" width="100%" height="' + $.sgr.minimum_iframe_height_str + '" src="http://docs.google.com/gview?embedded=true&url=' + url + '" class=""></iframe>';
   }
 
+  // Construct HTML for am embedded image
+  //
+  $.sgr.getImageHtml = function(url) {
+    return '<img src="' + url + '" />';
+  }
+
   // Get the URL extension (e.g. php) if it exists.
   //
   $.sgr.getUrlExtension = function(url) {
-    return url.match(/.*\.(.*)$/i)[1];
+    return url.match(/.*\.(.*)$/i)[1].toLowerCase();
   }
 
   // Match a URL's extension to a given array of extensions.
