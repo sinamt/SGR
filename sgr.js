@@ -1698,25 +1698,31 @@
 
     var content = '';
 
-    debug(cr_settings['include']);
-    debug(cr_settings['exclude']);
+    //debug(cr_settings['include']);
+    //debug(cr_settings['exclude']);
 
     content = readability.sgrFixBuggyHtml(html);
+    //debug(content);
 
     try {
       var jq_content = $(content);
       //debug("full:");
       //debug(jq_content);
-      jq_content.find(cr_settings['exclude']).remove();
+      if (typeof cr_settings['exclude'] != 'undefined') {
+        jq_content.find(cr_settings['exclude']).remove();
+      }
       //debug("remove:");
       //debug(jq_content);
-      var _jq_content = jq_content.find(cr_settings['include']);
+      var _jq_content = jq_content;
+      if (typeof cr_settings['include'] != 'undefined') {
+        var _jq_content = jq_content.find(cr_settings['include']);
+      }
       //debug("find:");
       //debug(_jq_content);
       jq_content = $('<div>').append(_jq_content);
       //debug(jq_content.html());
       content = readability.sgrCleanContent(url, jq_content);
-      debug(content);
+      //debug(content);
     } catch(e) {
       debug("Error running custom readability selectors. " + e.name + ": " + e.message);
       return err_msg;
