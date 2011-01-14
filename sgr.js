@@ -141,7 +141,7 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #custom-readability-interface { background-color: #F7F7F7; border: 1px solid #D0D0D0; color: black; position: absolute; width: 400px; z-index: 101; border-radius: 3px;} #custom-readability-form {margin: 8px;} .cr-label {float: left; width: 60px} .sgr-entry-original-url, .sgr-entry-cr-url {display: none;}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #custom-readability-interface { background-color: #F7F7F7; border: 1px solid #D0D0D0; color: black; position: absolute; width: 400px; z-index: 101; border-radius: 3px;} #custom-readability-form {margin: 14px;} .cr-label {float: left; width: 60px} .cr-move { background: url(http://www.google.com/reader/ui/1225119760-lhn-sprite.png) no-repeat; cursor: move; height: 16px; width: 16px; background-position: -32px 0px; position: absolute; top:1px; left:1px; } .sgr-entry-original-url, .sgr-entry-cr-url {display: none;}';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -1019,7 +1019,7 @@
     $("#stream-prefs-menu").after($.sgr.getSgrSettingsButtonHtml());
   }
 
-  $.sgr.custom_readability_admin_interface = '<div id="custom-readability-interface" class=""><form id="custom-readability-form" action=""><span id="custom-readbaility-instructions">Enter CSS selector to match HTML to include and/or exclude for each feed entry..</span> <div id="quick-add-close" class="cr-close"></div> <div id="quick-add-input-div"><label><div class="cr-label">URL:</div><input type="text" name="cr_url" id="cr_url" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div> <div id="quick-add-input-div"><label><div class="cr-label">Include:</div><input type="text" name="cr_include" id="cr_include" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div id="quick-add-input-div"><label><div class="cr-label">Exclude:</div><input type="text" name="cr_exclude" id="cr_exclude" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div role="wairole:button" tabindex="0" id="cr-submit-button" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-button-tight"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div> <div class="goog-button-base-content"><div class="goog-button-body">Save</div> </div></div></div></div></div> <div id="quick-add-helptext">e.g., googleblog.blogspot.com or cnn</div></form></div>';
+  $.sgr.custom_readability_admin_interface = '<div id="custom-readability-interface" class=""><div id="" class="cr-move"></div><form id="custom-readability-form" action=""><span id="custom-readbaility-instructions">Enter CSS selector to match HTML to include and/or exclude for each feed entry..</span> <div id="quick-add-close" class="cr-close"></div> <div id="quick-add-input-div"><label><div class="cr-label">URL:</div><input type="text" name="cr_url" id="cr_url" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div> <div id="quick-add-input-div"><label><div class="cr-label">Include:</div><input type="text" name="cr_include" id="cr_include" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div id="quick-add-input-div"><label><div class="cr-label">Exclude:</div><input type="text" name="cr_exclude" id="cr_exclude" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div role="wairole:button" tabindex="0" id="cr-submit-button" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-button-tight"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div> <div class="goog-button-base-content"><div class="goog-button-body">Save</div> </div></div></div></div></div> <div id="quick-add-helptext">e.g., googleblog.blogspot.com or cnn</div></form></div>';
 
   // Display the custom readability admin interface
   //
@@ -1043,9 +1043,13 @@
       cr_interface.find("#cr_url").val($.sgr.cr_url_default);
     }
 
+    cr_interface.draggable({handle: '.cr-move', cursor: 'crosshair'});
+
     $("body").append(cr_interface);
   }
 
+  // Process a form submission for custom readability interface
+  // 
   $.sgr.handleCustomReadabilityAdminFormSubmit = function(ev) {
     var cr_settings = {};
     if ($("#cr_url").val().length > 0) {
@@ -1069,6 +1073,8 @@
     $('.sgr-entry-cr-url').remove();
   }
 
+  // Find and return custom readability settings
+  //
   $.sgr.getCustomReadabilitySettings = function(feed_name) {
     if (typeof feed_name == 'undefined') {
       return $.sgr.getSetting('custom_readability');
@@ -1077,6 +1083,8 @@
     }
   }
 
+  // Generate a key for custom readability settings for a specified feed
+  //
   $.sgr.getCustomReadabilitySettingName = function(feed_name) {
     return $.sgr.USER_ID + '_' + $.sgr.getLocalSettingName('custom_readability',feed_name);
   }
@@ -1587,14 +1595,14 @@
     }
   }
 
-  // Toggle the display of the readability pre-fetch menu option, depending on the user's setting
+  // Toggle the display of the readability pre-fetch & custom readability menu options, depending on the user's setting
   // for 'use_readability'.
   //
   $.sgr.togglePreFetchReadableContentMenuOption = function() {
     if ($.sgr.getSetting('use_readability')) {
-      $("#menu_readability_pre_fetch").removeClass("goog-menuitem-disabled").addClass("goog-option");
+      $("#menu_readability_pre_fetch, #menu_pick_custom_readability").removeClass("goog-menuitem-disabled").addClass("goog-option");
     } else {
-      $("#menu_readability_pre_fetch").addClass("goog-menuitem-disabled").removeClass("goog-option");
+      $("#menu_readability_pre_fetch, #menu_pick_custom_readability").addClass("goog-menuitem-disabled").removeClass("goog-option");
     }
   }
 
