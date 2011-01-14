@@ -141,7 +141,7 @@
   //
   $.sgr.initStyles = function() {
 
-    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #custom-readability-interface { background-color: #F7F7F7; border: 1px solid #D0D0D0; color: black; position: absolute; width: 400px; z-index: 101; border-radius: 3px;} #custom-readability-form {margin: 8px;} .cr-label {float: left; width: 60px}';
+    var global_styles = ' div.preview .entry-container { display: none; } .entry .entry-container-preview { padding: 0.5em 0; margin: 0 10px 0 0; color: #000; max-width: 98%; display: block; left: -10000px; } .entry .entry-container-preview .entry-title { max-width: 98%; } .entry .entry-container-preview .entry-main .entry-date { display: none; } .entry .entry-container-preview-hidden { position: absolute; } #setting-enhanced .enhanced { border-bottom:1px solid #FFCC66; margin:0; padding:0.6em 0; } #setting-enhanced .enhanced-header { font-weight: bold; margin-bottom: 1em; } div.preview iframe.preview { display: block; overflow-y: hidden; } .entry .sgr-hostname { font-weight: normal; } .entry .entry-main .sgr-hostname { font-size: 90%; } .sgr-entry-tabs {position: absolute; background-color: #F3F5FC; left: 500px; padding: 0px 10px; top: 2px; z-index: 100; } .sgr-entry-tab {padding: 2px 5px 1px; margin: 1px 1px 0; border: 1px solid #68E; border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px; float: left; } .sgr-entry-tabs .selected {background-color: white; border: 2px solid #68E; border-bottom: none;} .sgr-entry-tab:hover {cursor: pointer; background-color: #FFFFCC;} .cards .sgr-entry-tabs {background-color: transparent; top: 0; } .cards .sgr-entry-tab {background-color: white; } .cards .sgr-entry-tabs .selected {padding: 2px 5px;} .cards .entry {padding: 21px 0 0;} #sgr-prefs-menu-menu {display: none; overflow-y: auto} .goog-menuitem-disabled .goog-menuitem-checkbox {opacity: 0.5;} .sgr-wikipedia-content .tright {float: right; clear: right; margin: 0.5em 0px 0.8em 1.4em;} .sgr-wikipedia-content .tleft {float: left; clear: left; margin: 0.5em 1.4em 0.8em 0px;} .sgr-wikipedia-content .thumbinner { background-color: #F9F9F9; border: 1px solid #CCC; font-size: 94%; overflow: hidden; padding: 3px !important; text-align: center; min-width: 100px; } .sgr-wikipedia-content #toc, .sgr-wikipedia-content .toc, .sgr-wikipedia-content .mw-warning {background-color: #F9F9F9; border: 1px solid #AAA; font-size: 95%; padding: 5px;} .sgr-wikipedia-content #toc ul, .sgr-wikipedia-content .toc ul {list-style-image: none; list-style-type: none; margin-left: 0px; padding-left: 0px; text-align: left;} .sgr-wikipedia-content .infobox { background-color: #F9F9F9; border: 1px solid #AAA; clear: right; color: black; float: right; margin: 0.5em 0px 0.5em 1em; padding: 0.2em; } #custom-readability-interface { background-color: #F7F7F7; border: 1px solid #D0D0D0; color: black; position: absolute; width: 400px; z-index: 101; border-radius: 3px;} #custom-readability-form {margin: 8px;} .cr-label {float: left; width: 60px} .sgr-entry-original-url, .sgr-entry-cr-url {display: none;}';
     
     // Check if 'Hide likers' is enabled and add appropriate CSS
     //
@@ -783,7 +783,10 @@
         //debug("#entries DOMNodeInserted .entry-container");
 
         $.sgr.removePreview($(".preview"));
+
+        $.sgr.setEntryOriginalUrl(entry);
         $.sgr.setEntryOriginalContent(entry);
+        $.sgr.setEntryCustomReadabilityUrl(entry);
 
         $.sgr.handleEntryOpen(entry);
       }
@@ -970,6 +973,12 @@
       return false;
     });
 
+    // Custom readability admin form close live click event
+    //
+    $(".cr-close").live("click",function(ev) {
+      $("#custom-readability-interface").remove();
+    });
+
     // Keyboard shortcut help - DOMNodeInserted live event 
     //
     $(".keyboard-help-banner .secondary-message").live('DOMNodeInserted',function(ev){
@@ -1010,7 +1019,7 @@
     $("#stream-prefs-menu").after($.sgr.getSgrSettingsButtonHtml());
   }
 
-  $.sgr.custom_readability_admin_interface = '<div id="custom-readability-interface" class=""><form id="custom-readability-form" action=""><span id="custom-readbaility-instructions">Enter CSS selector to match HTML to include and/or exclude for each feed entry..</span> <div id="quick-add-close" class="cr-close"></div> <div id="quick-add-input-div"><label><div class="cr-label">URL:</div><input type="text" name="cr_url" id="cr_url" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div> <div id="quick-add-input-div"><label><div class="cr-label">Include:</div><input type="text" name="cr_include" id="cr_include" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div id="quick-add-input-div"><label><div class="cr-label">Exclude:</div><input type="text" name="cr_exclude" id="cr_exclude" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div role="wairole:button" tabindex="0" id="cr-submit-button" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-button-tight"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div> <div class="goog-button-base-content"><div class="goog-button-body">Add</div> </div></div></div></div></div> <div id="quick-add-helptext">e.g., googleblog.blogspot.com or cnn</div></form></div>';
+  $.sgr.custom_readability_admin_interface = '<div id="custom-readability-interface" class=""><form id="custom-readability-form" action=""><span id="custom-readbaility-instructions">Enter CSS selector to match HTML to include and/or exclude for each feed entry..</span> <div id="quick-add-close" class="cr-close"></div> <div id="quick-add-input-div"><label><div class="cr-label">URL:</div><input type="text" name="cr_url" id="cr_url" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div> <div id="quick-add-input-div"><label><div class="cr-label">Include:</div><input type="text" name="cr_include" id="cr_include" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div id="quick-add-input-div"><label><div class="cr-label">Exclude:</div><input type="text" name="cr_exclude" id="cr_exclude" autocomplete="off" spellcheck="false" style="width: 238px; "></label></div><div role="wairole:button" tabindex="0" id="cr-submit-button" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-button-tight"><div class="goog-button-base-outer-box goog-inline-block"><div class="goog-button-base-inner-box goog-inline-block"><div class="goog-button-base-pos"><div class="goog-button-base-top-shadow">&nbsp;</div> <div class="goog-button-base-content"><div class="goog-button-body">Save</div> </div></div></div></div></div> <div id="quick-add-helptext">e.g., googleblog.blogspot.com or cnn</div></form></div>';
 
   // Display the custom readability admin interface
   //
@@ -1048,12 +1057,16 @@
     if ($("#cr_exclude").val().length > 0) {
       cr_settings['exclude'] = $("#cr_exclude").val();
     }
-    debug(cr_settings);
+    //debug(cr_settings);
     $.sgr.setLocalSetting('custom_readability', cr_settings);
 
     // Register the setting with the background window
     //
     $.sgr.sendRequest({action: 'local_setting_background', key: $.sgr.getSettingName('custom_readability', 'local'), setting_value: cr_settings, setting_name: 'custom_readability'});
+
+    // Remove any cached custom readability URL's
+    //
+    $('.sgr-entry-cr-url').remove();
   }
 
   $.sgr.getCustomReadabilitySettings = function(feed_name) {
@@ -1232,13 +1245,13 @@
   // Store the original feed content for an entry. We use this if we can't find any readable content for the entry.
   //
   $.sgr.setEntryOriginalContent = function(entry) {
-    $.sgr.entry_original_content[$.sgr.generateReadableEntryClass($.sgr.getEntryUrl(entry))] = entry.find(".entry-body").html();
+    $.sgr.entry_original_content[$.sgr.generateReadableEntryClass($.sgr.getEntryOriginalUrl(entry))] = entry.find(".entry-body").html();
   }
 
   // Retrieve the stored original feed content for an entry
   //
   $.sgr.getEntryOriginalContent = function(entry) {
-    return $.sgr.entry_original_content[$.sgr.generateReadableEntryClass($.sgr.getEntryUrl(entry))];
+    return $.sgr.entry_original_content[$.sgr.generateReadableEntryClass($.sgr.getEntryOriginalUrl(entry))];
   }
 
   // Retrieve the stored original feed content for an entry URL
@@ -1416,22 +1429,47 @@
 
   }
 
+  // Find and return the original (from the feed) external/outgoing link for a specific entry
+  //
+  $.sgr.getEntryOriginalUrl = function(entry) {
+    return entry.find('.sgr-entry-original-url, .entry-original, .entry-title-link').first().attr('href');
+  }
+
   // Find and return the external/outgoing link for a specific entry
   //
   $.sgr.getEntryUrl = function(entry) {
+    return entry.find('.sgr-entry-cr-url, .sgr-entry-original-url, .entry-original, .entry-title-link').first().attr('href');
+  }
 
+  // Store the entry's original feed URL so we don't lose it if we are dealing with a custom 
+  // readability URL.
+  //
+  $.sgr.setEntryOriginalUrl = function(entry) {
+    if (entry.find('.sgr-entry-original-url').length > 0) {
+      return;
+    }
+    var url = $.sgr.getEntryOriginalUrl(entry);
+    entry.prepend('<a href="' + url + '" class="sgr-entry-original-url"></a>');
+  }
+
+  // Store the entry's custom readability URL
+  //
+  $.sgr.setEntryCustomReadabilityUrl = function(entry) {
+    if (entry.find('.sgr-entry-cr-url').length > 0) {
+      return;
+    }
     var feed_name = $.sgr.getCurrentFeedName();
     var cr_settings = $.sgr.getCustomReadabilitySettings(feed_name);
-    var entry_url = entry.find('.entry-original, .entry-title-link').first().attr('href');
+    var orig_url = $.sgr.getEntryOriginalUrl(entry);
 
     // Set a custom entry URL if a regex has been provided to do so via Custom readability settings
     //
     if (cr_settings != null) {
-      entry_url = $.sgr.getCustomReadabilityUrl(entry_url, feed_name);
-      entry.addClass($.sgr.generateReadableEntryClass(entry_url));
-    }
+      cr_url = $.sgr.getCustomReadabilityUrl(orig_url, feed_name);
 
-    return entry_url;
+      entry.addClass($.sgr.generateReadableEntryClass(cr_url));
+      entry.prepend('<a href="' + cr_url + '" class="sgr-entry-cr-url"></a>');
+    }
   }
 
   // Append an entry's hostname to it's subject (or any specified selector).
