@@ -1475,6 +1475,25 @@
     if (cr_settings != null) {
       cr_url = $.sgr.getCustomReadabilityUrl(orig_url, feed_name);
 
+      // Clone and remove the anchor elements from the DOM, replacing the href element
+      // in the process. We need to remove them because GR is intercepting the click event
+      // on the anchor and loading the original feed url instead of our updated one.
+      //
+      var entry_title_link = entry.find('.entry-title-link').clone();
+      entry_title_link.attr('href', cr_url);
+      entry.find('.entry-title-link').remove();
+      entry.find('.entry-container .entry-title').append(entry_title_link);
+
+      // TODO : Replacing .entry-original removes the GR check that stops clicks
+      // on it from opening/closing the actual entry. Fix this.
+      //
+      var entry_original = entry.find('.entry-original').clone();
+      entry_original.attr('href', cr_url);
+      entry.find('.entry-original').remove();
+      entry.find('.entry-main').prepend(entry_original);
+
+      // Add a class for this url and store the custom URL in the DOM
+      //
       entry.addClass($.sgr.generateReadableEntryClass(cr_url));
       entry.prepend('<a href="' + cr_url + '" class="sgr-entry-cr-url"></a>');
     }
@@ -1627,6 +1646,7 @@
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
           var cr_settings = $.sgr.getCustomReadabilitySettings(extra_return_data.feed_name);
+          debug(cr_settings);
 
           if (cr_settings != null && (typeof cr_settings['include'] != 'undefined' || typeof cr_settings['exclude'] != 'undefined')) {
             var content = $.sgr.getCustomReadabilityContent(url, extra_return_data.feed_name, responseHtml);
@@ -1901,14 +1921,28 @@
     return true;
   }
 
+  // Readable content generator for Imgur images. Will provide a direct embedded image.
+  //
+  $.sgr.replaceContentImgur = function(url, url_matches, success_callback, failure_callback, extra_return_data) {
+    if (url_matches[2] == null) {
+      return false;
+    }
+    var html = $.sgr.getImageHtml('http://i.imgur.com/' + url_matches[2] + '.gif');
+
+    $.sgr.completedReadableContent(html, url, success_callback, extra_return_data);
+
+    return true;
+  }
+
   // Settings for known readable content types. Includes regex to match against entry links. This
   // must be defined after the callback functions have been initiated so references to the callbacks
   // can be listed in this settings object.
   //
   $.sgr.readable_entry_content_replace = [
-    {name: 'youtube', regex: new RegExp($.sgr.start_url_str + 'youtube\.com\/(?:watch|)\\?v\=(.*?)(?:&.*|)$'), callback: $.sgr.replaceContentYoutube}
+    {name: 'youtube', regex: new RegExp($.sgr.start_url_str + 'youtube\.com\/(?:watch|)\\?v\=(.*?)(?:(&|\\?).*|)$'), callback: $.sgr.replaceContentYoutube}
     ,{name: 'vimeo', regex: new RegExp($.sgr.start_url_str + 'vimeo\.com\/([0-9]*)'), callback: $.sgr.replaceContentVimeo}
     ,{name: 'wikipedia', regex: /^http(?:s|)\:\/\/.*?\.wikipedia\.org\/(?:wiki\/(.*)|w\/index\.php.*?title=(.*?)(?:&.*|)$)/, callback: $.sgr.replaceContentWikipedia}
+    ,{name: 'imgur', regex: new RegExp($.sgr.start_url_str + 'imgur\.com\/(.*\/|)([0-9a-zA-Z]{5})$'), callback: $.sgr.replaceContentImgur}
     ];
 
   // Generate a class name for an entry based on it's URL
