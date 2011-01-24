@@ -102,9 +102,6 @@
       $.sgr.togglePreFetchReadableContentMenuOption();
     }
     
-    // Register the setting 'readability_more_images' with the background window
-    //
-    $.sgr.sendRequest({action: 'global_setting_background', setting_name: 'readability_more_images', setting_value: $.sgr.getSetting('readability_more_images')});
   }
 
   // Initialise the USER_ID. This is found within the javascript itself on the google reader page.
@@ -163,8 +160,7 @@
     }
     //debug("setLocalSetting() : " + key + " = " + value);
     
-    $.stor.set(key, value);
-    $.sgr._settings[key] = value;
+    $.sgr.setSetting(key, value);
   }
 
   // Set a global setting value. Store it in localStorage.
@@ -172,8 +168,24 @@
   $.sgr.setGlobalSetting = function(setting_name,value) {
     var key = $.sgr.getSettingName(setting_name, 'global');
     //debug("setGlobalSetting() : " + key + " = " + value);
+    $.sgr.setSetting(key, value);
+  }
+
+  // Actually store a setting in our local storage and cache it locally.
+  // Also send this change to the background window so it is in sync.
+  //
+  $.sgr.setSetting = function(key, value, send_to_background) {
+    if (typeof send_to_background == 'undefined') {
+      send_to_background = true;
+    }
+
     $.stor.set(key, value);
     $.sgr._settings[key] = value;
+
+    if (send_to_background) {
+      //debug("setSetting : sending to background : " + key + ":" + value);
+      $.sgr.sendRequest({action: 'set_setting_background', setting_name: key, setting_value: value});
+    }
   }
 
   // Fetch a per feed or folder setting value from localStorage.
@@ -583,8 +595,6 @@
         $.sgr.togglePreFetchReadableContentMenuOption();
       }
     }
-
-    $.sgr.sendRequest({action: 'global_setting_change', setting_name: gs_name, setting_value: gs_value, set_in_background: (gs_name == 'readability_more_images' ? true : false)});
   }
 
   // Act on a global setting change in the main Google Reader window
@@ -1064,10 +1074,6 @@
     //debug(cr_settings);
     $.sgr.setLocalSetting('custom_readability', cr_settings);
 
-    // Register the setting with the background window
-    //
-    $.sgr.sendRequest({action: 'local_setting_background', key: $.sgr.getSettingName('custom_readability', 'local'), setting_value: cr_settings, setting_name: 'custom_readability'});
-
     // Remove any cached custom readability URL's
     //
     $('.sgr-entry-cr-url').remove();
@@ -1354,21 +1360,14 @@
       } else if (request.action == 'global_setting_change') {
         $.sgr.sendToTab(sender.tab.id, {action: 'global_setting_change', setting_name: request.setting_name, setting_value: request.setting_value});
 
-        // Set this global setting in the background window itself if we are told to
-        //
-        if (typeof request.set_in_background != 'undefined' && request.set_in_background) {
-          $.sgr.setGlobalSetting(request.setting_name, request.setting_value);
-        }
-
-      // Local setting for background
+      // Set setting in background window
       //
-      } else if (request.action == 'local_setting_background') {
-        $.sgr.setLocalSetting(request.setting_name, request.setting_value, request.key);
-
-      // Global setting for background
-      //
-      } else if (request.action == 'global_setting_background') {
-        $.sgr.setGlobalSetting(request.setting_name, request.setting_value);
+      } else if (request.action == 'set_setting_background') {
+        //debug("========= set_setting_background");
+        //debug("request.setting_name=" + request.setting_name);
+        //debug("request.setting_value=");
+        //debug(request.setting_value);
+        $.sgr.setSetting(request.setting_name, request.setting_value, false);
 
       // Register USER_ID
       //
@@ -1646,7 +1645,7 @@
           //debug("fetchReadableContent() SUCCESS : " + (extra_return_data.pre_fetch ? "[PRE-FETCH] " : "") + " " + url);
 
           var cr_settings = $.sgr.getCustomReadabilitySettings(extra_return_data.feed_name);
-          debug(cr_settings);
+          //debug(cr_settings);
 
           if (cr_settings != null && (typeof cr_settings['include'] != 'undefined' || typeof cr_settings['exclude'] != 'undefined')) {
             var content = $.sgr.getCustomReadabilityContent(url, extra_return_data.feed_name, responseHtml);
