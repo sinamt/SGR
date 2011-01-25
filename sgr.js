@@ -796,7 +796,7 @@
 
         $.sgr.setEntryOriginalUrl(entry);
         $.sgr.setEntryOriginalContent(entry);
-        $.sgr.setEntryCustomReadabilityUrl(entry);
+        $.sgr.setEntryCustomReadabilityUrl(entry, true);
 
         $.sgr.handleEntryOpen(entry);
       }
@@ -811,6 +811,8 @@
         if ($.sgr.isExpandedView()) {
           $.sgr.handleEntryOpen(entry);
         } else {
+          $.sgr.setEntryCustomReadabilityUrl(entry);
+
           // Add hostname to subject
           //
           $.sgr.addHostnameToSubject(entry, '.entry-title');
@@ -1073,6 +1075,20 @@
     }
     //debug(cr_settings);
     $.sgr.setLocalSetting('custom_readability', cr_settings);
+
+    // Store all custom_readability settings in one object keyed by the feed/folder name.
+    // This allows us to easily grab these values as a whole when we need them.
+    //
+    var extra_global_settings = {};
+    extra_global_settings[$.sgr.getCurrentFeedName()] = cr_settings;
+
+    var global_settings = $.sgr.getGlobalSetting('custom_readability');
+    if (global_settings == null) {
+      global_settings = {};
+    }
+    global_settings = $.extend(global_settings, extra_global_settings)
+
+    $.sgr.setGlobalSetting('custom_readability', global_settings);
 
     // Remove any cached custom readability URL's
     //
@@ -1461,10 +1477,15 @@
 
   // Store the entry's custom readability URL
   //
-  $.sgr.setEntryCustomReadabilityUrl = function(entry) {
-    if (entry.find('.sgr-entry-cr-url').length > 0) {
+  $.sgr.setEntryCustomReadabilityUrl = function(entry, refresh) {
+    if (typeof refresh == 'undefined') {
+      refresh = false;
+    }
+
+    if (entry.find('.sgr-entry-cr-url').length > 0 && refresh == false) {
       return;
     }
+
     var feed_name = $.sgr.getCurrentFeedName();
     var cr_settings = $.sgr.getCustomReadabilitySettings(feed_name);
     var orig_url = $.sgr.getEntryOriginalUrl(entry);
@@ -1494,6 +1515,7 @@
       // Add a class for this url and store the custom URL in the DOM
       //
       entry.addClass($.sgr.generateReadableEntryClass(cr_url));
+      entry.find(".sgr-entry-cr-url").remove();
       entry.prepend('<a href="' + cr_url + '" class="sgr-entry-cr-url"></a>');
     }
   }
@@ -1762,9 +1784,9 @@
     return content;
   }
 
-  // Parse the provided HTML content through custom CSS filters specified by the user
+  // Find a custom URL for the feed content, based on the original url of the feed item.
   //
-  $.sgr.getCustomReadabilityUrl = function(url, feed_name) {
+  $.sgr.getCustomReadabilityUrl = function(orig_url, feed_name) {
 
     var cr_settings = $.sgr.getCustomReadabilitySettings(feed_name);
     /*
@@ -1775,30 +1797,42 @@
     */
 
     if (typeof cr_settings == 'undefined' || cr_settings == null || typeof cr_settings['url'] == 'undefined' || cr_settings['url'] == $.sgr.cr_url_default) {
-      return url;
+      return orig_url;
     }
 
-    //debug(url);
-    //debug($.sgr.getEntryFromUrl(url));
-    var content = $.sgr.getEntryOriginalContentFromUrl(url);
-    //debug(content);
+    var cr_url = $.sgr.getCustomReadabilityUrlFromCache(feed_name, orig_url);
 
-    var found_url = url;
+    if (cr_url == null) {
+      var content = $.sgr.getEntryOriginalContentFromUrl(orig_url);
+      cr_url = $.sgr.getCustomReadabilityUrlFromContent(orig_url, content, cr_settings['url']);
+    }
+
+    return cr_url;
+  }
+
+  // Find a custom URL for the provided HTML content through custom CSS filters specified by the user
+  //
+  $.sgr.getCustomReadabilityUrlFromContent = function(orig_url, content, url_selector) {
+
+    var found_url = orig_url;
+
+    if (typeof content == 'undefined' || typeof url_selector == 'undefined') {
+      return orig_url;
+    }
 
     try {
-      found_url = content.match(new RegExp(cr_settings['url']))[1];
+      found_url = content.match(new RegExp(url_selector))[1];
     } catch(e) {
       debug("Error running custom readability URL regex. " + e.name + ": " + e.message);
     }
 
     if (typeof found_url == 'undefined' || found_url == null || found_url == '') {
-      found_url = url;
+      found_url = orig_url;
     }
 
     //debug("found_url = " + found_url);
     return found_url;
   }
-
 
   // Handle a successful generation of readable content. We store the content and execute the provided calback.
   //
@@ -2016,6 +2050,142 @@
     });
   }
 
+  $.sgr.gr_api_base = self.location.protocol + '//' + self.location.host + '/reader/api/0/';
+
+  $.sgr.gr_api = {
+    contents: $.sgr.gr_api_base + 'stream/contents/'
+  }
+  
+  $.sgr.custom_url_feeds = {};
+  $.sgr.feeds_being_fetched = {};
+  
+
+  $.sgr.initCustomReadableFeeds = function() {
+    $.sgr.initCustomReadableUrlFeeds();
+  }
+
+  $.sgr.initCustomReadableUrlFeeds = function() {
+    var cr_global_settings = $.sgr.getGlobalSetting('custom_readability');
+    $.each(cr_global_settings,function(feed_name,cr_settings){
+      if (typeof cr_settings['url'] != 'undefined' && cr_settings['url'] != $.sgr.cr_url_default) {
+        $.sgr.custom_url_feeds[feed_name] = {name: feed_name, url: $.sgr.getFeedUrl(feed_name), cr_settings: cr_settings};
+      }
+    });
+
+    $.sgr.fetchCustomReadableFeeds();
+  }
+
+  $.sgr.fetchCustomReadableFeeds = function() {
+    $.each($.sgr.custom_url_feeds, function(feed_name,feed) {
+      if ($.sgr.isFeedBeingFetched(feed.url) == false) {
+        $.sgr.fetchFeedContentFromGoogleReader(feed);
+      }
+    });
+  }
+
+  $.sgr.fetchFeedContentFromGoogleReader = function(feed) {
+
+    var api_contents_url = $.sgr.gr_api['contents'] + feed.url + '?r=n&client=sgr&n=100&ck=' + (new Date()).getTime() + (feed.continuation ? '&c=' + feed.continuation : '');
+    
+    //debug(api_contents_url);
+
+    $.sgr.flagFeedBeingFetched(feed.url, true);
+
+    $.ajax({
+      url: api_contents_url,
+      dataType: 'json',
+      success: function(feed_data) {
+
+        feed.continuation = feed_data.continuation;
+
+        if (typeof feed.items == 'undefined') {
+          feed['items'] = {};
+        }
+
+        // Loop each received feed entry
+        //
+        $.each(feed_data.items,function(feed_item_index, item){
+          var orig_url = item.alternate[0].href;
+          var content = $.sgr.getRawFeedItemContent(item);
+
+          //feed.items[item.alternate[0].href] = {orig_url: orig_url, raw: item};
+          //
+          feed.items[orig_url] = {cr_url: $.sgr.getCustomReadabilityUrlFromContent(orig_url, content, feed.cr_settings['url'])};
+        });
+        
+        debug("$.sgr.custom_url_feeds=");
+        debug($.sgr.custom_url_feeds);
+
+        $.sgr.runCustomReadabilityUrlForCurrentFeed(feed);
+        $.sgr.addHostnameToSubjects();
+      },
+      complete: function() {
+        $.sgr.flagFeedBeingFetched(feed.url, false);
+      }
+    });
+    
+  }
+
+  $.sgr.runCustomReadabilityUrlForCurrentFeed = function(cr_feed) {
+    var feed_name = $.sgr.getCurrentFeedName();
+
+    // If a specific feed is provided, check if the current feed matches this and only
+    // continue if it does match.
+    //
+    if (typeof cr_feed != 'undefined' && feed_name != cr_feed.name) {
+      return false;
+    }
+
+    // Loop all current entries and try to set a custom readable URL if appropriate
+    //
+    $(".entry").each(function(entry_idx,entry) {
+      $.sgr.setEntryCustomReadabilityUrl($(entry), true);
+    });
+  }
+
+  $.sgr.getRawFeedItemContent = function(item) {
+    // Find main entry content
+    //
+    if (typeof item.content != 'undefined' && typeof item.content.content != 'undefined') {
+      return item.content.content;
+    } else if (typeof item.summary != 'undefined' && typeof item.summary.content != 'undefined') {
+      return item.summary.content;
+    } else {
+      return '';
+    }
+  }
+  
+  $.sgr.getCustomReadabilityUrlFromCache = function(feed_name, orig_url) {
+    if (typeof $.sgr.custom_url_feeds[feed_name] == 'undefined' 
+        || typeof $.sgr.custom_url_feeds[feed_name].items == 'undefined' 
+        || typeof $.sgr.custom_url_feeds[feed_name].items[orig_url] == 'undefined' 
+        || typeof $.sgr.custom_url_feeds[feed_name].items[orig_url].cr_url == 'undefined'
+        ) {
+      return null;
+    }
+    return $.sgr.custom_url_feeds[feed_name].items[orig_url].cr_url;
+  }
+
+  $.sgr.isFeedBeingFetched = function(feed_url) {
+    return typeof $.sgr.feeds_being_fetched[feed_url] != 'undefined';
+  }
+
+  $.sgr.flagFeedBeingFetched = function(feed_url, being_fetched) {
+    if (being_fetched) {
+      $.sgr.feeds_being_fetched[feed_url] = true;
+    } else {
+      delete $.sgr.feeds_being_fetched[feed_url];
+    }
+  }
+  
+  $.sgr.getFeedUrl = function(feed_name) {
+    var feed_url = feed_name.match(/\/reader\/view\/(.*)/)[1];
+    feed_url.replace(/\/-\//, '/' + $.sgr.USER_ID + '/');
+    return feed_url;
+  }
+
+  // Confirm main run on Google Reader site is allowed to continue.
+  //
   $.sgr.canRun = function() {
 
     // Check we are running on the Google Reader domain.
@@ -2060,6 +2230,8 @@
     $.sgr.initStyles();
 
     $.sgr.initMainWindowEvents();
+
+    $.sgr.initCustomReadableFeeds();
 
     $.sgr.initSettingsWindow();
 
