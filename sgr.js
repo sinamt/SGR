@@ -729,7 +729,7 @@
 
           $.sgr.togglePreFetchReadableContentMenuOption();
 
-          $("#sgr-prefs-menu-menu").css('left', offset.left).css('top', offset.top + ev_target.height()).show();
+          $("#sgr-prefs-menu-menu").css('left', offset.left).css('top', offset.top + sgr_prefs_menu.height()).show();
           
           // Initialise a hover event for hovering over our settings menu options
           //
@@ -737,6 +737,9 @@
             function(ev) {
               if (!$(this).hasClass("goog-menuitem-disabled")) {
                 $(this).addClass("goog-menuitem-highlight");
+              }
+              if ($(this).hasClass("goog-menuseparator")) {
+                $(this).removeClass("goog-menuitem-highlight");
               }
             },
             function(ev) {
@@ -1649,7 +1652,7 @@
   // Construct the HTML for a 'Super settings' menu button
   //
   $.sgr.getSgrSettingsButtonHtml = function() {
-    return '<div role="wairole:button" tabindex="0" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-menu-button goog-button-tight sgr-prefs-menu-item" id="sgr-prefs-menu"><div class="goog-button-base-outer-box goog-inline-block sgr-prefs-menu-item"><div class="goog-button-base-inner-box goog-inline-block sgr-prefs-menu-item"><div class="goog-button-base-pos sgr-prefs-menu-item"><div class="goog-button-base-top-shadow sgr-prefs-menu-item">&nbsp;</div><div class="goog-button-base-content sgr-prefs-menu-item"><div class="goog-button-body sgr-prefs-menu-item">Super settings...</div><div class="goog-menu-button-dropdown sgr-prefs-menu-item"></div></div></div></div></div></div>';
+    return '<div role="wairole:button" tabindex="0" class="goog-button goog-button-base unselectable goog-inline-block goog-button-float-left goog-menu-button goog-button-tight sgr-prefs-menu-item" id="sgr-prefs-menu"><div class="goog-button-base-outer-box goog-inline-block sgr-prefs-menu-item"><div class="goog-button-base-inner-box goog-inline-block sgr-prefs-menu-item"><div class="goog-button-base-pos sgr-prefs-menu-item"><div class="goog-button-base-content sgr-prefs-menu-item"><div class="goog-button-body sgr-prefs-menu-item">Super settings...</div><div class="goog-menu-button-dropdown sgr-prefs-menu-item"></div></div></div></div></div></div>';
   }
 
   // Construct the HTML for a dropdown menu option item
