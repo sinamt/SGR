@@ -3,8 +3,8 @@
   "version": "1.3.2",
   "description": "Enables full content feeds for Google Reader. Provides readable content or iframing of feed entries.",
   "permissions": [
-    "http://*/*", 
-    "https://*/*",
+    "http://*.google.*/reader/view*", 
+    "https://*.google.*/reader/view*",
     "tabs"
   ],
   "icons": { "16": "rss_16x16.png",
@@ -12,27 +12,27 @@
             "128": "rss_128x128.png" },
   "content_scripts": [
     {
-      "matches": ["*://*/reader/view*", "*://*/reader/settings*"],
+      "matches": ["*://*.google.*/reader/view*", "*://*.google.*/reader/settings*"],
       "js": ["jquery.js", "debug.js", "storage.js", "readability.js", "readability_sgr.js", "sgr.js", "reader.js"],
       "all_frames": true
     }
 ,
     {
-      "matches": ["*://*/reader/view*", "*://*/reader/settings*"],
+      "matches": ["*://*.google.*/reader/view*", "*://*.google.*/reader/settings*"],
       "js": ["reader_preload.js"],
       "run_at": "document_start",
       "all_frames": true
     }
 ,
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["http://*.google.*/*", "https://*.google.*/*"],
       "js": ["iframe_preload.js"],
       "run_at": "document_start",
       "all_frames": true
     }
 ,
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["http://*.google.*/*", "https://*.google.*/*"],
       "js": ["jquery.js", "debug.js", "iframe.js"],
       "run_at": "document_end",
       "all_frames": true
